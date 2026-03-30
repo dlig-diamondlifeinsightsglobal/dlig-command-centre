@@ -856,11 +856,9 @@ body{background:var(--cream);color:var(--text);font-family:'Plus Jakarta Sans',s
     </div>
     <div id="gdc-cal-view"></div>
     <div style="overflow-x:auto;margin-bottom:14px"><table class="pt"><thead><tr><th>发布日期</th><th style="min-width:180px">发布内容</th><th>平台</th><th>类型</th><th>Deadline</th><th>完成日期</th><th>效率</th><th>GDC 对接</th><th>DLIG负责</th><th>操作</th></tr></thead><tbody id="gdc-list"></tbody></table></div>
-    <div class="sl">💰 GDC 外包收费参考</div>
-    <div class="card" style="overflow-x:auto;padding:14px"><table class="pay-table"><thead><tr><th>任务类型</th><th>比例</th></tr></thead><tbody id="gdc-pay-tbl"></tbody></table></div>
     <div class="sl" style="margin-top:14px">🔗 相关链接</div>
     <div class="ql-wrap">
-      <a class="ql" href="https://docs.google.com/spreadsheets/d/1A3g_WPDU-R4zU8gj8gGHu885z5bk4lTBBRnCfDsstDI/edit" target="_blank">🗂 Task Tracking Sheet</a>
+      <a class="ql" href="https://docs.google.com/spreadsheets/d/1Gc0rO-gx_CBSZ60fFHvmMeTsq7dClsCU4WiSN5ii-2M/edit?usp=sharing" target="_blank">📅 Schedule GDC Marketing Content</a>
     </div>
   </div>
 
@@ -2084,8 +2082,6 @@ function renderGDC(){
     </td>
   </tr>`;}).join(''):'<tr><td colspan="10" style="text-align:center;color:var(--muted);padding:20px">暂无 GDC 任务</td></tr>';
 
-  const payEl=document.getElementById('gdc-pay-tbl');
-  if(payEl)payEl.innerHTML=GDC_PAY.map(p=>`<tr><td>${p.t}</td><td style="font-weight:700;color:var(--green)">${p.v}</td></tr>`).join('');
 }
 function openGDCComplete(i){
   const fil=GDC_F==='全部'?GDC_TASKS:GDC_TASKS.filter(t=>t.status===GDC_F);
