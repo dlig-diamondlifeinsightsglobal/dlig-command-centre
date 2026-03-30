@@ -18,7 +18,7 @@ const TASK_HDR_ROW  = 1;
 const TASK_DATA_ROW = 2;
 
 const MKT_TAB       = 'Marketing Content';  // tab 名在 Sales & Marketing spreadsheet
-const GDC_JOB_TAB   = 'GDC Marketing Job';  // ⚠️ 请改成你 GDC spreadsheet 里的实际 tab 名
+const GDC_JOB_TAB   = 'Content arrangement';  // GDC spreadsheet 的实际 tab 名
 const SALES_TAB     = 'Sales Dashboard';
 const EVENTS_TAB    = 'Events 活动';         // 在 Task Board spreadsheet 里新建这个 tab
 const ROTATION_TAB  = 'Rotation 轮值';       // 在 Task Board spreadsheet 里新建这个 tab
