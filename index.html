@@ -439,8 +439,13 @@ body{background:var(--cream);color:var(--text);font-family:'Plus Jakarta Sans',s
       <div class="tb-sub">DLIG · Your Life You Design · H1 2026 Target RM 125,000</div>
     </div>
     <div class="tb-pills" id="tb-pills" style="display:none"></div>
+<<<<<<< HEAD
+    <div style="font-size:10px;color:var(--muted);display:flex;align-items:center;gap:5px;">
+      <div style="width:6px;height:6px;border-radius:50%;background:var(--amber);animation:pulse 2s infinite"></div>localStorage 模式 · 待连接 Google Sheets
+=======
     <div id="sheets-status" style="font-size:10px;color:var(--muted);display:flex;align-items:center;gap:5px;">
       <div style="width:6px;height:6px;border-radius:50%;background:var(--amber);animation:pulse 2s infinite"></div>正在连接 Google Sheets…
+>>>>>>> e56196e (Connect Google Sheets via Apps Script Web App)
     </div>
   </div>
   <style>@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}</style>
@@ -508,6 +513,10 @@ body{background:var(--cream);color:var(--text);font-family:'Plus Jakarta Sans',s
           <div class="ff"><div class="fl2">优先级</div><select class="fs" id="nk"><option>🔴 紧急</option><option>🟡 本周</option><option>⚡ 本月</option><option>⭐ 长期</option></select></div>
           <div class="ff"><div class="fl2">Deadline</div><input class="fi" id="ndl" type="date" style="width:145px"></div>
           <button class="add-btn" onclick="addTask()">+ 添加</button>
+        </div>
+        <div class="ff" style="margin-top:8px">
+          <div class="fl2">描述 / Description（选填）</div>
+          <textarea class="fi" id="ndesc" rows="2" placeholder="补充说明、背景、参考链接…" style="resize:vertical;min-height:44px;font-size:11.5px;line-height:1.5"></textarea>
         </div>
       </div>
       <div class="ab-section" id="ab-log">
@@ -589,6 +598,10 @@ body{background:var(--cream);color:var(--text);font-family:'Plus Jakarta Sans',s
 
   <!-- ══ SALES ══ -->
   <div class="page" id="p-sales">
+    <div class="ib ib-blue" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">
+      <span>📝 <b>Sales Report 请在 Google Sheet 更新</b> — 网站数据以 Sheet 为准</span>
+      <a href="https://docs.google.com/spreadsheets/d/1F0Ss1MuAwVRkVfWch2wepx2SvMXG3BoIBfVN0v9ye9M/edit" target="_blank" style="background:var(--blue);color:#fff;padding:5px 14px;border-radius:8px;font-size:11px;font-weight:700;text-decoration:none;white-space:nowrap;">📊 开启 Sales File →</a>
+    </div>
     <div class="ss-grid" id="ss-h1"></div>
     <div class="sl">📊 H1 月度达成</div>
     <div class="card" style="overflow-x:auto;padding:14px;">
@@ -1012,6 +1025,10 @@ const ctag=c=>c?`<span class="tag tcat">${c}</span>`:'';
 const ktag=k=>{const m={'🔴 紧急':'turg','🟡 本周':'tweek','⚡ 本月':'tmon','⭐ 长期':'tlong'};return k?`<span class="tag ${m[k]||'tlong'}">${k}</span>`:'';}
 const stag=s=>{const m={'已完成':'sb-done','进行中':'sb-prog','待启动':'sb-todo','待处理':'sb-todo','待决策':'sb-dec','待建立':'sb-pend'};return s?`<span class="sb ${m[s]||'sb-pend'}">${s}</span>`:'';}
 const fRM=n=>{const v=parseFloat((n||'').toString().replace(/[^0-9.-]/g,''));return isNaN(v)?'—':'RM'+v.toLocaleString('en-MY',{minimumFractionDigits:0});}
+<<<<<<< HEAD
+const save=(k,v)=>{try{localStorage.setItem('dlig7_'+k,JSON.stringify(v));}catch(e){}}
+const load=(k,def)=>{try{const v=localStorage.getItem('dlig7_'+k);return v?JSON.parse(v):def;}catch(e){return def;}}
+=======
 const save=(k,v)=>{try{localStorage.setItem('dlig7_'+k,JSON.stringify(v));}catch(e){} syncToSheets(k,v);}
 const load=(k,def)=>{try{const v=localStorage.getItem('dlig7_'+k);return v?JSON.parse(v):def;}catch(e){return def;}}
 
@@ -1037,6 +1054,7 @@ async function loadFromSheets(){
   }
   if(el)el.innerHTML='<span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--amber);animation:pulse 2s infinite"></span>&nbsp;正在同步…';
   let ok=true;
+  // tasks / mkt_content / gdc_tasks
   for(const[lsKey,sheetType]of Object.entries(SHEET_KEY_MAP)){
     try{
       const res=await fetch(SHEETS_API_URL+'?sheet='+sheetType);
@@ -1044,14 +1062,25 @@ async function loadFromSheets(){
       if(Array.isArray(rows)&&rows.length>0)save(lsKey,rows);
     }catch(e){ok=false;}
   }
+  // Sales Dashboard (read-only — user edits numbers in Sheet)
+  try{
+    const sres=await fetch(SHEETS_API_URL+'?sheet=sales');
+    const srows=await sres.json();
+    if(Array.isArray(srows)&&srows.length>0){
+      SALES=srows.map(r=>({
+        m:r.month||'',t:Number(r.target)||0,a:Number(r.actual)||0,
+        n:r.note||'',x:Number(r.xd)||0,y:Number(r.ylyd)||0,
+        b:Number(r.exp)||0,s:Number(r.book)||0
+      })).filter(r=>r.m);
+    }
+  }catch(e){ok=false;}
   if(ok){
     if(el)el.innerHTML='<span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--green)"></span>&nbsp;已连接 Google Sheets';
   }else{
     if(el)el.innerHTML='<span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--red)"></span>&nbsp;连接失败，使用本地数据';
   }
-  // 用 Sheet 最新数据刷新内存变量 & 页面
   TASKS=load('tasks',TASKS);MKT_CONTENT=load('mkt_content',MKT_CONTENT);GDC_TASKS=load('gdc_tasks',GDC_TASKS);
-  renderTasks();renderMktCal();renderGDC();renderOverview();updateStats();
+  renderTasks();renderMktCal();renderGDC();renderOverview();renderSales();updateStats();
 }
 const COEF={'Sales':3,'Marketing':2,'System':2,'GDC':2,'Operation':1,'Admin':1};
 const PAY_SM_DATA=[{t:'✍ 视频文案（2篇）',v:'RM5'},{t:'✍ 信息文案模版（2篇）',v:'RM5'},{t:'📣 制作 Post 图+文案',v:'RM15'},{t:'🖼 制作海报（1张）',v:'RM15'},{t:'📝 视频脚本（1支）',v:'RM5'},{t:'📱 剪辑短视频-一键成片（1min内）',v:'RM20'},{t:'📱 剪辑短视频（1min内）',v:'RM50'},{t:'🎬 剪辑YouTube（25min内）',v:'RM100'},{t:'🧠 Landing Page 文案',v:'RM50'},{t:'🖥 Landing Page 制作',v:'RM150'}];
@@ -1179,7 +1208,7 @@ const XD_FLOW_D2=[
   {title:'🚀 YLYD 呈现 + 报名（20min）',desc:'呈现结构 · 平静的朋友语气，不是销售员',script:'这两天，你做了三件事：看见。排序。选择。但如果没有结构，这些觉察，会慢慢消失。所以我们设计了 YLYD……升级开放到今晚 11:59pm哦。'},
 ];
 
-const SALES=[
+let SALES=[
   {m:'Jan 2026',t:10000,a:2124,n:'广告RM200',x:12,y:0,b:0,s:0},
   {m:'Feb 2026',t:18000,a:0,n:'',x:0,y:0,b:0,s:0},
   {m:'Mar 2026',t:25000,a:2981,n:'',x:2,y:3,b:0,s:1},
@@ -1524,7 +1553,8 @@ function renderTasks(){
           const e=t.status==='已完成'?calcEff(t):null;
           const contrib=e!==null&&!isFee&&t.actual?calcContrib(t.actual,e):null;
           return`<div class="tc ${cls}${isFee?' tfee':''}">
-            <div class="tc-text">${t.task}</div>
+            <div class="tc-text" style="white-space:pre-wrap;word-break:break-word">${t.task}</div>
+            ${t.desc?`<div style="font-size:10.5px;color:var(--muted);margin-top:5px;padding-top:5px;border-top:1px dashed var(--border);line-height:1.55;white-space:pre-wrap;word-break:break-word">${t.desc}</div>`:''}
             <div class="tc-meta">${ptag(t.person)}${ctag(t.cat)}<span class="tag" style="background:${isFee?'var(--purpleB)':'var(--blueB)'};color:${isFee?'var(--purple)':'var(--blue)'}">${isFee?'💰 Fee':'⏱ 贡献'}</span>${ktag(t.priority)}</div>
             ${t.deadline?`<div class="tc-ref">📅 DL: ${t.deadline}</div>`:''}
             ${t.status==='已完成'&&t.doneDate?`<div class="tc-ref" style="color:var(--green)">✅ 完成: ${t.doneDate}${t.actual?' · '+t.actual+'h':''}</div>`:''}
@@ -1561,7 +1591,7 @@ function renderTasks(){
       const PEOPLE=['全员','Li Joo','Jasper','Stella','Roy','待认领'];
       const CATS=['Operation','Marketing','✍ 视频文案/信息文案','📣 制作Post图+文案','🖼 制作海报','📝 视频脚本','📱 剪辑短视频-一键成片','📱 剪辑短视频','🎬 剪辑YouTube','🧠 Landing Page文案','🖥 Landing Page制作','Sales','Admin','System','GDC job'];
       return`<tr style="${isDone?'opacity:.45':''}">
-        <td><input style="border:none;background:transparent;font-family:'Plus Jakarta Sans',sans-serif;font-size:11.5px;font-weight:500;width:100%;outline:none;${isDone?'text-decoration:line-through':''}" value="${t.task.replace(/"/g,'&quot;')}" onchange="editTask(${t.id},'task',this.value)"></td>
+        <td><input style="border:none;background:transparent;font-family:'Plus Jakarta Sans',sans-serif;font-size:11.5px;font-weight:500;width:100%;outline:none;${isDone?'text-decoration:line-through':''}" value="${t.task.replace(/"/g,'&quot;')}" onchange="editTask(${t.id},'task',this.value)">${t.desc?`<div contenteditable="true" style="font-size:10px;color:var(--muted);margin-top:3px;line-height:1.5;outline:none;padding:2px 0;border-bottom:1px dashed transparent" onfocus="this.style.borderBottomColor='var(--border)'" onblur="editTask(${t.id},'desc',this.innerText.trim());this.style.borderBottomColor='transparent'" title="点击编辑描述">${t.desc}</div>`:''}</td>
         <td><select style="border:none;background:transparent;font-family:'Plus Jakarta Sans',sans-serif;font-size:11px;cursor:pointer;outline:none" onchange="editTask(${t.id},'person',this.value)">${PEOPLE.map(p=>`<option ${p===t.person?'selected':''}>${p}</option>`).join('')}</select></td>
         <td><select style="border:none;background:transparent;font-family:'Plus Jakarta Sans',sans-serif;font-size:10px;cursor:pointer;outline:none;max-width:120px" onchange="editTask(${t.id},'cat',this.value)">${CATS.map(c=>`<option ${c===t.cat?'selected':''}>${c}</option>`).join('')}</select></td>
         <td><select style="border:none;background:transparent;font-family:'Plus Jakarta Sans',sans-serif;font-size:10px;cursor:pointer;outline:none" onchange="editTask(${t.id},'type',this.value)"><option value="contrib" ${t.type==='contrib'?'selected':''}>⏱ 贡献</option><option value="fee" ${t.type==='fee'?'selected':''}>💰 Fee</option></select></td>
@@ -1581,8 +1611,9 @@ function markProg(id){const t=TASKS.find(x=>x.id===id);if(t){t.status='进行中
 function addTask(){
   const tx=document.getElementById('nt').value.trim();if(!tx)return;
   const nid=Math.max(0,...TASKS.map(t=>t.id))+1;
-  TASKS.unshift({id:nid,task:tx,person:document.getElementById('np').value,cat:document.getElementById('nc').value,type:document.getElementById('ntype').value,priority:document.getElementById('nk').value,deadline:document.getElementById('ndl').value,status:'待启动',est:parseFloat(document.getElementById('nest').value)||0,actual:'',doneDate:''});
-  document.getElementById('nt').value='';document.getElementById('nest').value='';
+  const desc=document.getElementById('ndesc')?.value.trim()||'';
+  TASKS.unshift({id:nid,task:tx,person:document.getElementById('np').value,cat:document.getElementById('nc').value,type:document.getElementById('ntype').value,priority:document.getElementById('nk').value,deadline:document.getElementById('ndl').value,status:'待启动',est:parseFloat(document.getElementById('nest').value)||0,actual:'',doneDate:'',desc});
+  document.getElementById('nt').value='';document.getElementById('nest').value='';if(document.getElementById('ndesc'))document.getElementById('ndesc').value='';
   save('tasks',TASKS);renderTasks();renderOverview();
 }
 function addLog(){
@@ -2149,7 +2180,10 @@ document.getElementById('bdate').textContent=now2.toLocaleDateString('zh-MY',{ye
 renderOverview();renderTasks();renderCalendar();renderSales();renderMktCal();renderProducts();
 renderAdmin();renderXindong();renderYLYD();renderGDC();renderPolicy();
 renderMeeting();renderDecisions();renderFiles();renderMktCal();updateStats();
+<<<<<<< HEAD
+=======
 loadFromSheets(); // 从 Google Sheets 拉取最新数据（异步）
+>>>>>>> e56196e (Connect Google Sheets via Apps Script Web App)
 </script>
 </body>
 </html>
