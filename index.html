@@ -615,8 +615,8 @@ body{background:var(--cream);color:var(--text);font-family:'Plus Jakarta Sans',s
       <table class="pt" style="table-layout:fixed;width:100%"><thead><tr><th style="width:75px">月份</th><th style="width:90px">Target</th><th style="width:90px">Actual</th><th style="width:60px">达成率</th><th style="width:90px">Shortfall</th><th style="width:52px;font-size:9px">心动觉察</th><th style="width:48px;font-size:9px">YLYD</th><th style="width:48px;font-size:9px">体验包</th><th style="width:48px;font-size:9px">设计册</th><th>备注</th></tr></thead>
       <tbody id="mo-body"></tbody><tfoot id="mo-foot"></tfoot></table>
     </div>
-    <div style="background:var(--blueB);border:2px solid rgba(26,79,138,.2);border-radius:14px;padding:16px;margin-bottom:16px;margin-top:18px">
-      <div class="sl" style="margin-top:0;color:var(--blue)">📋 本月销售（<span id="curr-month-label">Mar 2026</span>）</div>
+    <div style="background:#e8f8f5;border:2px solid rgba(32,178,170,.25);border-radius:14px;padding:16px;margin-bottom:16px;margin-top:18px">
+      <div class="sl" style="margin-top:0;color:var(--teal,#20b2aa)">📋 本月销售（<span id="curr-month-label">Mar 2026</span>）</div>
       <div class="ss-grid" id="ss-curr"></div>
       <div class="sl" style="color:var(--blue)">📦 本月产品拆解</div>
       <div class="card" style="overflow-x:auto;padding:14px;">
@@ -1910,27 +1910,31 @@ function showCalDetail(ds){
 // SALES
 // ═══════════════════════════════════════
 function renderSales(){
-  const totT=SALES.reduce((a,b)=>a+b.t,0),totA=SALES.reduce((a,b)=>a+b.a,0);
-  const curr=SALES.find(s=>s.m==='Mar 2026')||SALES[0];
+  const MONTH_NAMES=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const now=new Date();
+  const curMonthStr=MONTH_NAMES[now.getMonth()]+' '+now.getFullYear();
+  const validSalesArr=SALES.filter(s=>/^(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s+\d{4}$/.test(s.m));
+  const totT=validSalesArr.reduce((a,b)=>a+b.t,0),totA=validSalesArr.reduce((a,b)=>a+b.a,0);
+  const curr=validSalesArr.find(s=>s.m===curMonthStr)||validSalesArr.find(s=>s.t>0&&s.a===0)||validSalesArr[validSalesArr.length-1]||validSalesArr[0]||{t:0,a:0,m:curMonthStr};
   const currLbl=document.getElementById('curr-month-label');if(currLbl)currLbl.textContent=curr.m;
   const cp=curr.t>0?(curr.a/curr.t*100):0;
   const mkCard=(l,v,c,prog)=>`<div class="sc"><div class="sc-lbl">${l}</div><div class="sc-val" style="color:${c}">${v}</div>${prog!=null?`<div class="pb"><div class="pf" style="width:${Math.min(100,prog)}%;background:${prog<30?'var(--red)':prog<70?'var(--amber)':'var(--green)'}"></div></div>`:''}</div>`;
   document.getElementById('ss-h1').innerHTML=[
     mkCard('H1 销售目标',fRM(totT),'var(--gold)',null),
-    mkCard('H1 已达成',`${fRM(totA)} <span style="font-size:13px;font-weight:600">(${(totA/totT*100).toFixed(1)}%)</span>`,'var(--green)',totA/totT*100),
+    mkCard('H1 已达成',`${fRM(totA)} <span style="font-size:13px;font-weight:600">(${totT>0?(totA/totT*100).toFixed(1):0}%)</span>`,'var(--green)',totT>0?totA/totT*100:0),
     mkCard('H1 Shortfall',fRM(totT-totA),'var(--red)',null),
   ].join('');
   document.getElementById('ss-curr').innerHTML=[
-    mkCard('本月目标（Mar）',fRM(curr.t),'var(--gold)',null),
+    mkCard(`本月目标（${MONTH_NAMES[now.getMonth()]}）`,fRM(curr.t),'var(--gold)',null),
     mkCard('本月已达成',`${fRM(curr.a)} <span style="font-size:13px">(${cp.toFixed(1)}%)</span>`,curr.a>0?'var(--green)':'var(--muted)',cp),
     mkCard('本月 Shortfall',fRM(curr.t-curr.a),'var(--red)',null),
   ].join('');
-  document.getElementById('mo-body').innerHTML=SALES.map(s=>{
-    const p=s.t>0?(s.a/s.t*100):0;const isc=s.m==='Mar 2026';
+  document.getElementById('mo-body').innerHTML=validSalesArr.map(s=>{
+    const p=s.t>0?(s.a/s.t*100):0;const isc=s.m===curMonthStr;
     return`<tr style="${isc?'background:var(--goldL)':''}"><td style="font-weight:600">${s.m}</td><td style="font-family:'Space Mono',monospace">${fRM(s.t)}</td><td style="font-family:'Space Mono',monospace;font-weight:700;color:${s.a>0?'var(--green)':'var(--muted)'}">${s.a>0?fRM(s.a):'—'}</td><td><span style="font-family:'Space Mono',monospace;font-size:11px;font-weight:700;color:${p<30?'var(--red)':p<70?'var(--amber)':'var(--green)'}">${p.toFixed(1)}%</span></td><td style="font-family:'Space Mono',monospace;font-size:10.5px;color:var(--red)">${s.a>0?fRM(s.a-s.t):'—'}</td><td style="text-align:center">${s.x}</td><td style="text-align:center">${s.y}</td><td style="text-align:center">${s.b}</td><td style="text-align:center">${s.s}</td><td style="font-size:10px;color:var(--muted)">${s.n}</td></tr>`;
   }).join('');
-  const fT=SALES.reduce((a,b)=>a+b.t,0),fA=SALES.reduce((a,b)=>a+b.a,0);
-  document.getElementById('mo-foot').innerHTML=`<tr style="background:var(--goldL)"><td style="font-weight:800">H1 TOTAL</td><td style="font-family:'Space Mono',monospace;font-weight:700">${fRM(fT)}</td><td style="font-family:'Space Mono',monospace;font-weight:700;color:var(--green)">${fRM(fA)}</td><td style="font-family:'Space Mono',monospace;font-weight:700;color:${fA/fT*100<50?'var(--red)':'var(--green)'}">${(fA/fT*100).toFixed(1)}%</td><td style="font-family:'Space Mono',monospace;color:var(--red)">${fRM(fA-fT)}</td><td colspan="5"></td></tr>`;
+  const fT=validSalesArr.reduce((a,b)=>a+b.t,0),fA=validSalesArr.reduce((a,b)=>a+b.a,0);
+  document.getElementById('mo-foot').innerHTML=`<tr style="background:var(--goldL)"><td style="font-weight:800">H1 TOTAL</td><td style="font-family:'Space Mono',monospace;font-weight:700">${fRM(fT)}</td><td style="font-family:'Space Mono',monospace;font-weight:700;color:var(--green)">${fRM(fA)}</td><td style="font-family:'Space Mono',monospace;font-weight:700;color:${fT>0&&fA/fT*100<50?'var(--red)':'var(--green)'}">${fT>0?(fA/fT*100).toFixed(1):0}%</td><td style="font-family:'Space Mono',monospace;color:var(--red)">${fRM(fA-fT)}</td><td colspan="5"></td></tr>`;
   document.getElementById('sb-body').innerHTML=SBD.map(s=>{
     const p=s.tr>0?(s.ar/s.tr*100):0;
     return`<tr><td style="font-weight:600">${s.p}</td><td style="text-align:center">${s.tp}</td><td>${fRM(s.pr)}</td><td>${fRM(s.tr)}</td><td style="text-align:center;font-weight:700">${s.ap}</td><td style="color:var(--green);font-weight:700">${fRM(s.ar)}</td><td style="color:${s.ar>=s.tr?'var(--green)':'var(--red)'};font-size:10.5px">${fRM(s.ar-s.tr)}</td><td><span style="font-size:10px;font-weight:700;color:${p<30?'var(--red)':p<70?'var(--amber)':'var(--green)'}">${p.toFixed(0)}%</span></td></tr>`;
