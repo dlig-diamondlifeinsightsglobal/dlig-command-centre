@@ -1050,7 +1050,9 @@ async function loadFromSheets(){
     try{
       const res=await fetch(SHEETS_API_URL+'?sheet='+sheetType);
       const rows=await res.json();
-      if(Array.isArray(rows)&&rows.length>0)save(lsKey,rows);
+      // 直接写 localStorage，不触发 syncToSheets（避免循环回写）
+      if(Array.isArray(rows)&&rows.length>0)
+        try{localStorage.setItem('dlig7_'+lsKey,JSON.stringify(rows));}catch(e){}
     }catch(e){ok=false;}
   }
   // Sales Dashboard (read-only — user edits numbers in Sheet)
