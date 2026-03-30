@@ -1,0 +1,2115 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DLIG Command Centre v7</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Space+Mono:wght@400;700&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,700;0,9..40,800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --cream:#fdf8f2;--white:#fff;--s2:#fef5ea;--s3:#fdecd5;
+  --border:#f0dcc8;--border2:#e8c9a5;
+  --gold:#b8720a;--gold2:#d4890f;--goldL:#fff4e0;--goldG:linear-gradient(135deg,#c8830a,#e8a020);
+  --text:#1e1208;--text2:#4a3020;--muted:#8a6a4a;--dim:#c4a882;
+  --red:#be3a2a;--redB:#fff0ee;--amber:#c47c0a;--amberB:#fff8ee;
+  --green:#1a6e42;--greenB:#eef8f2;--blue:#1a4f8a;--blueB:#eef3fd;
+  --purple:#6a3a96;--purpleB:#f4eeff;
+  --lj:#c84010;--jp:#1a4f8a;--ry:#1a6e42;--st:#7a3080;
+  --r:12px;--sh:0 2px 14px rgba(90,50,10,.08);--shH:0 6px 24px rgba(90,50,10,.15);
+  --numfont:'DM Sans',sans-serif;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{background:var(--cream);color:var(--text);font-family:'Plus Jakarta Sans',sans-serif;min-height:100vh;overflow-x:hidden;}
+::-webkit-scrollbar{width:4px;height:4px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:4px;}
+
+/* ── LAYOUT ── */
+.shell{display:flex;min-height:100vh;}
+.sidebar{width:220px;flex-shrink:0;background:var(--white);border-right:1.5px solid var(--border);display:flex;flex-direction:column;position:sticky;top:0;height:100vh;overflow-y:auto;}
+.main{flex:1;min-width:0;overflow-y:auto;}
+
+/* ── BRAND ── */
+.brand{padding:18px 16px 14px;border-bottom:1.5px solid var(--border);background:linear-gradient(160deg,var(--goldL),var(--white) 70%);}
+.brand-badge{display:inline-block;background:var(--goldG);color:#fff;font-family:'Space Mono',monospace;font-size:9px;font-weight:700;letter-spacing:2px;padding:3px 9px;border-radius:5px;margin-bottom:8px;}
+.brand-name{font-size:15px;font-weight:800;color:var(--gold);}
+.brand-sub{font-size:9.5px;color:var(--muted);margin-top:2px;font-style:italic;}
+.brand-date{font-size:9px;color:var(--dim);margin-top:5px;font-family:'Space Mono',monospace;}
+
+/* ── NAV ── */
+.nav{padding:8px;flex:1;}
+.ns{font-size:8px;font-weight:800;color:var(--dim);text-transform:uppercase;letter-spacing:2px;padding:12px 8px 4px;}
+.ni{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:9px;cursor:pointer;font-size:11.5px;font-weight:500;color:var(--muted);transition:all .15s;margin-bottom:1px;}
+.ni:hover{background:var(--s2);color:var(--text);}
+.ni.on{background:var(--goldL);color:var(--gold);font-weight:700;border-left:3px solid var(--gold);}
+.ni-icon{font-size:13px;width:17px;text-align:center;flex-shrink:0;}
+.nbadge{margin-left:auto;font-size:9px;font-weight:700;padding:2px 6px;border-radius:10px;background:var(--red);color:#fff;}
+
+/* ── TOPBAR ── */
+.topbar{background:rgba(255,252,248,.96);backdrop-filter:blur(20px);border-bottom:1.5px solid var(--border);padding:12px 24px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50;box-shadow:0 1px 8px rgba(90,50,10,.06);}
+.tb-title{font-size:14px;font-weight:800;color:var(--text);}
+.tb-sub{font-size:9.5px;color:var(--muted);margin-top:1px;}
+.tb-pills{display:flex;gap:6px;}
+.pill{background:var(--s2);border:1px solid var(--border);border-radius:20px;padding:3px 10px;font-size:10.5px;display:flex;align-items:center;gap:4px;}
+.pill .n{font-family:'Space Mono',monospace;font-weight:700;font-size:11px;}
+.pr .n{color:var(--red);}.pa .n{color:var(--amber);}.pg .n{color:var(--green);}.po .n{color:var(--gold);}
+
+/* ── PAGES ── */
+.page{display:none;padding:22px 26px 80px;}
+.page.on{display:block;animation:fi .2s ease;}
+@keyframes fi{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
+
+/* ── UTILS ── */
+.sl{font-size:11px;font-weight:800;color:var(--text2);letter-spacing:.5px;margin:6px 0 12px;display:flex;align-items:center;gap:8px;}
+.sl::after{content:'';flex:1;height:1.5px;background:var(--border);}
+.divider{height:1px;background:var(--border);margin:22px 0;}
+.card{background:var(--white);border:1.5px solid var(--border);border-radius:var(--r);padding:16px;margin-bottom:12px;box-shadow:var(--sh);}
+.ib{border-radius:11px;padding:13px 16px;margin-bottom:14px;font-size:12px;line-height:1.6;}
+.ib b{font-weight:700;display:block;margin-bottom:4px;font-size:12.5px;}
+.ib-gold{background:var(--goldL);border:1.5px solid rgba(184,114,10,.25);}
+.ib-gold b{color:var(--gold);}
+.ib-red{background:var(--redB);border:1.5px solid rgba(190,58,42,.2);} .ib-red b{color:var(--red);}
+.ib-green{background:var(--greenB);border:1.5px solid rgba(26,110,66,.2);} .ib-green b{color:var(--green);}
+.ib-blue{background:var(--blueB);border:1.5px solid rgba(26,79,138,.2);} .ib-blue b{color:var(--blue);}
+
+/* tags */
+.tag{font-size:9.5px;font-weight:700;padding:2px 8px;border-radius:20px;white-space:nowrap;display:inline-block;}
+.tcat{background:var(--s2);color:var(--muted);border:1px solid var(--border);}
+.turg{background:rgba(190,58,42,.1);color:var(--red);}
+.tweek{background:rgba(196,124,10,.1);color:var(--amber);}
+.tmon{background:rgba(26,79,138,.09);color:var(--blue);}
+.tlong{background:var(--s3);color:var(--muted);}
+.sb{font-size:9.5px;font-weight:700;padding:2px 8px;border-radius:7px;white-space:nowrap;}
+.sb-done{background:var(--greenB);color:var(--green);}
+.sb-prog{background:var(--amberB);color:var(--amber);}
+.sb-todo{background:var(--blueB);color:var(--blue);}
+.sb-dec{background:var(--redB);color:var(--red);}
+.sb-pend{background:var(--s3);color:var(--muted);}
+
+/* forms */
+.ff{display:flex;flex-direction:column;gap:3px;}
+.fl2{font-size:8.5px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;}
+.fi,.fs{padding:7px 10px;border:1.5px solid var(--border);border-radius:8px;font-family:'Plus Jakarta Sans',sans-serif;font-size:11.5px;color:var(--text);background:var(--s2);outline:none;width:100%;transition:border-color .15s;}
+.fi:focus,.fs:focus{border-color:var(--gold2);background:var(--white);}
+.add-btn{padding:7px 16px;border-radius:8px;border:none;background:var(--goldG);color:#fff;font-family:'Plus Jakarta Sans',sans-serif;font-size:11.5px;font-weight:700;cursor:pointer;white-space:nowrap;transition:opacity .15s;}
+.add-btn:hover{opacity:.87;}
+.add-btn.green{background:linear-gradient(135deg,#1a6e42,#27ae60);}
+.add-btn.blue{background:linear-gradient(135deg,#1a4f8a,#2980b9);}
+.fb{padding:5px 12px;border-radius:20px;border:1.5px solid var(--border);cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;font-size:11px;font-weight:500;background:var(--white);color:var(--muted);transition:all .15s;}
+.fb:hover{border-color:var(--gold);color:var(--gold);}
+.fb.on{background:var(--goldG);color:#fff;border-color:var(--gold);font-weight:700;}
+.sep{width:1px;height:18px;background:var(--border);margin:0 2px;}
+
+/* tables */
+.pt{width:100%;border-collapse:collapse;font-size:11.5px;}
+.pt th{background:var(--s2);border:1.5px solid var(--border);padding:8px 11px;text-align:left;font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);}
+.pt td{background:var(--white);border:1.5px solid var(--border);padding:9px 11px;vertical-align:middle;}
+.pt tr:hover td{background:var(--s2);}
+.price-g{font-family:'DM Sans',sans-serif;font-weight:800;font-size:13px;color:var(--green);}
+.orig{text-decoration:line-through;color:var(--dim);font-size:10px;margin-left:3px;}
+
+/* progress bar */
+.pb{height:5px;background:var(--s3);border-radius:4px;margin-top:10px;overflow:hidden;}
+.pf{height:100%;border-radius:4px;transition:width 1s cubic-bezier(.4,0,.2,1);}
+
+/* ── OVERVIEW ── */
+.ov-rows{display:flex;flex-direction:column;gap:8px;margin-bottom:20px;}
+.ov-row{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;}
+.ov-card{background:var(--white);border:1.5px solid var(--border);border-radius:var(--r);padding:12px 14px;cursor:pointer;transition:all .2s;box-shadow:var(--sh);display:flex;align-items:center;gap:12px;}
+.ov-card:hover{border-color:var(--gold2);transform:translateY(-1px);box-shadow:var(--shH);}
+.ov-icon{font-size:20px;flex-shrink:0;}
+.ov-label{font-size:9px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin-bottom:2px;}
+.ov-val{font-family:'DM Sans',sans-serif;font-size:18px;font-weight:800;line-height:1.1;letter-spacing:-.5px;}
+.ov-sub{font-size:9.5px;color:var(--muted);margin-top:2px;}
+
+/* dept */
+.dept-wrap{display:flex;flex-direction:column;gap:8px;margin-bottom:20px;}
+.dept-row{display:flex;gap:8px;}
+.dept-card{background:var(--white);border:1.5px solid var(--border);border-radius:var(--r);padding:11px 14px;text-decoration:none;color:var(--text);transition:all .2s;box-shadow:var(--sh);display:flex;align-items:center;gap:10px;flex:1;cursor:pointer;}
+.dept-card:hover{border-color:var(--gold2);transform:translateY(-1px);box-shadow:var(--shH);}
+.dept-icon{font-size:20px;flex-shrink:0;}
+.dept-name{font-size:12.5px;font-weight:700;}
+.dept-desc{font-size:10px;color:var(--muted);margin-top:1px;}
+.dept-arrow{margin-left:auto;color:var(--gold);font-weight:700;font-size:14px;}
+
+/* team */
+.team-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;margin-bottom:20px;}
+.rc{background:var(--white);border:1.5px solid var(--border);border-radius:var(--r);padding:14px;box-shadow:var(--sh);transition:all .2s;}
+.rc:hover{transform:translateY(-1px);box-shadow:var(--shH);}
+
+/* bar chart */
+.bar-chart{display:flex;flex-direction:column;gap:8px;}
+.bar-row{display:flex;align-items:center;gap:8px;}
+.bar-lbl{min-width:75px;color:var(--muted);text-align:right;font-size:10px;font-family:'DM Sans',sans-serif;font-weight:600;}
+.bar-track{flex:1;height:20px;background:var(--s3);border-radius:5px;overflow:hidden;}
+.bar-fill{height:100%;border-radius:5px;display:flex;align-items:center;justify-content:flex-end;padding-right:7px;transition:width 1s cubic-bezier(.4,0,.2,1);}
+.bar-fill .bv{font-family:'DM Sans',sans-serif;font-size:10px;font-weight:800;color:#fff;}
+.bar-tgt{font-family:'DM Sans',sans-serif;font-size:10.5px;font-weight:600;min-width:95px;text-align:right;color:var(--muted);}
+.bf-good{background:linear-gradient(90deg,#1a6e42,#27ae60);}
+.bf-mid{background:linear-gradient(90deg,var(--amber),#f1c40f);}
+.bf-low{background:linear-gradient(90deg,var(--red),#e74c3c);}
+
+/* upcoming */
+.up-card{background:var(--white);border:1.5px solid var(--border);border-radius:var(--r);padding:12px;margin-bottom:8px;box-shadow:var(--sh);}
+
+/* ── TASK BOARD ── */
+.add-bar{background:var(--white);border:1.5px solid var(--border);border-radius:var(--r);padding:14px;margin-bottom:14px;box-shadow:var(--sh);}
+.add-bar-tabs{display:flex;gap:6px;margin-bottom:12px;}
+.ab-tab{padding:5px 14px;border-radius:20px;border:1.5px solid var(--border);cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;font-size:11px;font-weight:600;background:var(--white);color:var(--muted);transition:all .15s;}
+.ab-tab.on{background:var(--goldG);color:#fff;border-color:var(--gold);}
+.ab-section{display:none;}
+.ab-section.on{display:block;}
+.ag{display:grid;gap:8px;align-items:end;}
+.fbar{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-bottom:14px;}
+.fl{font-size:10px;color:var(--muted);font-weight:600;margin-right:2px;}
+
+/* eff badge */
+.eff-box{background:var(--goldL);border:1.5px solid var(--border);border-radius:10px;padding:10px 14px;margin-bottom:14px;font-size:11.5px;}
+.eff-title{font-size:10px;font-weight:800;color:var(--gold);text-transform:uppercase;letter-spacing:1px;margin-bottom:7px;}
+.eff-row{display:flex;gap:8px;flex-wrap:wrap;}
+.eff-tag{padding:4px 12px;border-radius:20px;font-size:11px;font-weight:700;}
+
+/* board */
+.board{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;}
+@media(max-width:1100px){.board{grid-template-columns:repeat(2,1fr);}}
+.col-head{display:flex;align-items:center;gap:7px;margin-bottom:10px;padding-bottom:8px;border-bottom:2px solid;}
+.col-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.col-lbl{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:1px;}
+.col-n{margin-left:auto;font-family:'DM Sans',sans-serif;font-size:11px;font-weight:700;color:var(--muted);background:var(--s2);border:1px solid var(--border);border-radius:7px;padding:1px 6px;}
+.tc{background:var(--white);border:1.5px solid var(--border);border-radius:10px;padding:11px;margin-bottom:7px;position:relative;overflow:hidden;transition:all .2s;box-shadow:var(--sh);}
+.tc:hover{border-color:var(--gold2);transform:translateY(-1px);box-shadow:var(--shH);}
+.tc::before{content:'';position:absolute;left:0;top:0;bottom:0;width:4px;border-radius:4px 0 0 4px;}
+.tc.todo::before{background:var(--dim);}
+.tc.prog::before{background:var(--amber);}
+.tc.blk::before{background:var(--red);}
+.tc.done{opacity:.45;}.tc.done::before{background:var(--green);}
+.tc.tfee::before{background:var(--purple);}
+.tc-text{font-size:12px;font-weight:500;line-height:1.45;margin-bottom:7px;}
+.tc.done .tc-text{text-decoration:line-through;color:var(--muted);}
+.tc-meta{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:5px;}
+.tc-ref{font-size:9.5px;color:var(--muted);margin-top:4px;}
+.tc-time{font-family:'DM Sans',sans-serif;font-size:10px;font-weight:600;margin-top:4px;}
+.tc-acts{display:flex;gap:4px;margin-top:7px;padding-top:7px;border-top:1px solid var(--border);}
+.tc-btn{padding:3px 9px;border-radius:7px;border:1px solid var(--border);background:var(--s2);color:var(--muted);font-size:9.5px;font-weight:600;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;transition:all .15s;}
+.tc-btn:hover{background:var(--greenB);border-color:var(--green);color:var(--green);}
+.empty{font-size:11px;color:var(--dim);text-align:center;padding:22px;border:1.5px dashed var(--border);border-radius:10px;background:var(--s2);}
+.contrib-bar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;}
+.cb{background:var(--white);border:1.5px solid var(--border);border-radius:10px;padding:10px 14px;flex:1;min-width:130px;box-shadow:var(--sh);}
+.cb-lbl{font-size:9px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin-bottom:4px;}
+.cb-val{font-family:'DM Sans',sans-serif;font-size:20px;font-weight:800;letter-spacing:-.5px;}
+
+/* ── MARKETING CONTENT CALENDAR ── */
+.mkt-cal-wrap{margin-bottom:20px;}
+.mkt-month-head{font-size:13px;font-weight:700;color:var(--text);margin-bottom:10px;padding:8px 13px;background:var(--purpleB);border-radius:8px;border-left:4px solid var(--purple);}
+.mkt-cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;margin-bottom:20px;}
+.mkt-cal-head{text-align:center;font-size:9px;font-weight:700;color:var(--muted);text-transform:uppercase;padding:5px 0;}
+.mkt-cell{min-height:80px;background:var(--white);border:1.5px solid var(--border);border-radius:7px;padding:4px 5px;transition:all .15s;cursor:pointer;}
+.mkt-cell:hover{border-color:var(--purple);background:var(--purpleB);}
+.mkt-cell.today{border-color:var(--purple);background:var(--purpleB);}
+.mkt-date{font-family:'Space Mono',monospace;font-size:9.5px;font-weight:700;color:var(--muted);margin-bottom:3px;}
+.mkt-cell.om{opacity:.25;}
+.mc{padding:2px 4px;border-radius:4px;margin-bottom:2px;font-size:8px;font-weight:600;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;cursor:pointer;}
+.mc-done{background:rgba(26,110,66,.12);color:var(--green);}
+.mc-prog{background:rgba(196,124,10,.12);color:var(--amber);}
+.mc-todo{background:rgba(106,58,150,.12);color:var(--purple);}
+
+/* ── CALENDAR ── */
+.cal-filter{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px;}
+.cal-month-head{font-size:13px;font-weight:700;color:var(--text);margin-bottom:10px;padding:8px 13px;background:var(--goldL);border-radius:8px;border-left:4px solid var(--gold);}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;margin-bottom:22px;}
+.cal-head{text-align:center;font-size:9px;font-weight:700;color:var(--muted);text-transform:uppercase;padding:5px 0;}
+.cal-cell{min-height:130px;background:var(--white);border:1.5px solid var(--border);border-radius:7px;padding:5px;cursor:pointer;transition:all .15s;}
+.cal-cell:hover{border-color:var(--gold2);background:var(--s2);}
+.cal-date{font-family:'Space Mono',monospace;font-size:9.5px;font-weight:700;color:var(--muted);margin-bottom:3px;}
+.cal-cell.today{border-color:var(--gold);background:var(--goldL);}
+.cal-cell.today .cal-date{color:var(--gold);font-weight:900;}
+.cal-cell.om{opacity:.25;}
+.ce{padding:2px 4px;border-radius:4px;margin-bottom:2px;font-size:8px;font-weight:600;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;}
+.ce-meet{background:rgba(26,79,138,.12);color:var(--blue);}
+.ce-xindong{background:rgba(184,114,10,.12);color:var(--gold);}
+.ce-ylyd{background:rgba(26,110,66,.1);color:var(--green);}
+.ce-dl{background:rgba(196,124,10,.15);color:var(--amber);}
+.ce-mkt{background:rgba(106,58,150,.1);color:var(--purple);}
+.ce-dr{background:rgba(196,124,10,.1);color:var(--amber);}
+.cal-modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:200;align-items:center;justify-content:center;}
+.cal-modal.on{display:flex;}
+.cal-modal-box{background:var(--white);border-radius:var(--r);padding:22px;max-width:400px;width:90%;box-shadow:0 20px 60px rgba(0,0,0,.2);}
+
+/* duty */
+.duty-cards{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;}
+.dc{background:var(--white);border:1.5px solid var(--border);border-radius:10px;padding:12px 15px;flex:1;min-width:170px;box-shadow:var(--sh);}
+.dc-title{font-size:10.5px;font-weight:700;color:var(--muted);text-transform:uppercase;margin-bottom:8px;}
+.dr-row{display:flex;align-items:center;justify-content:space-between;padding:4px 0;font-size:11.5px;border-bottom:1px solid var(--border);}
+.dr-row:last-child{border-bottom:none;}
+.dw{color:var(--muted);font-size:10.5px;}
+
+/* sales */
+.ss-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:18px;}
+.sc{background:var(--white);border:1.5px solid var(--border);border-radius:var(--r);padding:15px;box-shadow:var(--sh);}
+.sc-lbl{font-size:9px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:5px;}
+.sc-val{font-family:'DM Sans',sans-serif;font-size:22px;font-weight:800;letter-spacing:-.5px;}
+.sc-sub{font-size:10.5px;color:var(--muted);margin-top:3px;}
+
+/* mkt status */
+.mkt-status{font-size:9.5px;font-weight:700;padding:2px 8px;border-radius:7px;cursor:pointer;}
+.ms-done{background:var(--greenB);color:var(--green);}
+.ms-prog{background:var(--amberB);color:var(--amber);}
+.ms-todo{background:var(--purpleB);color:var(--purple);}
+
+/* products */
+.tbadge{font-size:9.5px;font-weight:700;padding:2px 8px;border-radius:7px;}
+.ti{background:var(--blueB);color:var(--blue);}
+.tc2{background:var(--goldL);color:var(--gold);}
+.ta{background:var(--s3);color:var(--muted);}
+.tpurp{background:var(--purpleB);color:var(--purple);}
+
+/* YLYD value cards */
+.yvc-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px;margin-bottom:16px;}
+.yvc{background:var(--s2);border:1.5px solid var(--border);border-radius:10px;padding:13px;}
+.yvc-name{font-size:12px;font-weight:700;margin-bottom:3px;}
+.yvc-reason{font-size:10.5px;color:var(--muted);margin-bottom:5px;line-height:1.5;}
+.yvc-freq{font-size:9.5px;color:var(--dim);margin-bottom:4px;}
+.yvc-val{font-family:'Space Mono',monospace;font-size:13px;font-weight:700;color:var(--gold);}
+
+/* meeting */
+.mtabs{display:flex;gap:6px;margin-bottom:16px;}
+.mt{padding:6px 15px;border-radius:20px;border:1.5px solid var(--border);cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;font-size:11.5px;font-weight:600;background:var(--white);color:var(--muted);transition:all .15s;}
+.mt.on{background:var(--goldG);color:#fff;border-color:var(--gold);}
+.ms-tab{display:none;}
+.ms-tab.on{display:block;}
+.ag-wrap{max-width:680px;}
+.ag-blk{display:flex;gap:12px;margin-bottom:9px;}
+.ag-time{font-family:'Space Mono',monospace;font-size:10px;color:var(--gold);white-space:nowrap;padding-top:11px;min-width:60px;text-align:right;}
+.ag-line{display:flex;flex-direction:column;align-items:center;}
+.ag-dot{width:9px;height:9px;border-radius:50%;background:var(--gold);flex-shrink:0;margin-top:12px;}
+.ag-conn{width:2px;flex:1;background:var(--border);min-height:20px;}
+.ag-body{background:var(--white);border:1.5px solid var(--border);border-radius:9px;padding:10px 13px;flex:1;margin-top:6px;box-shadow:var(--sh);}
+.ag-title{font-size:12.5px;font-weight:700;margin-bottom:2px;}
+.ag-desc{font-size:10.5px;color:var(--muted);line-height:1.5;}
+
+/* decisions */
+.dec{background:var(--white);border:1.5px solid var(--border);border-left:4px solid var(--amber);border-radius:var(--r);padding:15px;margin-bottom:12px;box-shadow:var(--sh);}
+.dec-q{font-size:13.5px;font-weight:700;margin-bottom:8px;}
+.vb{padding:4px 13px;border-radius:20px;border:1.5px solid var(--border);background:var(--s2);color:var(--muted);font-size:11px;font-weight:600;cursor:pointer;transition:all .15s;font-family:'Plus Jakarta Sans',sans-serif;}
+.vb:hover{background:var(--goldL);border-color:var(--gold);color:var(--gold);}
+.vb.sel{background:var(--goldG);color:#fff;border-color:var(--gold);}
+.dec-comment{width:100%;padding:7px 11px;border:1.5px solid var(--border);border-radius:8px;font-family:'Plus Jakarta Sans',sans-serif;font-size:11.5px;color:var(--text);background:var(--s2);outline:none;margin-top:7px;resize:none;}
+.dec-comment:focus{border-color:var(--gold2);background:var(--white);}
+
+/* policy */
+.vision{background:linear-gradient(135deg,var(--goldL),var(--white));border:1.5px solid rgba(184,114,10,.3);border-radius:14px;padding:22px;margin-bottom:18px;box-shadow:var(--sh);}
+.three-tier{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:18px;}
+.tier-card{border-radius:11px;padding:13px;}
+.pb-blk{background:var(--white);border:1.5px solid var(--border);border-radius:var(--r);padding:16px;margin-bottom:12px;box-shadow:var(--sh);}
+.pb-title{font-size:13px;font-weight:700;margin-bottom:10px;padding-bottom:9px;border-bottom:1.5px solid var(--border);}
+.pi{display:flex;gap:10px;padding:7px 0;border-bottom:1px solid var(--border);font-size:12px;}
+.pi:last-child{border-bottom:none;}
+.pk{color:var(--muted);min-width:150px;flex-shrink:0;font-weight:600;}
+.pv{color:var(--text);line-height:1.6;}
+.pay-table{width:100%;border-collapse:collapse;font-size:11.5px;}
+.pay-table th{background:var(--s2);border:1.5px solid var(--border);padding:8px 11px;text-align:left;font-size:9px;font-weight:800;text-transform:uppercase;color:var(--muted);}
+.pay-table td{background:var(--white);border:1.5px solid var(--border);padding:8px 11px;}
+.pay-table tr:hover td{background:var(--s2);}
+
+/* checklist */
+.cl-section{margin-bottom:18px;}
+.cl-sec-head{font-size:11px;font-weight:800;color:var(--text);background:var(--s2);border:1.5px solid var(--border);border-radius:9px;padding:10px 14px;margin-bottom:8px;display:flex;align-items:center;gap:8px;}
+.cl-zone{background:var(--white);border:1.5px solid var(--border);border-radius:8px;margin-bottom:6px;overflow:hidden;}
+.cl-zone-head{padding:8px 13px;font-size:10.5px;font-weight:700;color:var(--muted);background:var(--s2);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:6px;cursor:pointer;}
+.cl-zone-body{padding:8px 13px;}
+.cli{display:flex;align-items:flex-start;gap:9px;padding:7px 0;border-bottom:1px solid var(--border);font-size:12px;}
+.cli:last-child{border-bottom:none;}
+.cli input{width:15px;height:15px;accent-color:var(--gold);flex-shrink:0;margin-top:2px;cursor:pointer;}
+.cli-text{flex:1;}
+.cli-del{cursor:pointer;font-size:10px;color:var(--dim);padding:1px 5px;border-radius:5px;border:1px solid transparent;transition:all .15s;}
+.cli-del:hover{border-color:var(--red);color:var(--red);}
+.checklist-add{display:flex;gap:6px;margin-top:8px;padding-top:8px;border-top:1px solid var(--border);}
+
+/* acc */
+.acc-item{background:var(--white);border:1.5px solid var(--border);border-radius:10px;margin-bottom:7px;overflow:hidden;box-shadow:var(--sh);}
+.acc-head{padding:12px 15px;cursor:pointer;display:flex;align-items:center;justify-content:space-between;font-size:12.5px;font-weight:700;transition:background .15s;}
+.acc-head:hover{background:var(--s2);}
+.acc-arrow{font-size:12px;color:var(--muted);transition:transform .2s;}
+.acc-item.open .acc-arrow{transform:rotate(180deg);}
+.acc-body{display:none;padding:0 15px 14px;}
+.acc-item.open .acc-body{display:block;}
+
+/* proj tabs */
+.ptabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px;}
+.pt-btn{padding:7px 16px;border-radius:9px;border:1.5px solid var(--border);cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;font-size:11.5px;font-weight:600;background:var(--white);color:var(--muted);transition:all .15s;}
+.pt-btn.on{background:var(--goldG);color:#fff;border-color:var(--gold);}
+.pt-btn:hover:not(.on){border-color:var(--gold);color:var(--gold);}
+.ps{display:none;}
+.ps.on{display:block;}
+
+/* env tabs */
+.env-tabs{display:flex;gap:6px;margin-bottom:14px;}
+.env-tab{padding:6px 14px;border-radius:9px;border:1.5px solid var(--border);cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;font-size:11.5px;font-weight:600;background:var(--white);color:var(--muted);transition:all .15s;}
+.env-tab.on{background:linear-gradient(135deg,#1a6e42,#27ae60);color:#fff;border-color:var(--green);}
+.env-tab:hover:not(.on){border-color:var(--green);color:var(--green);}
+.env-sec{display:none;}
+.env-sec.on{display:block;}
+
+/* inv */
+.inv-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px;}
+.ic{background:var(--white);border:1.5px solid var(--border);border-radius:var(--r);overflow:hidden;box-shadow:var(--sh);}
+.ic-head{padding:11px 15px;border-bottom:1.5px solid var(--border);font-size:12.5px;font-weight:700;background:var(--s2);}
+.ir{display:flex;align-items:center;gap:7px;padding:8px 15px;border-bottom:1px solid var(--border);font-size:11.5px;}
+.ir:last-child{border-bottom:none;}
+.ir-name{flex:1;}
+.ir-qty{font-family:'Space Mono',monospace;font-size:11px;font-weight:700;min-width:35px;text-align:center;}
+.is-ok{font-size:9.5px;font-weight:700;padding:2px 8px;border-radius:7px;background:var(--greenB);color:var(--green);}
+.is-low{font-size:9.5px;font-weight:700;padding:2px 8px;border-radius:7px;background:var(--amberB);color:var(--amber);}
+.is-out{font-size:9.5px;font-weight:700;padding:2px 8px;border-radius:7px;background:var(--redB);color:var(--red);}
+
+/* files */
+.files-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:10px;}
+.fcat{background:var(--white);border:1.5px solid var(--border);border-radius:var(--r);padding:15px;box-shadow:var(--sh);}
+.fc-head{font-size:12.5px;font-weight:700;margin-bottom:11px;padding-bottom:9px;border-bottom:1.5px solid var(--border);}
+.fitem{display:flex;align-items:center;gap:8px;padding:7px 10px;background:var(--s2);border-radius:7px;margin-bottom:4px;font-size:11.5px;text-decoration:none;color:var(--text);border:1.5px solid transparent;transition:all .15s;}
+.fitem:hover{background:var(--goldL);border-color:rgba(184,114,10,.2);}
+.fi-name{flex:1;font-weight:500;}
+.fi-note{font-size:9.5px;color:var(--muted);}
+.fi-arr{font-size:11px;color:var(--gold);font-weight:700;}
+.fcat-sub{font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin:10px 0 6px;padding-top:8px;border-top:1px solid var(--border);}
+
+/* vol / att */
+.vol-table{width:100%;border-collapse:collapse;font-size:11.5px;}
+.vol-table th{background:var(--s2);border:1.5px solid var(--border);padding:8px 10px;text-align:left;font-size:9px;font-weight:800;text-transform:uppercase;color:var(--muted);}
+.vol-table td{background:var(--white);border:1.5px solid var(--border);padding:8px 10px;vertical-align:top;}
+
+/* ql */
+.ql{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:20px;border:1.5px solid var(--border);background:var(--white);color:var(--text);text-decoration:none;font-size:11.5px;font-weight:500;transition:all .15s;box-shadow:var(--sh);}
+.ql:hover{border-color:var(--gold);background:var(--goldL);color:var(--gold);}
+.ql-wrap{display:flex;gap:7px;flex-wrap:wrap;}
+
+/* GDC job */
+.gdc-card{background:var(--white);border:1.5px solid var(--border);border-radius:var(--r);padding:14px;margin-bottom:10px;box-shadow:var(--sh);}
+.gdc-status{font-size:9.5px;font-weight:700;padding:2px 8px;border-radius:7px;}
+.gs-done{background:var(--greenB);color:var(--green);}
+.gs-prog{background:var(--amberB);color:var(--amber);}
+.gs-pend{background:var(--purpleB);color:var(--purple);}
+.gs-paid{background:var(--blueB);color:var(--blue);}
+</style>
+</head>
+<body>
+<div class="shell">
+
+<!-- ═══ SIDEBAR ═══ -->
+<div class="sidebar">
+  <div class="brand" style="padding:18px 16px 14px">
+    <div style="margin-bottom:10px;padding-bottom:10px;border-bottom:1.5px solid var(--border)">
+      <div style="font-family:'Plus Jakarta Sans',sans-serif;font-size:22px;font-weight:800;color:var(--text);letter-spacing:-0.5px;line-height:1.1">DLIG</div>
+      <div style="font-size:8px;font-weight:600;color:var(--muted);letter-spacing:1.5px;margin-top:3px">Diamond Life Insights Global</div>
+    </div>
+    <div style="font-size:12px;font-weight:700;color:var(--gold);margin-bottom:2px">Command Centre</div>
+    <div style="font-size:9.5px;color:var(--muted);font-style:italic">Your Life You Design ✦</div>
+    <div style="font-size:9px;color:var(--dim);margin-top:4px;font-family:'DM Sans',sans-serif" id="bdate"></div>
+  </div>
+  <div class="nav">
+    <div class="ns">Overview</div>
+    <div class="ni on" onclick="go('overview')"><span class="ni-icon">🏠</span>公司总览</div>
+    <div class="ni" onclick="go('tasks')"><span class="ni-icon">🗂</span>Task Board<span class="nbadge" id="nb-u">0</span></div>
+    <div class="ni" onclick="go('calendar')"><span class="ni-icon">📅</span>日历 &amp; 轮值</div>
+
+    <div class="ns">Sales · Marketing · Admin</div>
+    <div class="ni" onclick="go('sales')"><span class="ni-icon">💰</span>Sales & Marketing</div>
+    <div class="ni" onclick="go('products')"><span class="ni-icon">🎁</span>产品 &amp; 价格</div>
+    <div class="ni" onclick="go('admin')"><span class="ni-icon">📦</span>Inventory &amp; Admin</div>
+
+    <div class="ns">Operation</div>
+    <div class="ni" onclick="go('xindong')"><span class="ni-icon">💎</span>心动觉察</div>
+    <div class="ni" onclick="go('ylyd')"><span class="ni-icon">🌱</span>YLYD System</div>
+    <div class="ni" onclick="go('gdc')"><span class="ni-icon">🎨</span>GDC Marketing Job</div>
+
+    <div class="ns">Others</div>
+    <div class="ni" onclick="go('policy')"><span class="ni-icon">📜</span>Company Policy</div>
+    <div class="ni" onclick="go('meeting')"><span class="ni-icon">📋</span>会议 &amp; 记录</div>
+    <div class="ni" onclick="go('decisions')"><span class="ni-icon">⚡</span>待决策<span class="nbadge" id="nb-d">0</span></div>
+    <div class="ni" onclick="go('files')"><span class="ni-icon">📁</span>文件索引</div>
+  </div>
+</div>
+
+<!-- ═══ MAIN ═══ -->
+<div class="main">
+  <div class="topbar">
+    <div>
+      <div class="tb-title" id="pg-title">🏠 公司总览</div>
+      <div class="tb-sub">DLIG · Your Life You Design · H1 2026 Target RM 125,000</div>
+    </div>
+    <div class="tb-pills" id="tb-pills" style="display:none"></div>
+    <div style="font-size:10px;color:var(--muted);display:flex;align-items:center;gap:5px;">
+      <div style="width:6px;height:6px;border-radius:50%;background:var(--amber);animation:pulse 2s infinite"></div>localStorage 模式 · 待连接 Google Sheets
+    </div>
+  </div>
+  <style>@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}</style>
+
+  <!-- ══ OVERVIEW ══ -->
+  <div class="page on" id="p-overview">
+    <div class="ov-rows" id="ov-rows"></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:22px;">
+      <div>
+        <div class="sl">📊 H1 2026 Sales Progress</div>
+        <div class="card" style="padding:15px 18px;">
+          <div class="bar-chart" id="ov-bar"></div>
+          <div style="font-size:9.5px;color:var(--muted);margin-top:10px;border-top:1px solid var(--border);padding-top:10px;font-family:'Space Mono',monospace;" id="ov-bar-total"></div>
+        </div>
+      </div>
+      <div>
+        <div class="sl">📅 接下来 2 周活动</div>
+        <div id="ov-upcoming"></div>
+      </div>
+    </div>
+    <div class="sl">🔗 部门直达</div>
+    <div class="dept-wrap" id="ov-dept"></div>
+    <div class="sl">👥 团队分工</div>
+    <div class="team-grid" id="ov-team"></div>
+  </div>
+
+  <!-- ══ TASK BOARD ══ -->
+  <div class="page" id="p-tasks">
+    <div class="eff-box">
+      <div class="eff-title">⚡ 效率系数说明</div>
+      <div class="eff-row">
+        <span class="eff-tag" style="background:var(--greenB);color:var(--green)">⭐ 提前2天以上完成 ×1.5</span>
+        <span class="eff-tag" style="background:var(--goldL);color:var(--gold)">✅ 准时完成（Deadline当天）×1.0</span>
+        <span class="eff-tag" style="background:var(--amberB);color:var(--amber)">⏰ 延迟1-3天 ×0.5</span>
+        <span class="eff-tag" style="background:var(--redB);color:var(--red)">❌ 超过3天未完成 ×0</span>
+      </div>
+    </div>
+    <div class="add-bar">
+      <div class="add-bar-tabs">
+        <button class="ab-tab on" onclick="switchAB('task',this)">➕ 添加 Task</button>
+        <button class="ab-tab" onclick="switchAB('log',this)">⏱️ 自发记录（算贡献）</button>
+      </div>
+      <div class="ab-section on" id="ab-task">
+        <div class="ag" style="grid-template-columns:2fr 1fr 1fr 1fr 1fr 1fr auto;">
+          <div class="ff"><div class="fl2">Task 内容</div><input class="fi" id="nt" placeholder="描述这个任务..."></div>
+          <div class="ff"><div class="fl2">负责人</div><select class="fs" id="np"><option>全员</option><option>Li Joo</option><option>Jasper</option><option>Stella</option><option>Roy</option><option>待认领</option></select></div>
+          <div class="ff"><div class="fl2">类别</div><select class="fs" id="nc">
+            <option>Operation</option>
+            <option>Marketing</option>
+            <option>✍ 视频文案/信息文案</option>
+            <option>📣 制作Post图+文案</option>
+            <option>🖼 制作海报</option>
+            <option>📝 视频脚本</option>
+            <option>📱 剪辑短视频-一键成片</option>
+            <option>📱 剪辑短视频</option>
+            <option>🎬 剪辑YouTube</option>
+            <option>🧠 Landing Page文案</option>
+            <option>🖥 Landing Page制作</option>
+            <option>Sales</option>
+            <option>Admin</option>
+            <option>System</option>
+            <option>GDC job</option>
+          </select></div>
+          <div class="ff"><div class="fl2">Task 类型</div><select class="fs" id="ntype"><option value="contrib">贡献时间类（分红）</option><option value="fee">Task Fee 类（按件算钱）</option></select></div>
+          <div class="ff"><div class="fl2">优先级</div><select class="fs" id="nk"><option>🔴 紧急</option><option>🟡 本周</option><option>⚡ 本月</option><option>⭐ 长期</option></select></div>
+          <div class="ff"><div class="fl2">Deadline</div><input class="fi" id="ndl" type="date" style="width:145px"></div>
+          <button class="add-btn" onclick="addTask()">+ 添加</button>
+        </div>
+      </div>
+      <div class="ab-section" id="ab-log">
+        <div style="margin-bottom:8px;font-size:11px;color:var(--muted)">⚡ 自发工作无截止日期，效率系数统一 ×1.0</div>
+        <div class="ag" style="grid-template-columns:2fr 1fr 1fr 1fr auto;">
+          <div class="ff"><div class="fl2">做了什么</div><input class="fi" id="ll" placeholder="描述你做的工作..."></div>
+          <div class="ff"><div class="fl2">类别</div><select class="fs" id="lc">
+            <option>Operation</option><option>Marketing</option><option>Sales</option><option>Admin</option><option>System</option><option>GDC job</option>
+          </select></div>
+          <div class="ff"><div class="fl2">负责人</div><select class="fs" id="lp"><option>Li Joo</option><option>Jasper</option><option>Stella</option><option>Roy</option></select></div>
+          <div class="ff"><div class="fl2">实际时间(h)</div><input class="fi" id="lh" type="number" placeholder="小时" min="0.5" step="0.5"></div>
+          <button class="add-btn green" onclick="addLog()">✓ 记录</button>
+        </div>
+      </div>
+    </div>
+    <div class="fbar">
+      <span class="fl">筛选：</span>
+      <button class="fb on" onclick="fp('全部',this)">全部</button>
+      <button class="fb" onclick="fp('Li Joo',this)" style="color:#c84010">Li Joo</button>
+      <button class="fb" onclick="fp('Jasper',this)" style="color:var(--jp)">Jasper</button>
+      <button class="fb" onclick="fp('Stella',this)" style="color:var(--st)">Stella</button>
+      <button class="fb" onclick="fp('Roy',this)" style="color:var(--ry)">Roy</button>
+      <div class="sep"></div>
+      <button class="fb on" id="vb" onclick="sv('board')">看板</button>
+      <button class="fb" id="vl" onclick="sv('list')">列表</button>
+      <div class="sep"></div>
+      <button class="fb" onclick="fp('marketing',this)" style="color:var(--purple)">📣 Marketing</button>
+      <button class="fb" onclick="fp('fee',this)" style="color:var(--purple)">💰 Task Fee</button>
+    </div>
+    <div class="board" id="board-view"></div>
+    <div style="display:none;overflow-x:auto" id="list-view">
+      <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px;flex-wrap:wrap">
+        <span class="fl">期限筛选：</span>
+        <button class="fb on" id="tf-all" onclick="setTimeFilter('all',this)">全部</button>
+        <button class="fb" id="tf-month" onclick="setTimeFilter('month',this)">本月</button>
+        <button class="fb" id="tf-30" onclick="setTimeFilter('30',this)">近30天</button>
+      </div>
+      <table class="pt"><thead><tr><th>Task 内容</th><th>负责人</th><th>类别</th><th>类型</th><th>优先级</th><th>Deadline</th><th>完成日期</th><th>Hours</th><th>效率</th><th>操作</th></tr></thead><tbody id="lb"></tbody></table>
+    </div>
+  </div>
+
+  <!-- ══ CALENDAR ══ -->
+  <div class="page" id="p-calendar">
+    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:14px">
+      <div class="cal-filter" id="cal-filter" style="display:flex;gap:6px;flex-wrap:wrap;flex:1">
+        <span class="fl">Filter：</span>
+        <button class="fb on" onclick="calFilter('all',this)">All</button>
+        <button class="fb" onclick="calFilter('ylyd',this)" style="color:var(--green)">🌱 YLYD</button>
+        <button class="fb" onclick="calFilter('xindong',this)" style="color:var(--gold)">💎 心动觉察</button>
+        <button class="fb" onclick="calFilter('mkt',this)" style="color:var(--purple)">📣 Marketing</button>
+        <button class="fb" onclick="calFilter('meet',this)" style="color:var(--blue)">📋 会议</button>
+        <button class="fb" onclick="calFilter('dlig4',this)" style="color:var(--red)">🌱 四步骤</button>
+      </div>
+      <div style="display:flex;gap:6px;align-items:center">
+        <span style="font-size:11px;color:var(--muted)">显示月份：</span>
+        <button class="fb on" id="mo-auto" onclick="setCalMode('auto',this)">接下来3个月</button>
+        <button class="fb" id="mo-pick" onclick="setCalMode('pick',this)">选择月份</button>
+        <input type="month" id="cal-month-pick" class="fi" style="width:140px;display:none" onchange="renderCalendar()">
+      </div>
+    </div>
+    <div style="display:flex;gap:8px;margin-bottom:14px;align-items:flex-end;flex-wrap:wrap;background:var(--white);border:1.5px solid var(--border);border-radius:var(--r);padding:14px;box-shadow:var(--sh)">
+      <div class="ff" style="flex:1;min-width:140px"><div class="fl2">活动名称</div><input class="fi" id="ev-name" placeholder="活动名称"></div>
+      <div class="ff"><div class="fl2">日期</div><input class="fi" id="ev-date" type="date" style="width:150px"></div>
+      <div class="ff"><div class="fl2">时间（可选）</div><input class="fi" id="ev-time" placeholder="e.g. 9:30am" style="width:120px"></div>
+      <div class="ff"><div class="fl2">类型</div><select class="fs" id="ev-type" style="width:140px"><option value="ylyd">YLYD System</option><option value="xindong">心动觉察</option><option value="mkt">Marketing</option><option value="meet">会议</option><option value="dlig4">DLIG 四步骤种种子</option></select></div>
+      <div class="ff"><div class="fl2">负责人</div><select class="fs" id="ev-person" style="width:110px"><option>全员</option><option>Li Joo</option><option>Jasper</option><option>Stella</option><option>Roy</option></select></div>
+      <button class="add-btn" onclick="addEvent()">+ 添加活动</button>
+    </div>
+    <div class="sl">📅 日历</div>
+    <div id="cal-wrap"></div>
+    <div class="cal-modal" id="cal-modal" onclick="if(event.target===this)this.classList.remove('on')">
+      <div class="cal-modal-box">
+        <span style="float:right;cursor:pointer;font-size:18px;color:var(--muted)" onclick="document.getElementById('cal-modal').classList.remove('on')">✕</span>
+        <div style="font-size:15px;font-weight:800;margin-bottom:14px" id="cal-modal-title"></div>
+        <div id="cal-modal-body"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ SALES ══ -->
+  <div class="page" id="p-sales">
+    <div class="ss-grid" id="ss-h1"></div>
+    <div class="sl">📊 H1 月度达成</div>
+    <div class="card" style="overflow-x:auto;padding:14px;">
+      <table class="pt"><thead><tr><th>月份</th><th>Target</th><th>Actual</th><th>达成率%</th><th>Shortfall</th><th>心动觉察</th><th>YLYD</th><th>体验包</th><th>设计册</th><th>备注</th></tr></thead>
+      <tbody id="mo-body"></tbody><tfoot id="mo-foot"></tfoot></table>
+    </div>
+    <div class="sl" style="margin-top:18px">📋 本月销售（Mar 2026）</div>
+    <div class="ss-grid" id="ss-curr"></div>
+    <div class="sl">📦 本月产品拆解</div>
+    <div class="card" style="overflow-x:auto;padding:14px;">
+      <table class="pt"><thead><tr><th>产品</th><th>目标人数</th><th>会员价</th><th>目标营收</th><th>实际人数</th><th>实际营收</th><th>差距</th><th>达成率</th></tr></thead>
+      <tbody id="sb-body"></tbody></table>
+    </div>
+    <div class="sl" style="margin-top:18px">🎯 Marketing Strategy 重点</div>
+    <div class="card"><div id="strategy-remarks" style="font-size:12px;line-height:1.9;color:var(--text2)"></div></div>
+    <div class="divider"></div>
+    <div class="sl" style="margin-top:4px">📣 Marketing Content Calendar</div>
+    <div style="background:var(--white);border:1.5px solid var(--border);border-radius:var(--r);padding:14px;margin-bottom:14px;box-shadow:var(--sh)">
+      <div style="display:flex;gap:8px;align-items:flex-end;flex-wrap:wrap">
+        <div class="ff" style="flex:2;min-width:150px"><div class="fl2">内容标题</div><input class="fi" id="mc-title" placeholder="帖子标题 / 主题"></div>
+        <div class="ff"><div class="fl2">发布日期</div><input class="fi" id="mc-date" type="date" style="width:145px"></div>
+        <div class="ff"><div class="fl2">完成Deadline</div><input class="fi" id="mc-dl" type="date" style="width:145px"></div>
+        <div class="ff"><div class="fl2">平台</div><select class="fs" id="mc-platform" style="width:110px"><option>Facebook</option><option>小红书</option><option>Instagram</option><option>TikTok</option><option>YouTube</option><option>WhatsApp</option></select></div>
+        <div class="ff"><div class="fl2">类型</div><select class="fs" id="mc-type" style="width:160px">
+          <option>✍ DLIG 视频文案</option><option>✍ DLIG 信息文案模版</option>
+          <option>📣 DLIG Post 图+文案</option><option>🖼 DLIG 海报（1张）</option>
+          <option>📱 DLIG 视频脚本（1支）</option><option>📱 DLIG 剪辑短视频-一键成片</option>
+          <option>📱 DLIG 剪辑短视频（1min内）</option><option>🎬 DLIG 剪辑YouTube（25min内）</option>
+          <option>🧠 DLIG Landing Page 文案</option><option>🖥 DLIG Landing Page 制作</option>
+        </select></div>
+        <div class="ff"><div class="fl2">负责人</div><select class="fs" id="mc-person" style="width:100px"><option>Jasper</option><option>Li Joo</option><option>Stella</option><option>Roy</option><option>GDC</option></select></div>
+        <button class="add-btn" style="background:linear-gradient(135deg,#6a3a96,#9b59b6)" onclick="addMktContent()">+ 添加</button>
+      </div>
+    </div>
+    <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px">
+      <button class="fb" onclick="mktCalPrevMonth()">‹ 上月</button>
+      <div id="mkt-cur-month" style="font-size:12px;font-weight:700;color:var(--text);min-width:100px;text-align:center"></div>
+      <button class="fb" onclick="mktCalNextMonth()">下月 ›</button>
+    </div>
+    <div id="mkt-cal-view"></div>
+    <div style="overflow-x:auto;margin-bottom:8px"><table class="pt"><thead><tr><th>发布日期</th><th>平台</th><th>类型</th><th>标题</th><th>完成DL</th><th>负责人</th><th>状态</th></tr></thead><tbody id="mkt-list-body"></tbody></table></div>
+
+    <div class="sl" style="margin-top:18px">🔗 直达链接</div>
+    <div class="ql-wrap">
+      <a class="ql" href="https://docs.google.com/spreadsheets/d/1F0Ss1MuAwVRkVfWch2wepx2SvMXG3BoIBfVN0v9ye9M/edit" target="_blank">📊 Sales Dashboard</a>
+      <a class="ql" href="https://docs.google.com/spreadsheets/d/1F0Ss1MuAwVRkVfWch2wepx2SvMXG3BoIBfVN0v9ye9M/edit" target="_blank">📝 Sales Log</a>
+      <a class="ql" href="https://www.facebook.com/diamondlifeinsightsglobal/" target="_blank">📘 DLIG Facebook</a>
+      <a class="ql" href="https://www.xiaohongshu.com/user/profile/6698c4fd000000000b033f10" target="_blank">📕 小红书</a>
+      <a class="ql" href="https://www.canva.com/design/DAGww18XlMs/fC0BM97H6Jp74NL2FmH7aw/edit" target="_blank">🎨 Canva 设计</a>
+    </div>
+  </div>
+
+  <!-- ══ PRODUCTS ══ -->
+  <div class="page" id="p-products">
+    <div class="ib ib-gold"><b>⚠️ 产品价格冻结至 2026年6月30日（入口3除外）· 更改费RM100/次（3个月内再改 RM400/次）</b></div>
+    <div class="sl">① 全部产品价格（含 Ala-Carte）</div>
+    <div class="card" style="overflow-x:auto;padding:14px;"><table class="pt"><thead><tr><th>层级</th><th>产品</th><th>目的</th><th>会员价</th><th>原价</th><th>备注</th></tr></thead><tbody id="prod-tbl"></tbody></table></div>
+    <div class="sl" style="margin-top:20px">② YLYD System — 价值拆解 &amp; 存在原因</div>
+    <div class="ib ib-gold"><b>💎 RM1,588/year = RM132/月 · 「YLYD 不是帮你变厉害，是帮你不要再原地打转。」</b></div>
+    <div class="yvc-grid" id="yvc-wrap"></div>
+    <div style="background:var(--goldG);border-radius:12px;padding:16px 20px;color:#fff;margin-bottom:16px;">
+      <div style="font-size:10px;font-weight:800;letter-spacing:1.5px;margin-bottom:5px;opacity:.85">YLYD SYSTEM 总市值</div>
+      <div style="font-family:'Space Mono',monospace;font-size:28px;font-weight:700;margin-bottom:4px;">RM 5,268+</div>
+      <div style="font-size:12.5px;opacity:.9">活动当天会员价 <strong>RM 1,288</strong> · 含 1对1 咨询 + 送 心动觉察 ×2（RM1,144）</div>
+    </div>
+  </div>
+
+  <!-- ══ INVENTORY & ADMIN ══ -->
+  <div class="page" id="p-admin">
+    <div class="ib ib-blue"><b>📦 Inventory &amp; Admin — 负责人：Roy</b>有补货需求直接联系 Roy</div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(165px,1fr));gap:10px;margin-bottom:20px;" id="inv-sum"></div>
+    <div class="sl">📋 库存明细</div>
+    <div class="inv-grid" id="inv-detail"></div>
+    <div class="divider"></div>
+    <div class="ql-wrap">
+      <a class="ql" href="https://docs.google.com/spreadsheets/d/1zGy3rV0bv2dERFRWoRFhRLGj68oJ3RtAj-kiqi71DXk/edit" target="_blank">📦 Inventory Sheet</a>
+      <a class="ql" href="https://docs.google.com/spreadsheets/d/1zGy3rV0bv2dERFRWoRFhRLGj68oJ3RtAj-kiqi71DXk/edit" target="_blank">💳 支出记录</a>
+      <a class="ql" href="https://docs.google.com/spreadsheets/d/1zGy3rV0bv2dERFRWoRFhRLGj68oJ3RtAj-kiqi71DXk/edit" target="_blank">💰 Pay Summary</a>
+    </div>
+  </div>
+
+  <!-- ══ 心动觉察 ══ -->
+  <div class="page" id="p-xindong">
+    <div class="ib ib-gold"><b>💎 心动觉察 — 入口产品</b>让人看见自己需要系统 · 把人送进 YLYD · 会员价：双人RM227 / 单人RM257</div>
+    <div class="ptabs">
+      <button class="pt-btn on" onclick="sProj('xd','cl',this)">✅ Checklist</button>
+      <button class="pt-btn" onclick="sProj('xd','flow',this)">📋 活动流程</button>
+      <button class="pt-btn" onclick="sProj('xd','roles',this)">👤 岗位 &amp; 职责</button>
+      <button class="pt-btn" onclick="sProj('xd','att',this)">👥 出席者名单</button>
+      <button class="pt-btn" onclick="sProj('xd','trial',this)">🎮 试炼记录</button>
+      <button class="pt-btn" onclick="sProj('xd','lnk',this)">🔗 链接 &amp; 文案</button>
+    </div>
+
+    <!-- CHECKLIST -->
+    <div class="ps on" id="xd-cl">
+      <div style="display:flex;gap:8px;margin-bottom:14px;align-items:center;flex-wrap:wrap">
+        <select class="fs" id="cl-region" style="width:160px" onchange="renderChecklist()"><option value="bukit">Bukit Impian</option><option value="outstation">Outstation</option></select>
+        <button class="fb" onclick="resetChecklist()">🔄 重置（下一期）</button>
+        <button class="fb on" onclick="saveChecklist()">💾 保存进度</button>
+        <span style="font-size:10px;color:var(--muted)">· Tick 后自动记录，刷新不消失</span>
+      </div>
+      <div id="cl-sections"></div>
+    </div>
+
+    <!-- FLOW -->
+    <div class="ps" id="xd-flow">
+      <div class="env-tabs">
+        <button class="env-tab on" onclick="switchDay('day1',this)">Day 1</button>
+        <button class="env-tab" onclick="switchDay('day2',this)">Day 2</button>
+      </div>
+      <div class="env-sec on" id="flow-day1"></div>
+      <div class="env-sec" id="flow-day2"></div>
+    </div>
+
+    <!-- ROLES -->
+    <div class="ps" id="xd-roles">
+      <div class="ib ib-blue"><b>👤 岗位 &amp; 职责</b>Crew 人数：6人以下 Day1至少4 / Day2至少3 · 7人以上 Day1至少6 / Day2至少4</div>
+      <div class="env-tabs">
+        <button class="env-tab on" onclick="switchRoleDay('r1',this)">Day 1 岗位</button>
+        <button class="env-tab" onclick="switchRoleDay('r2',this)">Day 2 岗位</button>
+      </div>
+      <div class="env-sec on" id="r1"><div class="card" style="overflow-x:auto;padding:14px"><table class="pt"><thead><tr><th>岗位</th><th>细节职责</th><th>当期负责人</th></tr></thead><tbody id="role-d1"></tbody></table></div></div>
+      <div class="env-sec" id="r2"><div class="card" style="overflow-x:auto;padding:14px"><table class="pt"><thead><tr><th>岗位</th><th>细节职责</th><th>当期负责人</th></tr></thead><tbody id="role-d2"></tbody></table></div></div>
+    </div>
+
+    <!-- ATTENDANCE -->
+    <div class="ps" id="xd-att">
+      <div style="display:flex;gap:8px;align-items:flex-end;margin-bottom:14px;flex-wrap:wrap">
+        <div class="ff"><div class="fl2">场次</div><select class="fs" id="att-date" style="width:200px" onchange="renderAttendance()"><option>28-29 Mar 2026</option><option>11-12 Apr 2026</option><option>17-18 May 2026</option><option>21-22 Jun 2026</option></select></div>
+        <div class="ff"><div class="fl2">姓名</div><input class="fi" id="att-name" placeholder="参与者姓名" style="width:130px"></div>
+        <div class="ff"><div class="fl2">电话</div><input class="fi" id="att-phone" placeholder="+60 1x-xxx" style="width:130px"></div>
+        <div class="ff"><div class="fl2">关系状态</div><select class="fs" id="att-rel" style="width:120px"><option>单身 🌱</option><option>恋爱中 💑</option><option>已婚 💍</option><option>其他</option></select></div>
+        <div class="ff"><div class="fl2">迎宾分组</div><select class="fs" id="att-zone" style="width:130px"><option>一枝独秀</option><option>神雕侠侣</option><option>名花有主</option></select></div>
+        <button class="add-btn" onclick="addAttendee()">+ 添加</button>
+      </div>
+      <div id="att-list"></div>
+    </div>
+
+    <!-- TRIAL RECORDS -->
+    <div class="ps" id="xd-trial">
+      <div class="env-tabs">
+        <button class="env-tab on" onclick="switchTrial('t1',this)">🎮 试炼#1 沙盘</button>
+        <button class="env-tab" onclick="switchTrial('t2',this)">🏆 试炼#2 拍卖会</button>
+      </div>
+      <div class="env-sec on" id="t1">
+        <div class="ib ib-gold"><b>🎮 沙盘试炼记录</b>现场填写，选择 House Unit No、玩家梦想与目标</div>
+        <div style="display:flex;gap:8px;margin-bottom:12px;align-items:flex-end;flex-wrap:wrap">
+          <div class="ff"><div class="fl2">Unit No.</div><input class="fi" id="sb-unit" placeholder="e.g. A1" style="width:80px"></div>
+          <div class="ff" style="flex:1"><div class="fl2">Player 1 姓名</div><input class="fi" id="sb-p1" placeholder="姓名"></div>
+          <div class="ff" style="flex:1"><div class="fl2">Player 2 姓名（可选）</div><input class="fi" id="sb-p2" placeholder="姓名（伴侣/单人留空）"></div>
+          <div class="ff"><div class="fl2">梦想目标（可多选）</div><select class="fs" id="sb-dream" style="width:150px"><option>关系 💑</option><option>财富 💰</option><option>健康 🌿</option><option>事业 🚀</option><option>自由 🌏</option><option>家庭 🏡</option><option>内心平静 🧘</option></select></div>
+          <div class="ff"><div class="fl2">人生目标</div><select class="fs" id="sb-goal" style="width:130px"><option>A. 自由生活</option><option>B. 事业成功</option><option>C. 家庭幸福</option><option>D. 内心平静</option></select></div>
+          <button class="add-btn" onclick="addSbRecord()">+ 记录</button>
+        </div>
+        <div style="overflow-x:auto"><table class="pt"><thead><tr><th>Unit</th><th>Player 1</th><th>Player 2</th><th>梦想目标</th><th>人生目标</th><th>觉察备注</th><th>操作</th></tr></thead><tbody id="sb-body-rec"></tbody></table></div>
+      </div>
+      <div class="env-sec" id="t2">
+        <div class="ib ib-gold"><b>🏆 拍卖会试炼记录</b>记录每个特质的成交情况</div>
+        <div style="display:flex;gap:8px;margin-bottom:12px;align-items:flex-end;flex-wrap:wrap">
+          <div class="ff"><div class="fl2">特质</div><select class="fs" id="au-trait" style="width:160px"><option>情绪稳定</option><option>幽默感</option><option>财务自主</option><option>浪漫</option><option>体贴</option><option>上进心</option><option>独立</option><option>家庭责任感</option><option>冒险精神</option><option>耐心</option><option>诚实</option><option>创意</option><option>安全感</option><option>沟通能力</option><option>包容</option><option>智慧</option><option>健康</option><option>灵性成长</option></select></div>
+          <div class="ff"><div class="fl2">成交价（心动币）</div><input class="fi" id="au-price" type="number" placeholder="金额" style="width:100px"></div>
+          <div class="ff"><div class="fl2">拍到者</div><input class="fi" id="au-buyer" placeholder="姓名" style="width:110px"></div>
+          <div class="ff"><div class="fl2">给予者</div><input class="fi" id="au-seller" placeholder="姓名" style="width:110px"></div>
+          <div class="ff"><div class="fl2">受益者</div><input class="fi" id="au-benef" placeholder="姓名" style="width:110px"></div>
+          <button class="add-btn" onclick="addAuRecord()">+ 记录</button>
+        </div>
+        <div style="overflow-x:auto"><table class="pt"><thead><tr><th>特质</th><th>成交价</th><th>拍到者</th><th>给予者</th><th>受益者</th><th>备注</th><th>操作</th></tr></thead><tbody id="au-body"></tbody></table></div>
+      </div>
+    </div>
+
+    <!-- LINKS & SCRIPTS -->
+    <div class="ps" id="xd-lnk">
+      <div class="sl" style="margin-top:0">🔗 相关链接</div>
+      <div class="ql-wrap" style="margin-bottom:18px">
+        <a class="ql" href="https://docs.google.com/spreadsheets/d/1PtdOQKzX8MH7yDlJsafMlwoSOy2Vha1wsE_JbyGtbdM/edit" target="_blank">📋 心动觉察 Info</a>
+        <a class="ql" href="https://docs.google.com/document/d/1j9owG8uXeuacsKXWiavFJa1E8PmcL8UKQxTuGYLKUkA/edit" target="_blank">📖 流程文件 SOP</a>
+        <a class="ql" href="https://drive.google.com/drive/folders/1DIqbfCKvto37C43sC9UX39fnb-BY1JkB" target="_blank">🎬 心动觉察视频</a>
+        <a class="ql" href="https://drive.google.com/drive/folders/175PA2yQu017ixrCQ04IUBk6OrTOmQM8c" target="_blank">📄 沙盘报表 & 观测报告</a>
+        <a class="ql" href="https://docs.google.com/spreadsheets/d/1zGy3rV0bv2dERFRWoRFhRLGj68oJ3RtAj-kiqi71DXk/edit" target="_blank">📦 Inventory</a>
+        <a class="ql" href="https://forms.gle/ZiPwcFYgMbYfXQTJ9" target="_blank">⏱️ 服务打卡 Form</a>
+        <a class="ql" href="https://maps.app.goo.gl/WwQ6UJCtWAsH9CG29" target="_blank">📍 地图导航</a>
+      </div>
+      <div class="sl">📩 Automation 文案参考</div>
+      <div id="auto-scripts"></div>
+    </div>
+  </div>
+
+  <!-- ══ YLYD SYSTEM ══ -->
+  <div class="page" id="p-ylyd">
+    <div class="ib ib-green"><b>🌱 YLYD System — 核心产品（唯一长期经营）</b>不是课程，是12个月人生运行系统 · RM1,588/year · 活动当天 RM1,288</div>
+    <div class="env-tabs">
+      <button class="env-tab on" onclick="sEnv('dr',this)">☀️ Daily Redesign</button>
+      <button class="env-tab" onclick="sEnv('wr',this)">🌱 Weekly Realign</button>
+      <button class="env-tab" onclick="sEnv('bs',this)">📚 书影充电站</button>
+    </div>
+    <div class="env-sec on" id="env-dr">
+      <div class="ib ib-green"><b>☀️ Daily Redesign Space — 每天 6:10–7:20am (Zoom)</b>365天不间断 · 笔的故事四步骤 · 轮值主持</div>
+      <div class="sl">轮值表</div>
+      <div class="card" style="overflow-x:auto;padding:14px"><table class="pt"><thead><tr><th>星期</th><th>Mar 主持</th><th>Apr 主持</th><th>备注</th></tr></thead><tbody id="dr-rota"></tbody></table></div>
+      <div class="sl" style="margin-top:14px">✅ Checklist</div>
+      <div id="dr-cl"></div>
+      <div class="sl" style="margin-top:14px">🔗 链接</div>
+      <div class="ql-wrap"><a class="ql" href="#" target="_blank">🔗 Daily Redesign Zoom Link（待填写）</a></div>
+    </div>
+    <div class="env-sec" id="env-wr">
+      <div class="ib ib-green"><b>🌱 Weekly Realign — 每周四 2:00–4:00pm（线下）</b>4周循环：智慧充电 / 觉察续航 / 智慧充电 / 觉察续航 + Me Time</div>
+      <div class="sl">轮值表</div>
+      <div id="wr-rota-wrap"></div>
+      <div class="sl" style="margin-top:14px">✅ Checklist</div>
+      <div id="wr-cl"></div>
+    </div>
+    <div class="env-sec" id="env-bs">
+      <div class="ib ib-blue"><b>📚 书影充电站 — 每月 Week 2 &amp; 4 Sat 2:30–4pm（线上）</b>YLYD 终身会员专属 · 即使 System 结束也继续享有</div>
+      <div class="sl">轮值表</div>
+      <div id="bs-rota-wrap"></div>
+      <div class="sl" style="margin-top:14px">✅ Checklist</div>
+      <div id="bs-cl"></div>
+    </div>
+  </div>
+
+  <!-- ══ GDC MARKETING JOB ══ -->
+  <div class="page" id="p-gdc">
+    <div class="ib" style="background:var(--purpleB);border:1.5px solid rgba(106,58,150,.25)"><b style="color:var(--purple)">🎨 GDC Marketing Job — Operation 负责人：Jasper / Stella</b>记录外包任务，完成后链接 Task Board 贡献记录。每月 RM2,500 package。</div>
+    <div style="background:var(--white);border:1.5px solid var(--border);border-radius:var(--r);padding:14px;margin-bottom:14px;box-shadow:var(--sh)">
+      <div style="display:flex;gap:8px;align-items:flex-end;flex-wrap:wrap">
+        <div class="ff" style="flex:2;min-width:150px"><div class="fl2">任务内容</div><input class="fi" id="gdc-task" placeholder="描述 GDC 任务..."></div>
+        <div class="ff"><div class="fl2">发布/开始日期</div><input class="fi" id="gdc-date" type="date" style="width:145px"></div>
+        <div class="ff"><div class="fl2">完成Deadline</div><input class="fi" id="gdc-dl" type="date" style="width:145px"></div>
+        <div class="ff"><div class="fl2">类型</div><select class="fs" id="gdc-cat" style="width:130px">
+          <option>视频文案</option><option>图文文案</option><option>金句图文</option>
+          <option>视频拍摄</option><option>视频脚本</option><option>短视频剪辑</option>
+          <option>DLIG对接</option><option>方案讨论</option><option>Project管理</option>
+        </select></div>
+        <div class="ff"><div class="fl2">负责 GDC</div><input class="fi" id="gdc-who" placeholder="GDC 姓名" style="width:110px"></div>
+        <div class="ff"><div class="fl2">DLIG 跟进</div><select class="fs" id="gdc-pic" style="width:100px"><option>Jasper</option><option>Li Joo</option><option>Stella</option><option>Roy</option></select></div>
+        <button class="add-btn" style="background:linear-gradient(135deg,#6a3a96,#9b59b6)" onclick="addGDCTask()">+ 添加</button>
+      </div>
+    </div>
+    <div class="fbar">
+      <span class="fl">状态：</span>
+      <button class="fb on" onclick="filterGDC('全部',this)">全部</button>
+      <button class="fb" onclick="filterGDC('进行中',this)">进行中</button>
+      <button class="fb" onclick="filterGDC('待开始',this)">待开始</button>
+      <button class="fb" onclick="filterGDC('已完成',this)">已完成</button>
+      <button class="fb" onclick="filterGDC('已付款',this)">已付款</button>
+    </div>
+    <div id="gdc-cal-view"></div>
+    <div style="overflow-x:auto;margin-bottom:14px"><table class="pt"><thead><tr><th>发布日期</th><th>Deadline</th><th>类型</th><th>发布内容</th><th>GDC对接</th><th>DLIG负责人</th><th>操作</th></tr></thead><tbody id="gdc-list"></tbody></table></div>
+    <div class="sl">💰 GDC 外包收费参考</div>
+    <div class="card" style="overflow-x:auto;padding:14px"><table class="pay-table"><thead><tr><th>任务类型</th><th>比例</th></tr></thead><tbody id="gdc-pay-tbl"></tbody></table></div>
+    <div class="sl" style="margin-top:14px">🔗 相关链接</div>
+    <div class="ql-wrap">
+      <a class="ql" href="https://docs.google.com/spreadsheets/d/1A3g_WPDU-R4zU8gj8gGHu885z5bk4lTBBRnCfDsstDI/edit" target="_blank">🗂 Task Tracking Sheet</a>
+    </div>
+  </div>
+
+    <!-- ══ COMPANY POLICY ══ -->
+  <div class="page" id="p-policy">
+    <!-- Vision from PDF -->
+    <div class="vision">
+      <div style="font-size:9px;font-weight:800;color:var(--gold);text-transform:uppercase;letter-spacing:2px;margin-bottom:6px;">DLIG 宪法 · Company Constitution</div>
+      <div style="font-size:17px;font-weight:800;color:var(--gold);margin-bottom:10px">Diamond Life Insights Global</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+        <div>
+          <div style="font-size:10px;font-weight:800;color:var(--muted);text-transform:uppercase;margin-bottom:6px">🎯 愿景 Vision</div>
+          <div style="font-size:13px;font-weight:700;color:var(--text);line-height:1.7">创造 <span style="color:var(--gold);font-family:'Space Mono',monospace">7,000万</span> 个了解事物真正运作方式的人生设计师，共创富足而美好的人生。</div>
+        </div>
+        <div>
+          <div style="font-size:10px;font-weight:800;color:var(--muted);text-transform:uppercase;margin-bottom:6px">💡 一句话定位</div>
+          <div style="font-size:12px;color:var(--text2);line-height:1.75">DLIG 是一个以「种子法则与因果」为核心，透过觉察、游戏、活动与科技等，让人能长期、自由地设计并实践自己人生的系统。</div>
+        </div>
+      </div>
+      <div style="margin-top:14px;padding-top:14px;border-top:1px solid rgba(184,114,10,.2)">
+        <div style="font-size:10px;font-weight:800;color:var(--muted);text-transform:uppercase;margin-bottom:8px">📋 使命 Mission</div>
+        <div style="font-size:12px;color:var(--text2);line-height:1.85">协助人们觉察自己正在经历的人生状态与选择，理解事物背后的真正运作方式（种子与因果），并相信自己拥有改变的能力，在真实生活中设计并走出自己的人生，逐步离苦得乐，走向智慧与自由。<br><br>我们不制造依赖、焦虑或短期翻转，而是建立一个以觉察为起点、可以长期实践、持续使用、不断校准的人生系统。</div>
+      </div>
+    </div>
+
+    <!-- 核心价值观 -->
+    <div class="sl">💎 核心价值观</div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:8px;margin-bottom:18px">
+      <div class="card" style="padding:11px 14px;font-size:12px"><b>无限潜能</b><div style="color:var(--muted);font-size:11px;margin-top:3px">每个人都具备改变人生的能力</div></div>
+      <div class="card" style="padding:11px 14px;font-size:12px"><b>人人平等</b><div style="color:var(--muted);font-size:11px;margin-top:3px">每个人都对自己的人生负责</div></div>
+      <div class="card" style="padding:11px 14px;font-size:12px"><b>诚实正直</b><div style="color:var(--muted);font-size:11px;margin-top:3px">不自欺、不欺人，如实面对选择与结果</div></div>
+      <div class="card" style="padding:11px 14px;font-size:12px"><b>利他，再利己</b><div style="color:var(--muted);font-size:11px;margin-top:3px">先创造价值，再获得回报</div></div>
+      <div class="card" style="padding:11px 14px;font-size:12px"><b>有意义的柔和言语</b><div style="color:var(--muted);font-size:11px;margin-top:3px">真实表达，同时不伤害他人</div></div>
+      <div class="card" style="padding:11px 14px;font-size:12px"><b>健康第一，工作第二</b><div style="color:var(--muted);font-size:11px;margin-top:3px">不用生命换成果</div></div>
+      <div class="card" style="padding:11px 14px;font-size:12px"><b>乐享当下，心常感恩</b><div style="color:var(--muted);font-size:11px;margin-top:3px">不被焦虑与匮乏驱动</div></div>
+      <div class="card" style="padding:11px 14px;font-size:12px"><b>他人好时我鼓掌</b><div style="color:var(--muted);font-size:11px;margin-top:3px">不比较，走共赢</div></div>
+    </div>
+
+    <!-- 三层结构 -->
+    <div class="sl">🏗 三层结构</div>
+    <div class="three-tier">
+      <div class="tier-card" style="background:var(--greenB);border:1.5px solid rgba(26,110,66,.2)">
+        <div style="font-size:10px;font-weight:800;color:var(--green);text-transform:uppercase;margin-bottom:7px">🟢 #1 源头层（不可商业化）</div>
+        <div style="font-size:12px;font-weight:700;margin-bottom:5px">修行 · 深入学习 · 证悟</div>
+        <div style="font-size:10.5px;color:var(--muted);line-height:1.7">❌ 不卖、不KPI、不规模化<br>✅ 只负责：不违背种子与因果</div>
+      </div>
+      <div class="tier-card" style="background:var(--goldL);border:1.5px solid rgba(184,114,10,.25)">
+        <div style="font-size:10px;font-weight:800;color:var(--gold);text-transform:uppercase;margin-bottom:7px">🟡 #2 实践层（唯一长期核心）</div>
+        <div style="font-size:12px;font-weight:700;margin-bottom:5px">YLYD System</div>
+        <div style="font-size:10.5px;color:var(--muted);line-height:1.7">唯一长期经营 · 唯一发展成App<br>2026年后主要营收来源</div>
+      </div>
+      <div class="tier-card" style="background:var(--blueB);border:1.5px solid rgba(26,79,138,.2)">
+        <div style="font-size:10px;font-weight:800;color:var(--blue);text-transform:uppercase;margin-bottom:7px">🔵 #3 入口层（觉察体验）</div>
+        <div style="font-size:12px;font-weight:700;margin-bottom:5px">心动觉察 / 沙盘等</div>
+        <div style="font-size:10.5px;color:var(--muted);line-height:1.7">低频 · 体验式 · 非社群<br>目的：把人送进 YLYD 系统</div>
+      </div>
+    </div>
+
+    <!-- 运营规则 -->
+    <div class="sl">⚙️ 运营规则</div>
+    <div class="pb-blk" id="policy-ops"></div>
+
+    <!-- 5 questions -->
+    <div class="sl">🧭 决策五问（任何新决定，ALL 5 必须是 YES）</div>
+    <div class="card" style="line-height:2.4;font-size:12.5px">
+      ❶ 遵循种子或因果？<br>
+      ❷ 不消耗创办人或团队？（身体、精神、关系、金钱）<br>
+      ❸ 是否把人引向能力与自我负责，而非对老师、团队或关系的依赖？<br>
+      ❹ 是否最终回到 YLYD？（入口是否通往核心）<br>
+      ❺ 是否能在没有创办人亲自参与下运作？（系统化）
+      <div style="color:var(--red);font-weight:700;margin-top:10px;padding:9px 13px;background:var(--redB);border-radius:8px;font-size:12px">👉 任何一题是 NO，不做。All 5 YES 才进入。</div>
+    </div>
+
+    <!-- Policy blocks -->
+    <div class="sl" style="margin-top:18px">📜 Policy 详情</div>
+    <div id="pol-blocks"></div>
+
+    <!-- Task Pay -->
+    <div class="sl" style="margin-top:18px">💰 Task Pay 价目表</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px">
+      <div><div class="sl" style="margin-top:0;font-size:9px">Sales &amp; Marketing Tasks（视 Sales Target 达成%给付）</div><div class="card" style="padding:12px"><table class="pay-table"><thead><tr><th>任务类型</th><th>单价</th></tr></thead><tbody id="pay-sm"></tbody></table></div></div>
+      <div><div class="sl" style="margin-top:0;font-size:9px">Operation Tasks（Fixed Rate）</div><div class="card" style="padding:12px"><table class="pay-table"><thead><tr><th>任务类型</th><th>单价</th></tr></thead><tbody id="pay-op"></tbody></table></div></div>
+    </div>
+
+    <!-- Donation -->
+    <div class="sl">🤲 Donation 机制</div>
+    <div class="card" style="overflow-x:auto;padding:14px"><table class="pt"><thead><tr><th>产品</th><th>捐款去向</th><th>%</th></tr></thead><tbody id="donation-tbl"></tbody></table></div>
+
+    <div class="sl" style="margin-top:14px">🔗 直达</div>
+    <div class="ql-wrap"><a class="ql" href="https://docs.google.com/document/d/1LFNUcIsbCIA6wrBZbeoQJR2ZmQsvdyun/edit" target="_blank">📜 Company Policy Doc</a><a class="ql" href="https://diamondseedcharity.com/" target="_blank">🤲 Diamond Seed Charity</a></div>
+  </div>
+
+  <!-- ══ MEETING ══ -->
+  <div class="page" id="p-meeting">
+    <div class="mtabs">
+      <button class="mt on" onclick="smeet('monthly',this)">📋 Monthly Meeting</button>
+      <button class="mt" onclick="smeet('weekly',this)">⚡ Weekly Meeting</button>
+      <button class="mt" onclick="smeet('minutes',this)">📝 会议记录</button>
+    </div>
+    <div class="ms-tab on" id="ms-monthly">
+      <div class="ib ib-gold"><b>📅 Monthly Meeting — 每月最后拜二</b>全员参与 · 每人准备部门报告</div>
+      <div class="ag-wrap" id="mo-agenda"></div>
+    </div>
+    <div class="ms-tab" id="ms-weekly">
+      <div class="ib ib-blue"><b>⚡ Weekly Meeting — 每周 Thu 8am</b>快速对齐 + 任务分配</div>
+      <div class="ag-wrap" id="wk-agenda"></div>
+    </div>
+    <div class="ms-tab" id="ms-minutes">
+      <div class="ib ib-blue"><b>📝 会议记录</b>同一个 Google Doc，不同 Tab 对应不同日期。填入链接点击直接跳转。</div>
+      <div style="display:flex;gap:8px;margin-bottom:14px;align-items:flex-end;flex-wrap:wrap">
+        <div class="ff"><div class="fl2">日期</div><input class="fi" id="min-date" type="date" style="width:150px"></div>
+        <div class="ff" style="flex:1"><div class="fl2">标题</div><input class="fi" id="min-title" placeholder="Meeting Minutes 2026 W--"></div>
+        <div class="ff" style="flex:2"><div class="fl2">Google Doc 链接</div><input class="fi" id="min-link" placeholder="https://docs.google.com/..."></div>
+        <div class="ff"><div class="fl2">备注</div><input class="fi" id="min-note" placeholder="主要议题" style="width:130px"></div>
+        <button class="add-btn" onclick="addMinute()">+ 添加</button>
+      </div>
+      <div id="mins-list"></div>
+    </div>
+  </div>
+
+  <!-- ══ DECISIONS ══ -->
+  <div class="page" id="p-decisions">
+    <div style="max-width:740px">
+      <div class="ib ib-red"><b>⚠️ 待拍板事项</b>大家提前投票 &amp; 留言，会议时直接确认</div>
+      <div style="background:var(--white);border:1.5px solid var(--border);border-radius:var(--r);padding:14px;margin-bottom:16px;box-shadow:var(--sh)">
+        <div style="font-size:12px;font-weight:700;color:var(--text2);margin-bottom:10px">➕ 添加待决策事项</div>
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <div class="ff"><div class="fl2">决策题目</div><input class="fi" id="dec-q-new" placeholder="需要拍板的问题..."></div>
+          <div class="ff"><div class="fl2">选项（用 | 分隔）</div><input class="fi" id="dec-opts-new" placeholder="方案A | 方案B | 方案C"></div>
+          <div style="display:flex;gap:8px">
+            <div class="ff" style="flex:1"><div class="fl2">负责人</div><select class="fs" id="dec-owner-new"><option>All</option><option>Li Joo</option><option>Jasper</option><option>Stella</option><option>Roy</option></select></div>
+            <div class="ff" style="flex:1"><div class="fl2">截止</div><input class="fi" id="dec-dl-new" type="date"></div>
+            <button class="add-btn" onclick="addDecision()" style="align-self:flex-end">+ 添加</button>
+          </div>
+        </div>
+      </div>
+      <div id="dec-blocks"></div>
+    </div>
+  </div>
+
+  <!-- ══ FILES ══ -->
+  <div class="page" id="p-files">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+      <div class="ib ib-gold" style="flex:1;margin-bottom:0"><b>📁 文件索引</b>点击直接跳转 · 自行添加新文件链接</div>
+      <button class="add-btn" style="margin-left:12px;flex-shrink:0" onclick="showFileAdd()">+ 添加文件</button>
+    </div>
+    <div id="file-add-form" style="display:none;background:var(--white);border:1.5px solid var(--border);border-radius:var(--r);padding:14px;margin-bottom:14px;box-shadow:var(--sh)">
+      <div class="ag" style="grid-template-columns:2fr 1fr 1fr auto">
+        <div class="ff"><div class="fl2">文件名称</div><input class="fi" id="fitem-name" placeholder="文件名"></div>
+        <div class="ff"><div class="fl2">分类</div><select class="fs" id="fitem-cat"><option>公司核心资料</option><option>Sales & Marketing</option><option>Admin & Account</option><option>Operation · 心动觉察</option><option>Operation · YLYD System</option><option>Operation · YLYD 会员</option><option>Others</option></select></div>
+        <div class="ff"><div class="fl2">链接</div><input class="fi" id="fitem-link" placeholder="https://..."></div>
+        <button class="add-btn" onclick="addFileItem()">+ 添加</button>
+      </div>
+    </div>
+    <div class="files-grid" id="files-wrap"></div>
+  </div>
+
+</div><!-- end main -->
+</div><!-- end shell -->
+
+<script>
+// ═══════════════════════════════════════
+// HELPERS
+// ═══════════════════════════════════════
+const PC={'Li Joo':'#c84010','Jasper':'#1a4f8a','Roy':'#1a6e42','Stella':'#7a3080','All':'#b8720a','全员':'#b8720a','全体':'#b8720a','待认领':'#8a6a4a','GDC':'#546e7a'};
+const ptag=p=>p&&p!=='-'?`<span class="tag" style="background:${PC[p]||'#8a6a4a'};color:#fff">${p}</span>`:'';
+const ctag=c=>c?`<span class="tag tcat">${c}</span>`:'';
+const ktag=k=>{const m={'🔴 紧急':'turg','🟡 本周':'tweek','⚡ 本月':'tmon','⭐ 长期':'tlong'};return k?`<span class="tag ${m[k]||'tlong'}">${k}</span>`:'';}
+const stag=s=>{const m={'已完成':'sb-done','进行中':'sb-prog','待启动':'sb-todo','待处理':'sb-todo','待决策':'sb-dec','待建立':'sb-pend'};return s?`<span class="sb ${m[s]||'sb-pend'}">${s}</span>`:'';}
+const fRM=n=>{const v=parseFloat((n||'').toString().replace(/[^0-9.-]/g,''));return isNaN(v)?'—':'RM'+v.toLocaleString('en-MY',{minimumFractionDigits:0});}
+const save=(k,v)=>{try{localStorage.setItem('dlig7_'+k,JSON.stringify(v));}catch(e){}}
+const load=(k,def)=>{try{const v=localStorage.getItem('dlig7_'+k);return v?JSON.parse(v):def;}catch(e){return def;}}
+const COEF={'Sales':3,'Marketing':2,'System':2,'GDC':2,'Operation':1,'Admin':1};
+const PAY_SM_DATA=[{t:'✍ 视频文案（2篇）',v:'RM5'},{t:'✍ 信息文案模版（2篇）',v:'RM5'},{t:'📣 制作 Post 图+文案',v:'RM15'},{t:'🖼 制作海报（1张）',v:'RM15'},{t:'📝 视频脚本（1支）',v:'RM5'},{t:'📱 剪辑短视频-一键成片（1min内）',v:'RM20'},{t:'📱 剪辑短视频（1min内）',v:'RM50'},{t:'🎬 剪辑YouTube（25min内）',v:'RM100'},{t:'🧠 Landing Page 文案',v:'RM50'},{t:'🖥 Landing Page 制作',v:'RM150'}];
+const PAY_OP_DATA=[{t:'🎤 线下活动带领（半天）',v:'RM50'},{t:'🧭 副村长（半天）',v:'RM30'},{t:'🤝 Crew（半天）',v:'RM20'}];
+const GDC_PAY=[{t:'Li Joo comm + 对接',v:'15%'},{t:'Project Execution Management',v:'5%'},{t:'讨论方案',v:'20%'},{t:'视频文案（15个）',v:'10%'},{t:'图文文案（15个）',v:'10%'},{t:'金句图文/prompt（5张）',v:'5%'},{t:'视频拍摄（1支）',v:'3%'},{t:'视频脚本（1支）',v:'2%'},{t:'剪辑短视频（1支）',v:'10%'},{t:'DLIG Income',v:'20%'}];
+const DONATION_DATA=[{p:'设计册 / YLYD会员',d:'Castle Rock Capital Fund（Happy Box）',pct:'5%'},{p:'YLYD System (sales)',d:'Mixed Nuts',pct:'5%'},{p:'心动觉察 (sales)',d:'YSI Yoga Donation',pct:'5%'},{p:'青少年项目 (sales)',d:'Green Stretch Pen（GSP）',pct:'5%'},{p:'季度总利润',d:'DLIG Charity Foundation',pct:'2.5%'},{p:'季度总利润',d:'ALL 创办人',pct:'2.5%'}];
+
+// ═══════════════════════════════════════
+// DATA
+// ═══════════════════════════════════════
+let TASKS=load('tasks',[
+  {id:1,task:'心动觉察全套 PPT 最终检查',person:'All',cat:'Operation',type:'contrib',priority:'🔴 紧急',deadline:'2026-04-11',status:'进行中',est:2,actual:''},
+  {id:2,task:'打广告 + enquiry auto message 设定',person:'Jasper',cat:'Marketing',type:'fee',priority:'🔴 紧急',deadline:'2026-04-10',status:'待启动',est:3,actual:''},
+  {id:3,task:'广告进来的系统 tag 设定',person:'Roy',cat:'Admin',type:'contrib',priority:'🔴 紧急',deadline:'2026-04-10',status:'待启动',est:2,actual:''},
+  {id:4,task:'DLIG 网站内容更新（新价格/产品）',person:'Stella',cat:'Operation',type:'contrib',priority:'🔴 紧急',deadline:'2026-04-15',status:'待启动',est:4,actual:''},
+  {id:5,task:'分钱机制最终定案',person:'All',cat:'Admin',type:'contrib',priority:'🟡 本周',deadline:'2026-04-05',status:'待决策',est:0,actual:''},
+  {id:6,task:'DLIG FB content 排程',person:'Jasper',cat:'Marketing',type:'fee',priority:'⚡ 本月',deadline:'2026-04-30',status:'进行中',est:5,actual:''},
+  {id:7,task:'YLYD 会员 content 发布',person:'Stella',cat:'Operation',type:'contrib',priority:'⚡ 本月',deadline:'2026-04-30',status:'待启动',est:3,actual:''},
+]);
+let LOGS=load('logs',[]);
+let DEC=load('decisions',[
+  {id:'d1',q:'心动觉察活动是否继续赠送 YLYD 终身会员资格？',opts:['赠送 → 更新 Checklist','不赠送 → 定购买门槛','Lucky Draw 形式'],votes:{},comments:[],owner:'All',dl:'2026-04-12'},
+  {id:'d2',q:'分钱机制最终定案（贡献时间 × 价值系数）',opts:['季度结算，工时50%+任务50%','月度结算'],votes:{},comments:[],owner:'All',dl:'2026-04-05'},
+  {id:'d3',q:'Affiliate 机制 — YLYD System 持续被动收入？',opts:['有被动收入，每年续费给%','只有首次成交20%'],votes:{},comments:[],owner:'Li Joo',dl:'2026-04-05'},
+]);
+let EVENTS=load('events',[
+  {id:'e1',name:'心动觉察 Day 1',date:'2026-03-28',type:'xindong',person:'All'},
+  {id:'e2',name:'心动觉察 Day 2',date:'2026-03-29',type:'xindong',person:'All'},
+  {id:'e3',name:'心动觉察 Day 1',date:'2026-04-11',type:'xindong',person:'All'},
+  {id:'e4',name:'心动觉察 Day 2',date:'2026-04-12',type:'xindong',person:'All'},
+  {id:'e5',name:'Monthly Meeting',date:'2026-03-31',type:'meet',person:'All'},
+  {id:'e6',name:'Monthly Meeting',date:'2026-04-28',type:'meet',person:'All'},
+]);
+let MINUTES=load('minutes',[{id:'m1',date:'2026-03-25',title:'Meeting Minutes 2026 W12',link:'https://docs.google.com/document/d/12v7NoM7aPpbywPvMGa6dSIZa6_dshPfC9Oz1TYC-bc4/edit',note:'分钱机制讨论'}]);
+let ATTENDANCE=load('attendance',{});
+let SB_RECORDS=load('sb_records',[]);
+let AU_RECORDS=load('au_records',[]);
+let MKT_CONTENT=load('mkt_content',[
+  {id:'mc1',title:'心动觉察 4月场预告',date:'2026-04-01',platform:'Facebook',cat:'活动推广',person:'Jasper',status:'待发布'},
+  {id:'mc2',title:'YLYD 用户真实分享',date:'2026-04-03',platform:'小红书',cat:'用户故事',person:'Jasper',status:'待发布'},
+  {id:'mc3',title:'周四 Realign 打卡花絮',date:'2026-04-05',platform:'Facebook',cat:'社群活动',person:'Jasper',status:'待发布'},
+]);
+let GDC_TASKS=load('gdc_tasks',[]);
+let FILE_ITEMS=load('file_items',[]);
+
+// Checklists from SOP PDF
+const CL_SECTIONS=[
+  {sec:'活动前几天',icon:'📅',zones:[
+    {zone:'Message Reminder',items:[
+      '确认「沙盘报表」、「心动观测报告」& YLYD 1month 数量足够',
+      '准备好下一期的 Unit Number & PPT 要换好（Unit Number）',
+      'Check 下一期信息',
+      'Day 1 活动 5天前：发 Automation reminder (确认关系状态 & 出席)',
+      'Day 1 活动 1天前：发提醒时间、地点、没有正餐',
+    ]}
+  ]},
+  {sec:'DAY 1 活动前',icon:'🌅',zones:[
+    {zone:'服务官定调',items:['3m 轻瑜伽拉伸','3m 发愿','3m 迷你四步骤','3m 定调 调整动机','20m 过流程（各个环节的负责人清晰自己的岗位）','3m Team Cheers & 准备开始服务','35m 活动前准备']},
+    {zone:'IT 区（📍大门进来右边）',items:['Set Projector/TV（Extension + 电脑 + pointer + PPT + mic）','测试 Speaker（music vol: 5, mic vol: 3）','调灯光','Day 1 PPT: 心动觉察 - 沙盘 - PART 1 & 2']},
+    {zone:'迎宾桌（📍大门进来右边）',items:['心动观测报告 + Pink 笔','桌上分区摆放 name badge holder（背后放 Jalan Emptiness / Seed / Diamond）','桌上分区摆放特质卡：一枝独秀区 | 神雕侠侣区 | 名花有主区','电脑开参与者名单']},
+    {zone:'能量补给站（📍大门进来右边）',items:['矿泉水（每个位子也有一个）','健康零嘴','Tissue','Marker Pen（给参与者写名在 bottle）','Deco']},
+    {zone:'ID 制作区（📍大门进来左边）',items:['分组道具：手环、分组抽卡牌、弹簧小花花+木token、彩色笔','ID 制作 guideline laminate card + team up card 倒反放在下面']},
+    {zone:'沙盘试炼区（📍大门进来右边）',items:['沙盘 + 骰子 + 卡牌 + 个人公仔 & 指南针','参与者位置：个人报表 + 计算机 + 密码','村长位置：空白报表 + 可擦笔 + 爱心骰子 + 双人密码 + Jalan xx']},
+  ]},
+  {sec:'DAY 1 活动后',icon:'🌆',zones:[
+    {zone:'活动后',items:['Start Automation reminder 给 DAY 2 出席者','电脑后台更改：Team Up 选屋子、Team Up 各组目标']},
+    {zone:'迎宾区（📍门口）',items:['心动试炼锦囊：锦囊透明袋 + 心动试炼锦囊sticker','心动拍卖单（100gsm 可写的纸张）','金句卡','心动币']},
+    {zone:'游戏区（📍迎宾桌 + bar台）',items:['游戏1 - Ping Pong：Ping Pong 在box、绳子绑棍、杯子黏在迎宾桌边缘、游戏介绍 A4卡','游戏2 - 拉拉 Game：把道具绑在bar台、游戏介绍 A4卡','游戏3 - 剑游戏：粉色盒子里4支不同颜色小剑、桌上4支小剑、游戏介绍 A4卡']},
+  ]},
+  {sec:'DAY 2 活动前',icon:'🌄',zones:[
+    {zone:'IT 区（📍大门进来）',items:['Set Projector/TV（Extension + 电脑 + pointer + PPT）','测试 Speaker','调灯光','Day 2 PPT: 心动觉察 - 拍卖 - PART 1 & 2']},
+    {zone:'拍卖神桌（📍TV console）',items:['米白布 + 纱布 + 锤子','锦囊 sample','心动币']},
+    {zone:'Just Go Bar',items:['买/准备冰块','set up 饮料材料：冰块、Rebena、Sunkist、气泡水、荔枝、龙眼、竹签','洗杯']},
+  ]},
+  {sec:'DAY 2 活动后',icon:'🌙',zones:[
+    {zone:'复盘',items:['复盘：好的 & 可提升的','优化项目流程','安排人员晚上专注看电话，回复信息（upsell standby）','更改下一期 automation 信息','电脑后台更改：拍卖成交价','准备给 YLYD 手册']},
+  ]},
+];
+let CL_DONE=load('cl_done7',{});
+
+const AUTO_SCRIPTS=[
+  {title:'文案1：活动5天前（确认关系状态）',content:'你好！XXX 来临的这个星期就是【心动觉察】啦~\n以下有一些资讯需要跟你确认（为了给你更好的体验✨）：\n1️⃣请问你目前的关系状态是？A. 单身 🌱 B. 恋爱中 💑 C. 已婚 💍 D. 其他\n2️⃣是否会与伴侣/家人一同出席？E. 没有 F. 有（请备注名字 & 关系）\n如果临时需要更换时间，需要今天让我们知道哦。感谢你的协助 💛'},
+  {title:'文案2：活动前一天',content:'Xxx 你好～👋 温馨提醒一下 💛\n明天 & 后天就是我们期待已久的【心动觉察】啦～\n📅 日期 & ⌚ 9.45am – 1.15pm（9.30am 开始入场）\n📍 28A, Jalan Bukit Impian 16, Taman Impian Emas, 81300 Skudai\n📌 地图：https://maps.app.goo.gl/WwQ6UJCtWAsH9CG29\n‼️ P.S: 本次活动未提供正餐，建议先享用早餐 🥪☕'},
+  {title:'文案3：入场前1小时半',content:'🌼温馨提醒：【心动觉察】Day 1 将在⏰ 9:45am 准时开始，9:30am 开放入场\n📍 28A, Jalan Bukit Impian 16, Taman Impian Emas, 81300 Skudai\n📌 地图：https://maps.app.goo.gl/WwQ6UJCtWAsH9CG29'},
+  {title:'文案4：Day 2 前（感谢完成Day1）',content:'嗨！XXX👋 恭喜你完成了【心动觉察】Day 1 ✨\n今天请温柔地留一点时间给自己，完成你的「心动观测报告」，也别忘了把观测报告带来，我们会一起用到它😄\n🪄提早出席 & 完成观测报告 就有bonus来助你更好地完成Day 2 觉察试炼！\n明天9.30am见！'},
+  {title:'文案5：Day 2 Remind',content:'🌼温馨提醒：【心动觉察】Day 2 将在⏰ 9:45am 准时开始，9:30am 开放入场\n📍 28A, Jalan Bukit Impian 16, Taman Impian Emas, 81300 Skudai\n📌 地图：https://maps.app.goo.gl/WwQ6UJCtWAsH9CG29'},
+  {title:'文案6：感谢 + Upsell',content:'你好 {{contact.first_name}} 😊\n很开心这两个早上可以跟你一起完成《心动觉察》！但改变，其实不止于觉察，真正关键的是——接下来你怎么继续走下去 💛\n觉察如果没有一个环境承载，很容易慢慢被生活带回原点。所以想问你一个很重要的问题：🧐 你希望用什么方式，继续往前？'},
+];
+
+const ROLES_D1=[
+  {role:'💛 村长（Facilitator）',detail:'开场 · 破冰 · 沙盘引导（20-35岁个人段 & 35-60岁家庭段）· 觉察分享总结',person:''},
+  {role:'🔵 副村长',detail:'协助主持 · 引导分享 · 观察玩家模式 · 协助定调',person:''},
+  {role:'🟢 PA官 & 迎宾台',detail:'迎宾 · 特质卡发放 · ID制作引导 · 电脑开参与者名单',person:''},
+  {role:'📸 摄影官',detail:'活动全程拍照 · 重要觉察时刻抓拍',person:''},
+  {role:'🎮 小天使（IT & 后台）',detail:'电脑后台更改：Team Up 选屋子 / Team Up 各组目标',person:''},
+];
+const ROLES_D2=[
+  {role:'🔴 心动拍卖神',detail:'拍卖主持 · 笔的故事 · YLYD 呈现 · 收结两天觉察',person:''},
+  {role:'🔵 副村长',detail:'协助拍卖 · 觉察深化引导 · 报名区协助',person:''},
+  {role:'🟢 PA官 & 报名区',detail:'报名区 · 参与者引导 · 收集拍卖单',person:''},
+  {role:'🍹 Bartender（Just Go Bar）',detail:'制作 mocktail · 服务参与者 · 维持 bar 区整洁',person:''},
+  {role:'🎮 Game Master（Ping Pong/拉拉/剑）',detail:'游戏引导 · 协助参与者赚心动币',person:''},
+  {role:'📸 摄影官',detail:'活动全程拍照 · 拍卖精彩时刻',person:''},
+  {role:'🎮 小天使（IT & 后台）',detail:'电脑后台：拍卖成交价 · 拍卖结束准备 YLYD 手册',person:''},
+];
+const XD_FLOW_D1=[
+  {title:'🎤 迎宾 & 签到（活动前30min）',desc:'系统提醒 1.5h前发 · 特质卡选取 · ID制作 · Briefing',script:'你好！欢迎来到心动觉察，请问怎么称呼你呢？我们这里有分三个区域——一枝独秀 / 神雕侠侣 / 名花有主...'},
+  {title:'💬 开场 + 破冰（25min）',desc:'Video → 欢迎 → Calibrating Heart Frequency → 自我介绍',script:'Hello everybuddy！欢迎来到心动觉察！欢迎来到心动村！这两天，我们不是来学什么是对的，而是来看清楚我平常是怎么在活着的。我们只做三件事：看见 · 记录 · 选择。'},
+  {title:'🧊 装备规则（15min）',desc:'心动星拯救计划 → 沙盘规则 → 目标 & 梦想选择',script:'这个沙盘，是二十岁到六十岁的人生缩影。它不是游戏，它是放大器。沙盘里没有对错，但每个选择都会指向一个未来。'},
+  {title:'🎮 个人沙盘（35min）',desc:'20–35岁 · 用真实决策模式来玩 · 村长在场引导观察',script:'你现在现实中会怎么选？你在怕什么？精力不能买——钱买不了命！'},
+  {title:'✍️ 个人觉察（10min）',desc:'写下模式关键词 · 不分析不评价',script:'接下来10分钟，只做记录。不分析，不修正，不评价自己。写下你看见的模式/习惯。'},
+  {title:'🔁 组队仪式（30min）',desc:'找搭档 → 购屋仪式 → 入伙仪式 → 合并报表',script:'从现在开始，请把你的搭档，当成真实的ta。不要演，不要客气，用你现实中的样子。'},
+  {title:'🎮 家庭沙盘（60min）',desc:'35–60岁 · 观察进入关系后的变化',script:'主要觉察：一个人 vs 进入两人时有没有不一样，两人配合做决定的过程。'},
+  {title:'💬 觉察分享（20min）',desc:'每组分享 · 村长总结盲点',script:'我想邀请大家，不是分享「我学到了什么」，而是分享「我看见了什么」。不用很完整，只需要真实。'},
+  {title:'🌱 任务下达（10min）',desc:'观测报告任务 · DAY 2 见',script:'看见，不等于改变。但不看见，一定重复。今天我们只做了两件事：看见和记录。明天，我们会做第三件事——选择。'},
+];
+const XD_FLOW_D2=[
+  {title:'🎮 入场 & 赚心动币（活动前30min）',desc:'提早+10000币 · 交报告+5token · 选锦囊',script:'游戏结束，看视频的时候，把 game 收去 counter 桌子下。'},
+  {title:'💬 开场（10min）',desc:'回顾 Day 1 + 分享收获',script:'欢迎回来！昨天我们做了一件很多人很少去做的事：我们停下来了。'},
+  {title:'🔴 拍卖试炼 Round 1–4（70min）',desc:'各类特质竞拍 · 觉察深化',script:'今天的第二道试炼，叫做——心动拍卖会。我们拍的，不只是「灵魂伴侣」，而是你想过的生活方式。'},
+  {title:'📝 觉察整合（10min）',desc:'整理拍卖觉察 & 整合两天觉察',script:'请你看一下你的拍卖成交单。这就是你现在的优先顺序。'},
+  {title:'🖊️ 笔的故事（20min）',desc:'种子 + 空性 → 人生可以被重新设计',script:'很多人问，看见了又怎样？笔的故事，给我们四个很重要的步骤……'},
+  {title:'📝 行动计划（10min）',desc:'制定 Redesign Plan',script:'写一个你愿意开始的新选择。不要完美，要真实。'},
+  {title:'💭 未来视觉化（10min）',desc:'闭眼 visualize 一年后',script:'想象一年后，你每周有 reset，每天有设计，关系更稳，金钱更清晰。那个画面，你想要吗？'},
+  {title:'🚀 YLYD 呈现 + 报名（20min）',desc:'呈现结构 · 平静的朋友语气，不是销售员',script:'这两天，你做了三件事：看见。排序。选择。但如果没有结构，这些觉察，会慢慢消失。所以我们设计了 YLYD……升级开放到今晚 11:59pm哦。'},
+];
+
+const SALES=[
+  {m:'Jan 2026',t:10000,a:2124,n:'广告RM200',x:12,y:0,b:0,s:0},
+  {m:'Feb 2026',t:18000,a:0,n:'',x:0,y:0,b:0,s:0},
+  {m:'Mar 2026',t:25000,a:2981,n:'',x:2,y:3,b:0,s:1},
+  {m:'Apr 2026',t:25000,a:0,n:'',x:0,y:0,b:0,s:0},
+  {m:'May 2026',t:25000,a:0,n:'',x:0,y:0,b:0,s:0},
+  {m:'Jun 2026',t:22000,a:0,n:'',x:0,y:0,b:0,s:0},
+];
+const SBD=[
+  {p:'YLYD System',tp:10,pr:988,tr:9880,ap:3,ar:2306},
+  {p:'心动觉察',tp:35,pr:207,tr:7245,ap:2,ar:594},
+  {p:'YLYD 体验包',tp:20,pr:177,tr:3540,ap:0,ar:0},
+  {p:'设计册 Refill',tp:10,pr:81,tr:810,ap:1,ar:81},
+];
+const INV=[
+  {n:'观测报告 cover A5',cat:'心动觉察',qty:0,min:5,s:'补货'},
+  {n:'金句卡',cat:'心动觉察',qty:15,min:10,s:'充足'},
+  {n:'锦囊袋',cat:'心动觉察',qty:0,min:5,s:'补货'},
+  {n:'完美伴侣卡',cat:'心动觉察',qty:4,min:5,s:'补货'},
+  {n:'拍卖单',cat:'心动觉察',qty:26,min:10,s:'充足'},
+  {n:'拍卖手举牌',cat:'心动觉察',qty:20,min:12,s:'充足'},
+  {n:'YLYD 设计册 A5 Divider',cat:'YLYD',qty:0,min:10,s:'补货'},
+  {n:'YLYD 设计册 A5 Cover',cat:'YLYD',qty:0,min:20,s:'补货'},
+  {n:'YLYD 设计册 1month',cat:'YLYD',qty:10,min:5,s:'充足'},
+  {n:'YLYD Shirt',cat:'周边',qty:0,min:0,s:'快不够了'},
+  {n:'YLYD Pink Pen',cat:'周边',qty:0,min:0,s:'快不够了'},
+  {n:'Mocktail 竹签',cat:'F&B',qty:90,min:20,s:'充足'},
+  {n:'Mocktail 杂果罐头',cat:'F&B',qty:4,min:1,s:'充足'},
+  {n:'零食 / 糖',cat:'F&B',qty:0,min:1,s:'补货'},
+  {n:'Mocktail 饮料 Base',cat:'F&B',qty:0,min:1,s:'快不够了'},
+  {n:'Nametag 纸',cat:'迎宾',qty:0,min:50,s:'补货'},
+];
+const PRODS=[
+  {tier:'入口 1',n:'心动觉察（Bukit Impian）',p:'让人看见自己需要系统',price:'双人RM227 / 单人RM257',orig:'RM557',note:'最低RM207/最高RM297 | 合作/特惠RM177'},
+  {tier:'入口 1',n:'心动觉察（Outstation）',p:'外州场',price:'双人RM337 / 单人RM377',orig:'RM717',note:'最低RM337 | min RM2000'},
+  {tier:'入口 2',n:'YLYD 体验包',p:'体验YLYD + 现金流辅助',price:'RM177',orig:'RM408',note:'含3mth设计册+终身会员+Realign票+目标设计营'},
+  {tier:'入口 3',n:'YLYD 目标设计一日营',p:'Q2/Q3 筹备中',price:'待定',orig:'—',note:'价格可调整'},
+  {tier:'核心',n:'YLYD System（12个月全套）',p:'让人不原地踏步',price:'RM1,588/year',orig:'RM5,268+',note:'活动当天RM1,288 + 1对1 + 送×2心动觉察'},
+  {tier:'散卖',n:'设计册 Refill 3mth',p:'现金流辅助',price:'RM27',orig:'RM37',note:''},
+  {tier:'散卖',n:'设计册 Refill 12mth',p:'现金流辅助',price:'RM81',orig:'RM148',note:''},
+  {tier:'散卖',n:'好种子库 Refill',p:'',price:'RM15',orig:'RM22',note:'5类别+50内页'},
+  {tier:'散卖',n:'好花朵朵开 Refill',p:'',price:'RM15',orig:'RM22',note:'5类别+50内页'},
+  {tier:'散卖',n:'心动手册',p:'',price:'RM77',orig:'RM107',note:''},
+  {tier:'散卖',n:'YLYD Shirt',p:'品牌',price:'RM49',orig:'RM69',note:'后续重新设计（目标 oversize 潮服 RM100+）'},
+  {tier:'散卖',n:'单次 Realign（仅YLYD会员）',p:'',price:'RM77',orig:'RM177',note:''},
+];
+const YLYD_V=[
+  {n:'☀️ Daily Redesign Space',f:'每天 6:10–7:20am · 365天',v:'无价',r:'每天有一个有方向的开始。靠结构，不靠感觉。是整个系统的底层习惯建立器。'},
+  {n:'🌱 Weekly Realign（含沙盘推演×8）',f:'每周四 · 4周循环 · Unlimited',v:'RM3,080',r:'每周有人帮你停下来检视：你有没有在走你要走的路？跑偏了就调整，再出发。'},
+  {n:'🎮 沙盘推演',f:'8次/年 · Realign 第2&4周',v:'RM1,576',r:'用游戏化的方式看见自己做决策的模式。改变从觉察开始，不靠硬撑。'},
+  {n:'📔 YLYD 设计册',f:'每3个月一册 · 共4册/年',v:'RM158',r:'把笔的故事四步骤落实在每一天里。有结构的每日行动载体。'},
+  {n:'🎥 视频工具包',f:'预播课 · 随时看',v:'RM277',r:'人生设计工具包，配合设计册使用，让系统自动化运作。'},
+  {n:'📚 YLYD 终身会员（书影充电站）',f:'每月2次 · 线上 · 永久',v:'RM177',r:'即使System结束也继续享有。每月有新视角输入，持续升级思维。'},
+  {n:'🎯 目标设计营',f:'8场/年 · 12个月内',v:'无价',r:'当你卡住、需要重新校准方向时，有专属空间帮你看清楚下一步。'},
+];
+const TEAM=[
+  {p:'Li Joo',role:'💰 Sales',color:'#c84010',loc:'The Seed · 拜二+拜五',resp:['达成月 Sales Target','客户关系 & Closing','心动觉察 Facilitator','Donation 跟进']},
+  {p:'Jasper',role:'📣 Marketing',color:'#1a4f8a',loc:'Bukit Impian · 拜二',resp:['广告投放 & Strategy','Content 排期','FB / 小红书管理','GDC 跟进 & 监督']},
+  {p:'Stella',role:'⚙️ Operation',color:'#7a3080',loc:'The Seed · 拜五',resp:['YLYD 日常运营','活动准备 & 执行','GDC Marketing 执行','补货管理']},
+  {p:'Roy',role:'🗂 Admin & System',color:'#1a6e42',loc:'Bukit Impian · 拜二',resp:['Infinite Sales/Automation','Inventory Tracking','银行账务','Account & Finance']},
+];
+const DR_ROTA=[
+  {day:'Mon 一',mar:'Roy',apr:'Roy'},{day:'Tue 二',mar:'Roy',apr:'Roy'},
+  {day:'Wed 三',mar:'Stella',apr:'Stella'},{day:'Thu 四',mar:'Jasper',apr:'Jasper'},
+  {day:'Fri 五',mar:'Stella',apr:'Stella'},{day:'Sat 六',mar:'Li Joo',apr:'Li Joo'},
+  {day:'Sun 日',mar:'Li Joo',apr:'Li Joo'},
+];
+const WR_ROTA=[
+  {week:'3月 W3 (19/3)',p:'Li Joo',type:'觉察续航'},{week:'3月 W4 (26/3)',p:'Li Joo',type:'智慧充电'},
+  {week:'4月 W1 (02/4)',p:'待定',type:'觉察续航'},{week:'4月 W2 (09/4)',p:'待定',type:'智慧充电'},
+  {week:'4月 W3 (16/4)',p:'待定',type:'觉察续航'},{week:'4月 W4 (23/4)',p:'待定',type:'智慧充电'},
+];
+const BS_ROTA=[
+  {week:'4月 W2 Sat (11/4)',p:'待定'},{week:'4月 W4 Sat (25/4)',p:'待定'},
+  {week:'5月 W2 Sat (09/5)',p:'待定'},{week:'5月 W4 Sat (23/5)',p:'待定'},
+];
+const DR_CL=['Polling 确认出席者（2-3天前）','开始前5分钟 Start Zoom','准时 6:10 开始','分享每日主题 / 笔的故事四步骤','主持结束 7:20','记录出席人数'];
+const WR_CL=['Polling 确认出席者（2-3天前）','Send Zoom link / 确认地点','准备当周主题 & 内容','准时 2pm 开始','主持整场 1-2小时','拍照 & Post 活动花絮'];
+const BS_CL=['Polling 确认出席者（2-3天前）','Send Zoom link','准备当月书/影选题','准时 2:30pm 开始','主持分享 & 讨论（1.5小时）','Post 精华 Social Media'];
+const MO_AGENDA=[
+  {t:'开场',title:'🙏 调频 & 发愿',desc:'发愿 + 感恩彼此（每人1句） + 读使命',o:'全体'},
+  {t:'+10m',title:'📊 目标回顾',desc:'上月 KPI 复盘 · 本月目标确认',o:'Li Joo'},
+  {t:'+20m',title:'💰 Sales 报告',desc:'成交数字 · 达成率 · 下月 Target',o:'Li Joo'},
+  {t:'+20m',title:'📣 Marketing 报告',desc:'内容表现 · 广告数据 · 下月计划',o:'Jasper'},
+  {t:'+20m',title:'⚙️ Operation 报告',desc:'活动复盘 · 会员福利 · SOP 更新',o:'Stella'},
+  {t:'+15m',title:'🗂 Admin 报告',desc:'Inventory · Automation · 财务',o:'Roy'},
+  {t:'+20m',title:'⚡ 决策讨论',desc:'当月拍板事项，逐一通过五问',o:'全体'},
+  {t:'+10m',title:'✅ 任务认领',desc:'认领下月任务 · 确认 deadline',o:'全体'},
+  {t:'+5m',title:'☕ 咖啡庆祝',desc:'好种子分享 · 结束调频',o:'全体'},
+];
+const WK_AGENDA=[
+  {t:'8:00am',title:'⚡ 快速同步',desc:'各人本周重点 + 阻碍（每人 2 分钟）',o:'全体'},
+  {t:'8:10am',title:'💰 Sales 跟进',desc:'本周成交 · 需要支持的客户',o:'Li Joo'},
+  {t:'8:20am',title:'📋 任务更新',desc:'上周完成情况 · 本周任务确认',o:'全体'},
+  {t:'8:35am',title:'⚡ 快速决策',desc:'本周需要拍板的小事项',o:'全体'},
+  {t:'8:50am',title:'✅ 结束',desc:'Recap + 各人今天重点任务',o:'全体'},
+];
+const POLICIES=[
+  {title:'💼 公司结构',items:[
+    {k:'公司名',v:'Diamond Life Insights Global Sdn Bhd'},
+    {k:'SSM No.',v:'202403046841'},
+    {k:'核心产品',v:'YLYD System（唯一长期核心）· 心动觉察（入口）'},
+    {k:'创办人',v:'Li Joo · Jasper · Roy · Stella'},
+    {k:'更新日',v:'12 March 2026 · 产品价格冻结至 30/6/2026'},
+  ]},
+  {title:'💰 分钱机制',items:[
+    {k:'Donation',v:'直接销售5% + 季度总利润2.5% ALL + 2.5% DLIG Charity'},
+    {k:'Task Subsidy',v:'Sales/Marketing 按价目表 · Operation Fixed Rate · 月底 payout'},
+    {k:'效率系数',v:'提前2天以上×1.5 · 准时×1.0 · 延迟1-3天×0.5 · 超过3天未完成×0'},
+    {k:'贡献值公式',v:'贡献值 = 时间 × 系数（Sales=3, Mktg=2, Sys=2, Ops=1, Admin=1）'},
+    {k:'DLIG Sales Affiliate',v:'合作方 15% · 客户 7%'},
+    {k:'Cofounders 分红',v:'季度结算 · 按贡献值比例'},
+  ]},
+];
+const POL_OPS={items:[
+  {k:'会议',v:'Monthly 每月最后拜二 · Weekly 每周 Thu 8am'},
+  {k:'任务更新',v:'每天更新 Task Board 状态 · 完成后填实际时间'},
+  {k:'角色轮换',v:'每两个月抽签（15/2, 15/4, 15/6, 15/8, 15/10, 15/12）'},
+  {k:'价格政策',v:'产品价格冻结至 30/6/2026（入口3除外）· 更改费RM100/次（3个月内再改 RM400/次）'},
+  {k:'产品原则',v:'系统 > 动力 · 用户是自由的（可慢可停可选择）· 入口目的是把人送进 YLYD'},
+]};
+const STRATEGY=['🎯 H1 重点：提升心动觉察成交率至15%，推动 YLYD System 月销10套','📣 主攻：Facebook（广告）+ 小红书（有机增长）','🔑 内容方向：用户真实故事 / 觉察 insight / 活动现场花絮','💡 每周至少3篇：1 FB广告帖 + 1 小红书 + 1 社群内容','🔗 Infinite Sales 负责 lead capture & follow-up automation'];
+const DEFAULT_FILES=[
+  {cat:'🏢 公司核心资料',items:[
+    {n:'Task Tracking Sheet',note:'全团队每天看',link:'https://docs.google.com/spreadsheets/d/1A3g_WPDU-R4zU8gj8gGHu885z5bk4lTBBRnCfDsstDI/edit'},
+    {n:'Company Policy Doc',note:'3-6个月更新',link:'https://docs.google.com/document/d/1LFNUcIsbCIA6wrBZbeoQJR2ZmQsvdyun/edit'},
+    {n:'Meeting Record Doc',note:'最新会议记录',link:'https://docs.google.com/document/d/12v7NoM7aPpbywPvMGa6dSIZa6_dshPfC9Oz1TYC-bc4/edit'},
+    {n:'Google Drive（总文件夹）',note:'',link:'https://drive.google.com/drive/folders/1GtDxOFljZKzGPiRoipJIN8znz37kDQen'},
+  ]},
+  {cat:'💰 Sales & Marketing',items:[
+    {n:'Sales & Marketing Sheet',note:'Dashboard + Log',link:'https://docs.google.com/spreadsheets/d/1F0Ss1MuAwVRkVfWch2wepx2SvMXG3BoIBfVN0v9ye9M/edit'},
+    {n:'DLIG Facebook',note:'主要宣传平台',link:'https://www.facebook.com/diamondlifeinsightsglobal/'},
+    {n:'小红书主页',note:'',link:'https://www.xiaohongshu.com/user/profile/6698c4fd000000000b033f10'},
+    {n:'Canva 设计文件',note:'物料设计',link:'https://www.canva.com/design/DAGww18XlMs/fC0BM97H6Jp74NL2FmH7aw/edit'},
+  ]},
+  {cat:'🗂 Admin & Account',items:[
+    {n:'Admin & Accounts Sheet',note:'Inventory + Pay',link:'https://docs.google.com/spreadsheets/d/1zGy3rV0bv2dERFRWoRFhRLGj68oJ3RtAj-kiqi71DXk/edit'},
+  ]},
+  {cat:'⚙️ Operation · 💎 心动觉察',items:[
+    {n:'心动觉察 活动 Sheet',note:'名额 & 数据',link:'https://docs.google.com/spreadsheets/d/1PtdOQKzX8MH7yDlJsafMlwoSOy2Vha1wsE_JbyGtbdM/edit'},
+    {n:'心动觉察 流程文件',note:'SOP & Script',link:'https://docs.google.com/document/d/1j9owG8uXeuacsKXWiavFJa1E8PmcL8UKQxTuGYLKUkA/edit'},
+    {n:'心动觉察视频文件夹',note:'开场/沙盘/拍卖',link:'https://drive.google.com/drive/folders/1DIqbfCKvto37C43sC9UX39fnb-BY1JkB'},
+    {n:'沙盘报表 & 观测报告',note:'',link:'https://drive.google.com/drive/folders/175PA2yQu017ixrCQ04IUBk6OrTOmQM8c'},
+  ]},
+  {cat:'⚙️ Operation · 🌱 YLYD System',items:[
+    {n:'Operation Sheet',note:'YLYD 日常排程',link:'https://docs.google.com/spreadsheets/d/1_6bghVk44SlC9tH9vDENcw3JeorzCINaWSbkMbMcS38/edit'},
+    {n:'设计册 Canva (CN)',note:'3mth 标准版',link:'https://www.canva.com/design/DAG8hga-qbs/QTkIzyc5mk9-bHQrAgdGNA/edit'},
+    {n:'设计册 Canva (ENG)',note:'English 版本',link:'https://www.canva.com/design/DAHDoXYk9Tw/SIp6wfDVPHIk5YsBijLu8g/edit'},
+  ]},
+  {cat:'⚙️ Operation · 👥 YLYD 会员',items:[
+    {n:'YLYD 会员专属平台',note:'',link:'https://diamondlifeinsightsglobal.app.clientclub.net'},
+    {n:'Operation Sheet → YLYD Checklist',note:'',link:'https://docs.google.com/spreadsheets/d/1_6bghVk44SlC9tH9vDENcw3JeorzCINaWSbkMbMcS38/edit'},
+  ]},
+  {cat:'📌 Others',items:[
+    {n:'服务打卡 Form',note:'记录完成工作 & 时间',link:'https://forms.gle/ZiPwcFYgMbYfXQTJ9'},
+    {n:'Diamond Seed Charity',note:'Donation 平台',link:'https://diamondseedcharity.com/'},
+  ]},
+];
+
+// ═══════════════════════════════════════
+// RENDER OVERVIEW
+// ═══════════════════════════════════════
+function renderOverview(){
+  const urg=TASKS.filter(t=>t.priority==='🔴 紧急'&&t.status!=='已完成');
+  const totT=SALES.reduce((a,b)=>a+b.t,0),totA=SALES.reduce((a,b)=>a+b.a,0);
+  const mktTasks=TASKS.filter(t=>t.cat==='Marketing'&&t.status!=='已完成');
+  const pct=(totA/totT*100).toFixed(1);
+
+  // ── 愿景大卡
+  document.getElementById('ov-rows').innerHTML=`
+  <div style="background:linear-gradient(135deg,var(--goldL) 0%,#fff9ee 100%);border:1.5px solid rgba(184,114,10,.25);border-radius:12px;padding:16px 20px;margin-bottom:10px;cursor:pointer;box-shadow:var(--sh)" onclick="go('policy')">
+    <div style="font-size:9px;font-weight:800;color:var(--gold);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:6px">💎 DLIG 愿景</div>
+    <div style="font-size:16px;font-weight:800;color:var(--text);line-height:1.5;margin-bottom:6px">创造 <span style="color:var(--gold);font-family:'DM Sans',sans-serif">7,000万</span> 个了解事物真正运作方式的人生设计师，共创富足而美好的人生。</div>
+    <div style="font-size:10px;color:var(--muted);line-height:1.7">Your Life You Design &nbsp;——&nbsp; 无限潜能 · 人人平等 · 诚实正直 · 利他 再利己 · 有意义的柔和言语 · 健康第一 工作第二 · 乐享当下 心常感恩 · 他人好时我鼓掌 他人难时我帮忙</div>
+  </div>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:10px">
+    <div class="ov-card" onclick="go('sales')" style="flex-direction:column;align-items:flex-start;padding:12px 16px">
+      <div style="font-size:9px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:3px">🎯 H1 Sales Goal</div>
+      <div style="font-family:'DM Sans',sans-serif;font-size:22px;font-weight:800;color:var(--gold);letter-spacing:-.5px">${fRM(totT)}</div>
+      <div style="font-size:10px;color:var(--muted);margin-top:2px">2026 H1 Target</div>
+    </div>
+    <div class="ov-card" onclick="go('sales')" style="flex-direction:column;align-items:flex-start;padding:12px 16px">
+      <div style="font-size:9px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:3px">💰 H1 已达成</div>
+      <div style="font-family:'DM Sans',sans-serif;font-size:22px;font-weight:800;color:var(--green);letter-spacing:-.5px">${fRM(totA)}</div>
+      <div style="display:flex;align-items:center;gap:8px;margin-top:4px">
+        <span style="font-size:10px;color:var(--muted)">${pct}% 达成率</span>
+        <div style="flex:1;height:4px;background:var(--s3);border-radius:4px;overflow:hidden"><div style="height:100%;width:${Math.min(100,parseFloat(pct))}%;background:linear-gradient(90deg,var(--green),#27ae60);border-radius:4px"></div></div>
+      </div>
+    </div>
+    <div class="ov-card" onclick="go('sales')" style="flex-direction:column;align-items:flex-start;padding:12px 16px">
+      <div style="font-size:9px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:3px">📉 H1 Shortfall</div>
+      <div style="font-family:'DM Sans',sans-serif;font-size:22px;font-weight:800;color:var(--red);letter-spacing:-.5px">${fRM(totT-totA)}</div>
+      <div style="font-size:10px;color:var(--muted);margin-top:2px">需要追回</div>
+    </div>
+  </div>
+
+  <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:14px">
+    <div class="ov-card" onclick="go('tasks')" style="padding:12px 14px"><div class="ov-icon">🚨</div><div><div class="ov-label">紧急任务</div><div class="ov-val" style="color:var(--red)">${urg.length}</div></div></div>
+    <div class="ov-card" onclick="go('sales')" style="padding:12px 14px"><div class="ov-icon">📣</div><div><div class="ov-label">Marketing</div><div class="ov-val" style="color:var(--purple)">${mktTasks.length}</div></div></div>
+    <div class="ov-card" onclick="go('decisions')" style="padding:12px 14px"><div class="ov-icon">⚡</div><div><div class="ov-label">待决策</div><div class="ov-val" style="color:var(--amber)">${DEC.length}</div></div></div>
+    <div class="ov-card" onclick="go('admin')" style="padding:12px 14px"><div class="ov-icon">📦</div><div><div class="ov-label">物料缺货</div><div class="ov-val" style="color:var(--red)">${INV.filter(i=>i.s==='补货'||i.s==='快不够了').length}</div></div></div>
+  </div>`;
+
+  document.getElementById('ov-bar').innerHTML=SALES.map(s=>{
+    const p=s.t>0?Math.min(100,s.a/s.t*100):0;
+    const cls=p<30?'bf-low':p<70?'bf-mid':'bf-good';
+    return`<div class="bar-row"><div class="bar-lbl">${s.m.replace(' 2026','')}</div><div class="bar-track"><div class="bar-fill ${cls}" style="width:${p}%">${s.a>0?`<span class="bv">${p.toFixed(0)}%</span>`:''}</div></div><div class="bar-tgt">${fRM(s.a)}/${fRM(s.t)}</div></div>`;
+  }).join('');
+  const totT2=SALES.reduce((a,b)=>a+b.t,0),totA2=SALES.reduce((a,b)=>a+b.a,0);
+  document.getElementById('ov-bar-total').textContent=`H1: ${fRM(totA2)}/${fRM(totT2)} (${(totA2/totT2*100).toFixed(1)}%) · Shortfall: ${fRM(totT2-totA2)}`;
+
+  // ── 接下来2周 · 卡片式 · 只show events
+  const now=new Date(),twoWk=new Date(now.getTime()+14*86400000);
+  // Only show proper events (not tasks/deadlines), include recurring
+  const recur=[];
+  for(let i=0;i<14;i++){
+    const d=new Date(now.getTime()+i*86400000);
+    if(d.getDay()===4){
+      const ds=d.toISOString().split('T')[0];
+      recur.push({name:'Weekly Meeting',date:ds,time:'8:00am',type:'meet',person:'全员'});
+      recur.push({name:'YLYD Realign',date:ds,time:'2:00pm',type:'ylyd',person:'轮值'});
+    }
+  }
+  const upEvents=EVENTS.filter(e=>{const d=new Date(e.date);return d>=now&&d<=twoWk;});
+  const allEv=[...upEvents,...recur].sort((a,b)=>a.date.localeCompare(b.date));
+  // Group by date, skip days with only empty
+  const byDate={};
+  allEv.forEach(e=>{if(!byDate[e.date])byDate[e.date]=[];byDate[e.date].push(e);});
+  const dates=Object.keys(byDate).sort();
+  const evColor={xindong:'#b8720a',meet:'#1a4f8a',ylyd:'#1a6e42',mkt:'#6a3a96',dlig4:'#c84010',gdc:'#0d3060'};
+  const evBg={xindong:'var(--goldL)',meet:'var(--blueB)',ylyd:'var(--greenB)',mkt:'var(--purpleB)',dlig4:'var(--redB)',gdc:'var(--blueB)'};
+
+  document.getElementById('ov-upcoming').innerHTML=dates.length?`<div style="display:flex;flex-direction:column;gap:8px">${dates.map(ds=>{
+    const evs=byDate[ds];
+    const dateObj=new Date(ds+'T00:00:00');
+    const dayName=['日','一','二','三','四','五','六'][dateObj.getDay()];
+    const isToday=ds===now.toISOString().split('T')[0];
+    return`<div style="background:var(--white);border:1.5px solid ${isToday?'var(--gold)':'var(--border)'};border-radius:11px;padding:11px 14px;box-shadow:var(--sh)">
+      <div style="font-size:10px;font-weight:800;color:${isToday?'var(--gold)':'var(--muted)'};margin-bottom:7px;font-family:'DM Sans',sans-serif">📅 ${ds} (${dayName})${isToday?' · 今天':''}</div>
+      ${evs.map(e=>`<div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid var(--border)">
+        <div style="font-size:10.5px;color:var(--muted);min-width:70px;font-family:'DM Sans',sans-serif;font-weight:600">${e.time||''}</div>
+        <div style="font-size:12.5px;font-weight:700;flex:1">${e.name}</div>
+        ${e.person?`<span class="tag" style="background:${evBg[e.type]||'var(--s2)'};color:${evColor[e.type]||'var(--muted)'}">主持：${e.person}</span>`:''}
+      </div>`).join('')}
+    </div>`;
+  }).join('')}</div>`:'<div style="color:var(--dim);font-size:12px;text-align:center;padding:20px">接下来2周暂无活动</div>';
+
+  document.getElementById('ov-dept').innerHTML=`
+  <div class="dept-row">
+    <div class="dept-card" onclick="go('tasks')"><div class="dept-icon">🗂</div><div><div class="dept-name">Task Board</div><div class="dept-desc">查看 & 更新任务</div></div><div class="dept-arrow">›</div></div>
+    <div class="dept-card" onclick="go('gdc')"><div class="dept-icon">🎨</div><div><div class="dept-name">GDC Marketing Job</div><div class="dept-desc">外包任务跟进</div></div><div class="dept-arrow">›</div></div>
+    <a class="dept-card" href="https://forms.gle/ZiPwcFYgMbYfXQTJ9" target="_blank"><div class="dept-icon">⏱️</div><div><div class="dept-name">Cofounder 服务打卡</div><div class="dept-desc">记录完成工作 & 时间</div></div><div class="dept-arrow">↗</div></a>
+  </div>
+  <div class="dept-row">
+    <a class="dept-card" href="https://docs.google.com/spreadsheets/d/1F0Ss1MuAwVRkVfWch2wepx2SvMXG3BoIBfVN0v9ye9M/edit" target="_blank"><div class="dept-icon">💰</div><div><div class="dept-name">Sales &amp; Marketing</div><div class="dept-desc">Dashboard + Log</div></div><div class="dept-arrow">↗</div></a>
+    <a class="dept-card" href="https://docs.google.com/spreadsheets/d/1zGy3rV0bv2dERFRWoRFhRLGj68oJ3RtAj-kiqi71DXk/edit" target="_blank"><div class="dept-icon">🗃</div><div><div class="dept-name">Admin &amp; Account</div><div class="dept-desc">Inventory + Pay</div></div><div class="dept-arrow">↗</div></a>
+    <a class="dept-card" href="https://docs.google.com/spreadsheets/d/1_6bghVk44SlC9tH9vDENcw3JeorzCINaWSbkMbMcS38/edit" target="_blank"><div class="dept-icon">⚙️</div><div><div class="dept-name">Operation</div><div class="dept-desc">YLYD + 心动觉察</div></div><div class="dept-arrow">↗</div></a>
+  </div>`;
+
+  document.getElementById('ov-team').innerHTML=TEAM.map(m=>`<div class="rc" style="border-top:3px solid ${m.color}"><div style="font-size:14px;font-weight:800;color:${m.color};margin-bottom:3px">${m.p}</div><span style="font-size:10px;font-weight:700;padding:2px 9px;border-radius:7px;color:#fff;display:inline-block;margin-bottom:7px;background:${m.color}">${m.role}</span><div style="font-size:10px;color:var(--muted);margin-bottom:6px">📍 ${m.loc}</div><div style="font-size:11px;color:var(--muted);line-height:1.85">${m.resp.map(r=>`· ${r}`).join('<br>')}</div></div>`).join('');
+}
+
+// ═══════════════════════════════════════
+// TASK BOARD
+// ═══════════════════════════════════════
+function calcEff(task){
+  // Uses doneDate if set, else today
+  if(!task.deadline)return null;
+  const dl=new Date(task.deadline);
+  const done=task.doneDate?new Date(task.doneDate):new Date();
+  if(isNaN(dl))return 1;
+  const diff=Math.floor((done-dl)/86400000);
+  if(diff<=-2)return 1.5;
+  if(diff<=0)return 1;
+  if(diff<=3)return 0.5;
+  return 0;
+}
+function effLabel(e){if(e===1.5)return'×1.5 ⭐ 提前';if(e===1)return'×1.0 ✅ 准时';if(e===0.5)return'×0.5 ⏰ 延迟';if(e===0)return'×0 ❌ 未完成';return'—';}
+// 贡献值 = 时间 × 效率系数（不用工作系数）
+function calcContrib(hours,eff){return(parseFloat(hours||0)*eff).toFixed(1);}
+
+let TF='全部',TV='board';
+
+// Complete modal
+function openComplete(id){
+  const t=TASKS.find(x=>x.id===id);if(!t)return;
+  const isFee=t.type==='fee';
+  // Show inline modal
+  const existing=document.getElementById('complete-modal');
+  if(existing)existing.remove();
+  const modal=document.createElement('div');
+  modal.id='complete-modal';
+  modal.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:300;display:flex;align-items:center;justify-content:center';
+  modal.innerHTML=`<div style="background:var(--white);border-radius:14px;padding:24px;max-width:380px;width:90%;box-shadow:0 20px 60px rgba(0,0,0,.2)">
+    <div style="font-size:15px;font-weight:800;margin-bottom:4px">✅ 标记完成</div>
+    <div style="font-size:11.5px;color:var(--muted);margin-bottom:16px">${t.task}</div>
+    <div style="display:flex;flex-direction:column;gap:10px">
+      <div class="ff"><div class="fl2">完成日期</div><input class="fi" id="done-date" type="date" value="${new Date().toISOString().split('T')[0]}"></div>
+      ${isFee
+        ? `<div style="background:var(--purpleB);border-radius:8px;padding:10px 13px;font-size:11.5px;color:var(--purple)">💰 Task Fee 类 · 请到 Company Policy 查看对应价格</div>`
+        : `<div class="ff"><div class="fl2">实际用时 (hours)</div><input class="fi" id="done-hours" type="number" min="0.5" step="0.5" placeholder="填写小时数" value="${t.est||''}"></div>`
+      }
+    </div>
+    <div style="display:flex;gap:8px;margin-top:16px">
+      <button class="add-btn" onclick="confirmComplete(${id})" style="flex:1">✓ 确认完成</button>
+      <button class="fb" onclick="document.getElementById('complete-modal').remove()" style="flex:1">取消</button>
+    </div>
+  </div>`;
+  document.body.appendChild(modal);
+}
+function confirmComplete(id){
+  const t=TASKS.find(x=>x.id===id);if(!t)return;
+  const doneDate=document.getElementById('done-date')?.value||new Date().toISOString().split('T')[0];
+  const hoursEl=document.getElementById('done-hours');
+  t.doneDate=doneDate;
+  t.status='已完成';
+  if(hoursEl)t.actual=parseFloat(hoursEl.value)||0;
+  document.getElementById('complete-modal')?.remove();
+  save('tasks',TASKS);renderTasks();renderOverview();
+}
+
+function renderTasks(){
+  const sm={'待处理':'待启动','待建立':'待启动','待认领':'待启动','待确认':'待启动','待决策':'待决策'};
+  const norm=s=>sm[s]||s;
+  const cols=[{k:'待启动',dot:'#bbb',bdr:'#ccc'},{k:'进行中',dot:'var(--amber)',bdr:'var(--amber)'},{k:'待决策',dot:'var(--red)',bdr:'var(--red)'},{k:'已完成',dot:'var(--green)',bdr:'var(--green)'}];
+  let fil;
+  if(TF==='全部')fil=TASKS;
+  else if(TF==='marketing')fil=TASKS.filter(t=>t.cat==='Marketing');
+  else if(TF==='fee')fil=TASKS.filter(t=>t.type==='fee');
+  else fil=TASKS.filter(t=>t.person===TF||t.person==='All'||t.person==='全员');
+
+  if(TV==='board'){
+    document.getElementById('board-view').style.display='grid';
+    document.getElementById('list-view').style.display='none';
+    document.getElementById('board-view').innerHTML=cols.map(c=>{
+      const items=fil.filter(t=>norm(t.status)===c.k);
+      const cls={待启动:'todo',进行中:'prog',已完成:'done',待决策:'blk'}[c.k]||'todo';
+      return`<div>
+        <div class="col-head" style="border-color:${c.bdr}"><div class="col-dot" style="background:${c.dot}"></div><div class="col-lbl" style="color:${c.dot}">${c.k}</div><div class="col-n">${items.length}</div></div>
+        ${items.length?items.map(t=>{
+          const isFee=t.type==='fee';
+          const e=t.status==='已完成'?calcEff(t):null;
+          const contrib=e!==null&&!isFee&&t.actual?calcContrib(t.actual,e):null;
+          return`<div class="tc ${cls}${isFee?' tfee':''}">
+            <div class="tc-text">${t.task}</div>
+            <div class="tc-meta">${ptag(t.person)}${ctag(t.cat)}<span class="tag" style="background:${isFee?'var(--purpleB)':'var(--blueB)'};color:${isFee?'var(--purple)':'var(--blue)'}">${isFee?'💰 Fee':'⏱ 贡献'}</span>${ktag(t.priority)}</div>
+            ${t.deadline?`<div class="tc-ref">📅 DL: ${t.deadline}</div>`:''}
+            ${t.status==='已完成'&&t.doneDate?`<div class="tc-ref" style="color:var(--green)">✅ 完成: ${t.doneDate}${t.actual?' · '+t.actual+'h':''}</div>`:''}
+            ${e!==null?`<div class="tc-time" style="color:${e>=1?'var(--green)':e>=0.5?'var(--amber)':'var(--red)'}">${effLabel(e)}${contrib?' · 贡献值 '+contrib:''}</div>`:''}
+            <div class="tc-acts">
+              ${t.status!=='已完成'?`<button class="tc-btn" onclick="openComplete(${t.id})">✓ 完成</button>`:''}
+              ${t.status==='待启动'?`<button class="tc-btn" onclick="markProg(${t.id})">▶ 开始</button>`:''}
+            </div>
+          </div>`;
+        }).join(''):'<div class="empty">暂无</div>'}
+      </div>`;
+    }).join('');
+  } else {
+    document.getElementById('board-view').style.display='none';
+    document.getElementById('list-view').style.display='block';
+    // Sort: incomplete first, completed at bottom
+    const active=fil.filter(t=>t.status!=='已完成');
+    const done=fil.filter(t=>t.status==='已完成');
+    const sorted=[...active,...done];
+    // Time filter
+    const now2=new Date();
+    const tFiltered=sorted.filter(t=>{
+      if(TIME_F==='all')return true;
+      const ref=t.doneDate||t.deadline;if(!ref)return TIME_F!=='all';
+      const d=new Date(ref);
+      if(TIME_F==='month')return d.getMonth()===now2.getMonth()&&d.getFullYear()===now2.getFullYear();
+      if(TIME_F==='30'){const diff=(now2-d)/86400000;return diff<=30&&diff>=-30;}
+      return true;
+    });
+    document.getElementById('lb').innerHTML=tFiltered.map(t=>{
+      const isFee=t.type==='fee';
+      const e=t.status==='已完成'?calcEff(t):null;
+      const isDone=t.status==='已完成';
+      const PEOPLE=['全员','Li Joo','Jasper','Stella','Roy','待认领'];
+      const CATS=['Operation','Marketing','✍ 视频文案/信息文案','📣 制作Post图+文案','🖼 制作海报','📝 视频脚本','📱 剪辑短视频-一键成片','📱 剪辑短视频','🎬 剪辑YouTube','🧠 Landing Page文案','🖥 Landing Page制作','Sales','Admin','System','GDC job'];
+      return`<tr style="${isDone?'opacity:.45':''}">
+        <td><input style="border:none;background:transparent;font-family:'Plus Jakarta Sans',sans-serif;font-size:11.5px;font-weight:500;width:100%;outline:none;${isDone?'text-decoration:line-through':''}" value="${t.task.replace(/"/g,'&quot;')}" onchange="editTask(${t.id},'task',this.value)"></td>
+        <td><select style="border:none;background:transparent;font-family:'Plus Jakarta Sans',sans-serif;font-size:11px;cursor:pointer;outline:none" onchange="editTask(${t.id},'person',this.value)">${PEOPLE.map(p=>`<option ${p===t.person?'selected':''}>${p}</option>`).join('')}</select></td>
+        <td><select style="border:none;background:transparent;font-family:'Plus Jakarta Sans',sans-serif;font-size:10px;cursor:pointer;outline:none;max-width:120px" onchange="editTask(${t.id},'cat',this.value)">${CATS.map(c=>`<option ${c===t.cat?'selected':''}>${c}</option>`).join('')}</select></td>
+        <td><select style="border:none;background:transparent;font-family:'Plus Jakarta Sans',sans-serif;font-size:10px;cursor:pointer;outline:none" onchange="editTask(${t.id},'type',this.value)"><option value="contrib" ${t.type==='contrib'?'selected':''}>⏱ 贡献</option><option value="fee" ${t.type==='fee'?'selected':''}>💰 Fee</option></select></td>
+        <td><select style="border:none;background:transparent;font-family:'Plus Jakarta Sans',sans-serif;font-size:10px;cursor:pointer;outline:none" onchange="editTask(${t.id},'priority',this.value)"><option ${t.priority==='🔴 紧急'?'selected':''}>🔴 紧急</option><option ${t.priority==='🟡 本周'?'selected':''}>🟡 本周</option><option ${t.priority==='⚡ 本月'?'selected':''}>⚡ 本月</option><option ${t.priority==='⭐ 长期'?'selected':''}>⭐ 长期</option></select></td>
+        <td><input type="date" style="border:none;background:transparent;font-family:'DM Sans',sans-serif;font-size:10.5px;font-weight:600;cursor:pointer;outline:none" value="${t.deadline||''}" onchange="editTask(${t.id},'deadline',this.value)"></td>
+        <td style="font-family:'DM Sans',sans-serif;font-size:10.5px;font-weight:600;color:var(--green)">${t.doneDate||'—'}</td>
+        <td style="text-align:center;font-family:'DM Sans',sans-serif;font-size:11px;font-weight:600">${t.actual||'—'}</td>
+        <td style="color:${e>=1?'var(--green)':e>=0.5?'var(--amber)':e===0?'var(--red)':'var(--muted)'};font-size:10px;font-weight:600">${e!==null?effLabel(e):'—'}</td>
+        <td>${!isDone?`<button class="tc-btn" onclick="openComplete(${t.id})" style="font-size:10px;background:var(--greenB);border-color:var(--green);color:var(--green)">✓ 完成</button>`:'✅'}</td>
+      </tr>`;
+    }).join('');
+  }
+  updateStats();
+}
+
+function markProg(id){const t=TASKS.find(x=>x.id===id);if(t){t.status='进行中';save('tasks',TASKS);renderTasks();}}
+function addTask(){
+  const tx=document.getElementById('nt').value.trim();if(!tx)return;
+  const nid=Math.max(0,...TASKS.map(t=>t.id))+1;
+  TASKS.unshift({id:nid,task:tx,person:document.getElementById('np').value,cat:document.getElementById('nc').value,type:document.getElementById('ntype').value,priority:document.getElementById('nk').value,deadline:document.getElementById('ndl').value,status:'待启动',est:parseFloat(document.getElementById('nest').value)||0,actual:'',doneDate:''});
+  document.getElementById('nt').value='';document.getElementById('nest').value='';
+  save('tasks',TASKS);renderTasks();renderOverview();
+}
+function addLog(){
+  const desc=document.getElementById('ll').value.trim();const hours=parseFloat(document.getElementById('lh').value);
+  if(!desc||!hours)return;
+  const cat=document.getElementById('lc').value;const person=document.getElementById('lp').value;
+  const contrib=calcContrib(hours,1);
+  LOGS.push({id:'l'+Date.now(),desc,person,cat,hours,eff:1,contrib:parseFloat(contrib),ts:Date.now()});
+  document.getElementById('ll').value='';document.getElementById('lh').value='';
+  save('logs',LOGS);
+  alert(`✅ 已记录！贡献值：${contrib}（${hours}h × ×1.0）`);
+}
+function updateStats(){
+  const u=TASKS.filter(t=>t.priority==='🔴 紧急'&&t.status!=='已完成').length;
+  const nb=document.getElementById('nb-u');if(nb)nb.textContent=u;
+  const nb2=document.getElementById('nb-d');if(nb2)nb2.textContent=DEC.length;
+}
+let TIME_F='all';
+function setTimeFilter(f,btn){TIME_F=f;document.querySelectorAll('#tf-all,#tf-month,#tf-30').forEach(b=>b.classList.remove('on'));btn.classList.add('on');renderTasks();}
+function editTask(id,field,val){const t=TASKS.find(x=>x.id===id);if(t){t[field]=val;save('tasks',TASKS);if(field==='priority'||field==='deadline')renderOverview();}}
+function fp(p,btn){TF=p;document.querySelectorAll('.fbar .fb').forEach(b=>b.classList.remove('on'));btn.classList.add('on');renderTasks();}
+function sv(v){TV=v;document.getElementById('vb').classList.toggle('on',v==='board');document.getElementById('vl').classList.toggle('on',v==='list');renderTasks();}
+function switchAB(s,btn){document.querySelectorAll('.ab-tab').forEach(b=>b.classList.remove('on'));document.querySelectorAll('.ab-section').forEach(x=>x.classList.remove('on'));btn.classList.add('on');document.getElementById('ab-'+s).classList.add('on');}
+
+// ═══════════════════════════════════════
+// MARKETING CALENDAR
+// ═══════════════════════════════════════
+function addMktContent(){
+  const title=document.getElementById('mc-title')?.value.trim();
+  const date=document.getElementById('mc-date')?.value;
+  if(!title||!date)return;
+  const dl=document.getElementById('mc-dl')?.value||'';
+  const mtype=document.getElementById('mc-type')?.value||'';
+  const platform=document.getElementById('mc-platform')?.value||'Facebook';
+  const person=document.getElementById('mc-person')?.value||'Jasper';
+  const newItem={id:'mc'+Date.now(),title,date,dl,platform,type:mtype,person,status:'待发布'};
+  MKT_CONTENT.push(newItem);
+  // Sync to Task Board
+  const nid=Math.max(0,...TASKS.map(t=>t.id),0)+1;
+  TASKS.push({id:nid,task:`📣 ${platform}: ${title}`,person,cat:'Marketing',type:'fee',priority:'⚡ 本月',deadline:dl||date,status:'待启动',est:1,actual:'',doneDate:''});
+  // Sync to Calendar events
+  EVENTS.push({id:'ev'+Date.now(),name:'📣 '+title,date,time:'',type:'mkt',person,isEvent:true});
+  document.getElementById('mc-title').value='';
+  save('mkt_content',MKT_CONTENT);save('tasks',TASKS);save('events',EVENTS);
+  renderMktCal();renderTasks();renderCalendar();
+}
+let MKT_CAL_MONTH=null;
+function mktCalPrevMonth(){
+  if(!MKT_CAL_MONTH)MKT_CAL_MONTH=new Date();
+  MKT_CAL_MONTH=new Date(MKT_CAL_MONTH.getFullYear(),MKT_CAL_MONTH.getMonth()-1,1);
+  renderMktCal();
+}
+function mktCalNextMonth(){
+  if(!MKT_CAL_MONTH)MKT_CAL_MONTH=new Date();
+  MKT_CAL_MONTH=new Date(MKT_CAL_MONTH.getFullYear(),MKT_CAL_MONTH.getMonth()+1,1);
+  renderMktCal();
+}
+function renderMktCal(){
+  const calEl=document.getElementById('mkt-cal-view');
+  if(!calEl)return;
+  if(!MKT_CAL_MONTH)MKT_CAL_MONTH=new Date();
+  const now=MKT_CAL_MONTH;
+  const curMEl=document.getElementById('mkt-cur-month');
+  if(curMEl)curMEl.textContent=now.toLocaleDateString('zh-CN',{year:'numeric',month:'long'});
+  const map={};
+  MKT_CONTENT.forEach(m=>{if(!map[m.date])map[m.date]=[];map[m.date].push(m);});
+
+  const statColors={已发布:{bg:'var(--greenB)',c:'var(--green)'},进行中:{bg:'var(--amberB)',c:'var(--amber)'},待发布:{bg:'#6a3a96',c:'#fff'}};
+
+  let ch=`<div style="font-size:12px;font-weight:700;color:var(--purple);padding:8px 12px;background:var(--purpleB);border-radius:8px;margin-bottom:10px">${now.toLocaleDateString('zh-CN',{year:'numeric',month:'long'})} · Marketing Content Calendar</div>`;
+  ch+=`<div class="mkt-cal-grid" style="margin-bottom:14px">`;
+  ['日','一','二','三','四','五','六'].forEach(h=>{ch+=`<div class="mkt-cal-head">${h}</div>`;});
+  const fd=new Date(now.getFullYear(),now.getMonth(),1).getDay();
+  const dim=new Date(now.getFullYear(),now.getMonth()+1,0).getDate();
+  for(let i=0;i<fd;i++)ch+=`<div class="mkt-cell om"></div>`;
+  for(let day=1;day<=dim;day++){
+    const iT=day===now.getDate();
+    const ds=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+    const items=(map[ds]||[]);
+    ch+=`<div class="mkt-cell${iT?' today':''}"><div class="mkt-date">${day}</div>`;
+    items.forEach(m=>{
+      const sc=statColors[m.status]||statColors['待发布'];
+      ch+=`<div style="background:${sc.bg};color:${sc.c};padding:2px 4px;border-radius:4px;font-size:8px;font-weight:700;margin-bottom:2px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;cursor:pointer" onclick="toggleMktStatus('${m.id}')">${m.person?m.person+': ':''} ${m.title.slice(0,10)}</div>`;
+    });
+    ch+=`</div>`;
+  }
+  ch+=`</div>`;
+  calEl.innerHTML=ch;
+
+  const statC={已发布:'ms-done',进行中:'ms-prog',待发布:'ms-todo'};
+  const listEl=document.getElementById('mkt-list-body');
+  if(listEl)listEl.innerHTML=MKT_CONTENT.sort((a,b)=>a.date.localeCompare(b.date)).map(m=>`<tr>
+    <td style="font-family:'DM Sans',sans-serif;font-size:11px;font-weight:600">${m.date}</td>
+    <td><span class="tag tcat">${m.platform}</span></td>
+    <td><span class="tag tcat">${m.type||'—'}</span></td>
+    <td style="font-weight:600">${m.title}</td>
+    <td style="font-size:10.5px;color:${m.dl?'var(--red)':'var(--muted)'}">${m.dl||'—'}</td>
+    <td>${ptag(m.person)}</td>
+    <td><span class="mkt-status ${statC[m.status]||'ms-todo'}" onclick="toggleMktStatus('${m.id}')">${m.status}</span></td>
+  </tr>`).join('');
+}
+function toggleMktStatus(id){
+  const m=MKT_CONTENT.find(x=>x.id===id);if(!m)return;
+  const s=['待发布','进行中','已发布'];
+  m.status=s[(s.indexOf(m.status)+1)%s.length];
+  save('mkt_content',MKT_CONTENT);renderMktCal();
+}
+
+// ═══════════════════════════════════════
+// CALENDAR
+// ═══════════════════════════════════════
+let CAL_F='all', CAL_MODE='auto';
+function calFilter(f,btn){CAL_F=f;document.querySelectorAll('#cal-filter .fb').forEach(b=>b.classList.remove('on'));btn.classList.add('on');renderCalendar();}
+function setCalMode(m,btn){
+  CAL_MODE=m;
+  document.getElementById('mo-auto').classList.toggle('on',m==='auto');
+  document.getElementById('mo-pick').classList.toggle('on',m==='pick');
+  document.getElementById('cal-month-pick').style.display=m==='pick'?'block':'none';
+  renderCalendar();
+}
+function addEvent(){
+  const name=document.getElementById('ev-name').value.trim();const date=document.getElementById('ev-date').value;
+  if(!name||!date)return;
+  EVENTS.push({id:'e'+Date.now(),name,date,time:document.getElementById('ev-time').value.trim(),type:document.getElementById('ev-type').value,person:document.getElementById('ev-person').value});
+  document.getElementById('ev-name').value='';document.getElementById('ev-time').value='';
+  save('events',EVENTS);renderCalendar();renderOverview();
+}
+
+function buildEvMap(startOff,endOff){
+  const today=new Date();
+  const evMap={};
+  for(let i=startOff;i<endOff;i++){
+    const d=new Date(today.getFullYear(),today.getMonth(),today.getDate()+i);
+    const ds=d.toISOString().split('T')[0];
+    if(!evMap[ds])evMap[ds]=[];
+    const dow=d.getDay();
+    if(dow===4){
+      evMap[ds].push({name:'Thu Meeting',time:'8:00am',type:'meet',person:'全员',isEvent:true});
+      evMap[ds].push({name:'YLYD Realign',time:'2:00pm',type:'ylyd',person:'轮值',isEvent:true});
+    }
+    evMap[ds].push({name:'Daily Redesign',time:'6:10am',type:'dr',person:'轮值',isEvent:true});
+  }
+  TASKS.forEach(t=>{if(t.deadline&&t.status!=='已完成'){if(!evMap[t.deadline])evMap[t.deadline]=[];evMap[t.deadline].push({name:'📌 '+t.task.slice(0,14),type:'task',person:t.person,isEvent:false});}});
+  EVENTS.forEach(e=>{if(!evMap[e.date])evMap[e.date]=[];evMap[e.date].push({...e,isEvent:true});});
+  MKT_CONTENT.forEach(m=>{if(!evMap[m.date])evMap[m.date]=[];evMap[m.date].push({name:'📣 '+m.title.slice(0,10),type:'mkt',person:m.person,isEvent:true});});
+  return evMap;
+}
+
+function renderCalendar(){
+  const today=new Date();
+  const evMap=buildEvMap(-30,120);
+  const fc=(type)=>CAL_F==='all'||type===CAL_F||type==='task'||type==='dr';
+
+  // Determine months to show
+  let months=[];
+  if(CAL_MODE==='auto'){
+    for(let i=0;i<3;i++)months.push(new Date(today.getFullYear(),today.getMonth()+i,1));
+  } else {
+    const pick=document.getElementById('cal-month-pick').value;
+    if(pick){const[y,m]=pick.split('-').map(Number);months=[new Date(y,m-1,1)];}
+    else{for(let i=0;i<3;i++)months.push(new Date(today.getFullYear(),today.getMonth()+i,1));}
+  }
+
+  // Color scheme: event=light bg dark text, task=dark bg white text
+  const evStyle={
+    meet:{bg:'var(--blueB)',color:'var(--blue)',taskBg:'#1a4f8a'},
+    ylyd:{bg:'var(--greenB)',color:'var(--green)',taskBg:'#1a6e42'},
+    xindong:{bg:'var(--goldL)',color:'var(--gold)',taskBg:'#b8720a'},
+    mkt:{bg:'#fce8ff',color:'#6a3a96',taskBg:'#7b1a1a'},
+    dlig4:{bg:'var(--redB)',color:'var(--red)',taskBg:'#be3a2a'},
+    gdc:{bg:'var(--blueB)',color:'var(--blue)',taskBg:'#0d3060'},
+    dr:{bg:'var(--s2)',color:'var(--muted)',taskBg:'var(--dim)'},
+    task:{bg:'#2c1a08',color:'#fff',taskBg:'#2c1a08'},
+  };
+
+  let calHtml='';
+  months.forEach(d=>{
+    const isCurrMo=d.getMonth()===today.getMonth()&&d.getFullYear()===today.getFullYear();
+    calHtml+=`<div class="cal-month-head">${d.toLocaleDateString('zh-CN',{year:'numeric',month:'long'})}</div><div class="cal-grid">`;
+    ['日','一','二','三','四','五','六'].forEach(h=>{calHtml+=`<div class="cal-head">${h}</div>`;});
+    const fd=new Date(d.getFullYear(),d.getMonth(),1).getDay();
+    const dim=new Date(d.getFullYear(),d.getMonth()+1,0).getDate();
+    for(let i=0;i<fd;i++)calHtml+=`<div class="cal-cell om"></div>`;
+    for(let day=1;day<=dim;day++){
+      const iT=day===today.getDate()&&isCurrMo;
+      const ds=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+      const dayEv=(evMap[ds]||[]).filter(e=>fc(e.type));
+      const visible=dayEv.filter(e=>e.type!=='dr');
+      calHtml+=`<div class="cal-cell${iT?' today':''}" onclick="showCalDetail('${ds}')">
+        <div class="cal-date">${day}</div>
+        ${visible.slice(0,3).map(e=>{
+          const st=evStyle[e.type]||evStyle.meet;
+          const isTask=!e.isEvent||e.type==='task';
+          const bg=isTask?st.taskBg:st.bg;
+          const col=isTask?'#fff':st.color;
+          const timeStr=e.time?`<div style="font-size:7px;opacity:.8;margin-bottom:1px">${e.time}</div>`:'';
+          return`<div style="padding:3px 5px;border-radius:5px;margin-bottom:3px;overflow:hidden;background:${bg};color:${col}">
+            ${timeStr}
+            <div style="font-size:8.5px;font-weight:700;white-space:nowrap;text-overflow:ellipsis;overflow:hidden">${e.name.slice(0,18)}</div>
+          </div>`;
+        }).join('')}
+        ${visible.length>3?`<div style="font-size:8px;color:var(--muted);text-align:center">+${visible.length-3}</div>`:''}
+      </div>`;
+    }
+    calHtml+=`</div>`;
+  });
+  document.getElementById('cal-wrap').innerHTML=calHtml;
+}
+
+function showCalDetail(ds){
+  const evMap=buildEvMap(-30,120);
+  const events=(evMap[ds]||[]).filter(e=>e.type!=='dr');
+  const evStyle={meet:'var(--blue)',ylyd:'var(--green)',xindong:'var(--gold)',mkt:'var(--purple)',dlig4:'var(--red)',task:'var(--text)',dr:'var(--muted)'};
+  document.getElementById('cal-modal-title').textContent='📅 '+ds;
+  document.getElementById('cal-modal-body').innerHTML=events.length?events.map(e=>`<div style="padding:8px 0;border-bottom:1px solid var(--border)">
+    <div style="display:flex;align-items:center;gap:8px">
+      <div style="width:10px;height:10px;border-radius:50%;background:${evStyle[e.type]||'var(--muted)'};flex-shrink:0"></div>
+      <div style="font-size:12.5px;font-weight:700">${e.name}</div>
+    </div>
+    <div style="font-size:10.5px;color:var(--muted);margin-top:3px;padding-left:18px">${e.time||''} ${e.person?'· '+e.person:''}</div>
+  </div>`).join(''):'<div style="color:var(--muted);font-size:12px;padding:10px 0">这天暂无活动</div>';
+  document.getElementById('cal-modal').classList.add('on');
+}
+
+// ═══════════════════════════════════════
+// SALES
+// ═══════════════════════════════════════
+function renderSales(){
+  const totT=SALES.reduce((a,b)=>a+b.t,0),totA=SALES.reduce((a,b)=>a+b.a,0);
+  const curr=SALES.find(s=>s.m==='Mar 2026')||SALES[0];
+  const cp=curr.t>0?(curr.a/curr.t*100):0;
+  const mkCard=(l,v,c,prog)=>`<div class="sc"><div class="sc-lbl">${l}</div><div class="sc-val" style="color:${c}">${v}</div>${prog!=null?`<div class="pb"><div class="pf" style="width:${Math.min(100,prog)}%;background:${prog<30?'var(--red)':prog<70?'var(--amber)':'var(--green)'}"></div></div>`:''}</div>`;
+  document.getElementById('ss-h1').innerHTML=[
+    mkCard('H1 销售目标',fRM(totT),'var(--gold)',null),
+    mkCard('H1 已达成',`${fRM(totA)} <span style="font-size:13px;font-weight:600">(${(totA/totT*100).toFixed(1)}%)</span>`,'var(--green)',totA/totT*100),
+    mkCard('H1 Shortfall',fRM(totT-totA),'var(--red)',null),
+  ].join('');
+  document.getElementById('ss-curr').innerHTML=[
+    mkCard('本月目标（Mar）',fRM(curr.t),'var(--gold)',null),
+    mkCard('本月已达成',`${fRM(curr.a)} <span style="font-size:13px">(${cp.toFixed(1)}%)</span>`,curr.a>0?'var(--green)':'var(--muted)',cp),
+    mkCard('本月 Shortfall',fRM(curr.t-curr.a),'var(--red)',null),
+  ].join('');
+  document.getElementById('mo-body').innerHTML=SALES.map(s=>{
+    const p=s.t>0?(s.a/s.t*100):0;const isc=s.m==='Mar 2026';
+    return`<tr style="${isc?'background:var(--goldL)':''}"><td style="font-weight:600">${s.m}</td><td style="font-family:'Space Mono',monospace">${fRM(s.t)}</td><td style="font-family:'Space Mono',monospace;font-weight:700;color:${s.a>0?'var(--green)':'var(--muted)'}">${s.a>0?fRM(s.a):'—'}</td><td><span style="font-family:'Space Mono',monospace;font-size:11px;font-weight:700;color:${p<30?'var(--red)':p<70?'var(--amber)':'var(--green)'}">${p.toFixed(1)}%</span></td><td style="font-family:'Space Mono',monospace;font-size:10.5px;color:var(--red)">${s.a>0?fRM(s.a-s.t):'—'}</td><td style="text-align:center">${s.x}</td><td style="text-align:center">${s.y}</td><td style="text-align:center">${s.b}</td><td style="text-align:center">${s.s}</td><td style="font-size:10px;color:var(--muted)">${s.n}</td></tr>`;
+  }).join('');
+  const fT=SALES.reduce((a,b)=>a+b.t,0),fA=SALES.reduce((a,b)=>a+b.a,0);
+  document.getElementById('mo-foot').innerHTML=`<tr style="background:var(--goldL)"><td style="font-weight:800">H1 TOTAL</td><td style="font-family:'Space Mono',monospace;font-weight:700">${fRM(fT)}</td><td style="font-family:'Space Mono',monospace;font-weight:700;color:var(--green)">${fRM(fA)}</td><td style="font-family:'Space Mono',monospace;font-weight:700;color:${fA/fT*100<50?'var(--red)':'var(--green)'}">${(fA/fT*100).toFixed(1)}%</td><td style="font-family:'Space Mono',monospace;color:var(--red)">${fRM(fA-fT)}</td><td colspan="5"></td></tr>`;
+  document.getElementById('sb-body').innerHTML=SBD.map(s=>{
+    const p=s.tr>0?(s.ar/s.tr*100):0;
+    return`<tr><td style="font-weight:600">${s.p}</td><td style="text-align:center">${s.tp}</td><td>${fRM(s.pr)}</td><td>${fRM(s.tr)}</td><td style="text-align:center;font-weight:700">${s.ap}</td><td style="color:var(--green);font-weight:700">${fRM(s.ar)}</td><td style="color:${s.ar>=s.tr?'var(--green)':'var(--red)'};font-size:10.5px">${fRM(s.ar-s.tr)}</td><td><span style="font-size:10px;font-weight:700;color:${p<30?'var(--red)':p<70?'var(--amber)':'var(--green)'}">${p.toFixed(0)}%</span></td></tr>`;
+  }).join('');
+  document.getElementById('strategy-remarks').innerHTML=STRATEGY.map(s=>`<div style="padding:5px 0;border-bottom:1px solid var(--border)">${s}</div>`).join('');
+  renderMktCal();
+}
+
+// ═══════════════════════════════════════
+// PRODUCTS
+// ═══════════════════════════════════════
+function renderProducts(){
+  document.getElementById('prod-tbl').innerHTML=PRODS.map(p=>{
+    const tc=p.tier==='核心'?'tc2':p.tier.startsWith('入口')?'ti':p.tier==='散卖'?'ta':'ta';
+    return`<tr><td><span class="tbadge ${tc}">${p.tier}</span></td><td style="font-weight:600">${p.n}</td><td style="font-size:10.5px;color:var(--muted)">${p.p}</td><td><span class="price-g">${p.price}</span></td><td><span class="orig">${p.orig}</span></td><td style="font-size:10.5px;color:var(--muted)">${p.note}</td></tr>`;
+  }).join('');
+  document.getElementById('yvc-wrap').innerHTML=YLYD_V.map(v=>`<div class="yvc"><div class="yvc-name">${v.n}</div><div class="yvc-reason">${v.r}</div><div class="yvc-freq">${v.f}</div><div class="yvc-val">${v.v}</div></div>`).join('');
+}
+
+// ═══════════════════════════════════════
+// INVENTORY
+// ═══════════════════════════════════════
+function renderAdmin(){
+  const need=INV.filter(i=>i.s==='补货'||i.s==='快不够了').length;
+  document.getElementById('inv-sum').innerHTML=[
+    {l:'补货告急',v:need,c:'var(--red)',bg:'var(--redB)'},
+    {l:'库存充足',v:INV.filter(i=>i.s==='充足').length,c:'var(--green)',bg:'var(--greenB)'},
+    {l:'总物料种类',v:INV.length,c:'var(--gold)',bg:'var(--goldL)'},
+  ].map(c=>`<div style="background:${c.bg};border:1.5px solid var(--border);border-radius:var(--r);padding:14px;box-shadow:var(--sh)"><div style="font-size:9px;font-weight:700;color:var(--muted);text-transform:uppercase;margin-bottom:5px">${c.l}</div><div style="font-family:'Space Mono',monospace;font-size:22px;font-weight:700;color:${c.c}">${c.v}</div></div>`).join('');
+  const cats=[...new Set(INV.map(i=>i.cat))];
+  document.getElementById('inv-detail').innerHTML=cats.map(cat=>{
+    const items=INV.filter(i=>i.cat===cat);
+    return`<div class="ic"><div class="ic-head">${cat}</div>${items.map(i=>{const sc=i.s==='充足'?'is-ok':i.s==='快不够了'?'is-low':'is-out';return`<div class="ir"><div class="ir-name">${i.n}</div><div class="ir-qty">${i.qty||'—'}</div><span class="${sc}">${i.s}</span></div>`;}).join('')}</div>`;
+  }).join('');
+}
+
+// ═══════════════════════════════════════
+// 心动觉察
+// ═══════════════════════════════════════
+function renderChecklist(){
+  const secDiv=document.getElementById('cl-sections');
+  secDiv.innerHTML=CL_SECTIONS.map(sec=>{
+    const secKey=sec.sec.replace(/\s/g,'_');
+    return`<div class="cl-section">
+      <div class="cl-sec-head">${sec.icon} ${sec.sec}</div>
+      ${sec.zones.map(zone=>{
+        const zKey=secKey+'_'+zone.zone.replace(/[\s📍（）]/g,'_').replace(/[^a-zA-Z0-9_\u4e00-\u9fff]/g,'');
+        return`<div class="cl-zone">
+          <div class="cl-zone-head" onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='none'?'block':'none'">
+            📍 ${zone.zone} <span style="margin-left:auto;font-size:11px;color:var(--dim)">▼</span>
+          </div>
+          <div class="cl-zone-body">
+            ${zone.items.map((item,idx)=>{
+              const key=zKey+'_'+idx;
+              const done=(CL_DONE[key]||false);
+              return`<div class="cli"><input type="checkbox" ${done?'checked':''} onchange="toggleCli('${key}',this.checked)"><span class="cli-text" style="${done?'text-decoration:line-through;color:var(--muted)':''}">${item}</span></div>`;
+            }).join('')}
+          </div>
+        </div>`;
+      }).join('')}
+    </div>`;
+  }).join('');
+}
+function toggleCli(key,v){CL_DONE[key]=v;save('cl_done7',CL_DONE);}
+function resetChecklist(){if(!confirm('确定重置所有 Checklist？（为下一期使用）'))return;CL_DONE={};save('cl_done7',CL_DONE);renderChecklist();}
+function saveChecklist(){save('cl_done7',CL_DONE);alert('✅ Checklist 进度已保存！');}
+function addCli(k){const inp=document.getElementById('cl-'+k+'-new');const v=inp.value.trim();if(!v)return;CL_SECTIONS[0].zones[0].items.push(v);inp.value='';renderChecklist();}
+
+function renderXindong(){
+  renderChecklist();
+  // Flow
+  document.getElementById('flow-day1').innerHTML=XD_FLOW_D1.map(f=>`<div class="acc-item"><div class="acc-head" onclick="this.parentElement.classList.toggle('open')"><span>${f.title}</span><span class="acc-arrow">▼</span></div><div class="acc-body"><div style="font-size:11.5px;color:var(--muted);margin-bottom:9px">${f.desc}</div><div style="background:var(--s2);border-radius:8px;padding:11px;font-size:11.5px;line-height:1.7;color:var(--text2)"><b style="font-size:9.5px;color:var(--gold);text-transform:uppercase;letter-spacing:.8px;display:block;margin-bottom:5px">Script 参考</b>${f.script}</div></div></div>`).join('');
+  document.getElementById('flow-day2').innerHTML=XD_FLOW_D2.map(f=>`<div class="acc-item"><div class="acc-head" onclick="this.parentElement.classList.toggle('open')"><span>${f.title}</span><span class="acc-arrow">▼</span></div><div class="acc-body"><div style="font-size:11.5px;color:var(--muted);margin-bottom:9px">${f.desc}</div><div style="background:var(--s2);border-radius:8px;padding:11px;font-size:11.5px;line-height:1.7;color:var(--text2)"><b style="font-size:9.5px;color:var(--gold);text-transform:uppercase;letter-spacing:.8px;display:block;margin-bottom:5px">Script 参考</b>${f.script}</div></div></div>`).join('');
+  // Roles
+  document.getElementById('role-d1').innerHTML=ROLES_D1.map((r,i)=>`<tr><td style="font-weight:600">${r.role}</td><td style="font-size:11px;line-height:1.65">${r.detail}</td><td><input class="fi" style="width:120px" value="${r.person}" onchange="ROLES_D1[${i}].person=this.value" placeholder="填写负责人"></td></tr>`).join('');
+  document.getElementById('role-d2').innerHTML=ROLES_D2.map((r,i)=>`<tr><td style="font-weight:600">${r.role}</td><td style="font-size:11px;line-height:1.65">${r.detail}</td><td><input class="fi" style="width:120px" value="${r.person}" onchange="ROLES_D2[${i}].person=this.value" placeholder="填写负责人"></td></tr>`).join('');
+  // Attendance
+  renderAttendance();
+  // Auto scripts
+  document.getElementById('auto-scripts').innerHTML=AUTO_SCRIPTS.map(s=>`<div class="acc-item"><div class="acc-head" onclick="this.parentElement.classList.toggle('open')"><span style="font-size:12px">${s.title}</span><span class="acc-arrow">▼</span></div><div class="acc-body"><pre style="white-space:pre-wrap;font-family:'Plus Jakarta Sans',sans-serif;font-size:11.5px;line-height:1.7;color:var(--text2);background:var(--s2);border-radius:8px;padding:12px">${s.content}</pre></div></div>`).join('');
+  // Trial records
+  renderSbRec();renderAuRec();
+}
+function switchDay(k,btn){document.querySelectorAll('#xd-flow .env-sec').forEach(x=>x.classList.remove('on'));document.querySelectorAll('#xd-flow .env-tab').forEach(b=>b.classList.remove('on'));document.getElementById('flow-'+k).classList.add('on');btn.classList.add('on');}
+function switchRoleDay(k,btn){document.querySelectorAll('#xd-roles .env-sec').forEach(x=>x.classList.remove('on'));document.querySelectorAll('#xd-roles .env-tab').forEach(b=>b.classList.remove('on'));document.getElementById(k).classList.add('on');btn.classList.add('on');}
+function switchTrial(k,btn){document.querySelectorAll('#xd-trial .env-sec').forEach(x=>x.classList.remove('on'));document.querySelectorAll('#xd-trial .env-tab').forEach(b=>b.classList.remove('on'));document.getElementById(k).classList.add('on');btn.classList.add('on');}
+
+function renderAttendance(){
+  const date=document.getElementById('att-date').value;
+  const list=ATTENDANCE[date]||[];
+  document.getElementById('att-list').innerHTML=`<div class="card" style="overflow-x:auto;padding:12px"><table class="pt"><thead><tr><th>#</th><th>姓名</th><th>电话</th><th>关系状态</th><th>迎宾分组</th><th>Day 1 ✓</th><th>Day 2 ✓</th><th>操作</th></tr></thead><tbody>${list.map((a,i)=>`<tr><td style="font-family:'Space Mono',monospace;font-size:10px">${String(i+1).padStart(2,'0')}</td><td style="font-weight:600">${a.name}</td><td style="font-size:10.5px">${a.phone||'—'}</td><td><span class="tag tcat">${a.rel||'—'}</span></td><td><span class="tag tcat">${a.zone||'—'}</span></td><td style="text-align:center"><input type="checkbox" ${a.d1?'checked':''} onchange="toggleAtt('${date}',${i},'d1',this.checked)" style="accent-color:var(--gold)"></td><td style="text-align:center"><input type="checkbox" ${a.d2?'checked':''} onchange="toggleAtt('${date}',${i},'d2',this.checked)" style="accent-color:var(--gold)"></td><td><button class="tc-btn" onclick="removeAtt('${date}',${i})" style="color:var(--red);font-size:10px">移除</button></td></tr>`).join('')||'<tr><td colspan="8" style="text-align:center;color:var(--muted);padding:20px;font-size:12px">暂无出席者</td></tr>'}</tbody></table><div style="font-size:11px;color:var(--muted);margin-top:8px">共 ${list.length} 人 · Day 1: ${list.filter(a=>a.d1).length} · Day 2: ${list.filter(a=>a.d2).length}</div></div>`;
+}
+function addAttendee(){
+  const name=document.getElementById('att-name').value.trim();if(!name)return;
+  const date=document.getElementById('att-date').value;
+  if(!ATTENDANCE[date])ATTENDANCE[date]=[];
+  ATTENDANCE[date].push({name,phone:document.getElementById('att-phone').value.trim(),rel:document.getElementById('att-rel').value,zone:document.getElementById('att-zone').value,d1:false,d2:false});
+  document.getElementById('att-name').value='';document.getElementById('att-phone').value='';
+  save('attendance',ATTENDANCE);renderAttendance();
+}
+function toggleAtt(date,i,k,v){ATTENDANCE[date][i][k]=v;save('attendance',ATTENDANCE);}
+function removeAtt(date,i){ATTENDANCE[date].splice(i,1);save('attendance',ATTENDANCE);renderAttendance();}
+
+function renderSbRec(){document.getElementById('sb-body-rec').innerHTML=SB_RECORDS.map((r,i)=>`<tr><td style="font-family:'Space Mono',monospace;font-weight:700">${r.unit}</td><td>${r.p1}</td><td>${r.p2||'—'}</td><td><span class="tag tcat">${r.dream}</span></td><td><span class="tag tcat">${r.goal}</span></td><td><input style="width:100%;border:none;background:transparent;font-size:11px;font-family:'Plus Jakarta Sans',sans-serif;outline:none" placeholder="觉察备注..." value="${r.note||''}" onchange="SB_RECORDS[${i}].note=this.value;save('sb_records',SB_RECORDS)"></td><td><button class="tc-btn" onclick="SB_RECORDS.splice(${i},1);save('sb_records',SB_RECORDS);renderSbRec()" style="color:var(--red);font-size:10px">删</button></td></tr>`).join('')||`<tr><td colspan="7" style="text-align:center;color:var(--muted);padding:20px">暂无记录</td></tr>`;}
+function addSbRecord(){const unit=document.getElementById('sb-unit').value.trim();const p1=document.getElementById('sb-p1').value.trim();if(!unit||!p1)return;SB_RECORDS.push({unit,p1,p2:document.getElementById('sb-p2').value.trim(),dream:document.getElementById('sb-dream').value,goal:document.getElementById('sb-goal').value,note:''});document.getElementById('sb-unit').value='';document.getElementById('sb-p1').value='';document.getElementById('sb-p2').value='';save('sb_records',SB_RECORDS);renderSbRec();}
+function renderAuRec(){document.getElementById('au-body').innerHTML=AU_RECORDS.map((r,i)=>`<tr><td style="font-weight:600">${r.trait}</td><td style="font-family:'Space Mono',monospace;color:var(--gold)">${r.price}</td><td>${r.buyer}</td><td>${r.seller}</td><td>${r.benef}</td><td><input style="width:100%;border:none;background:transparent;font-size:11px;font-family:'Plus Jakarta Sans',sans-serif;outline:none" placeholder="备注" value="${r.note||''}" onchange="AU_RECORDS[${i}].note=this.value;save('au_records',AU_RECORDS)"></td><td><button class="tc-btn" onclick="AU_RECORDS.splice(${i},1);save('au_records',AU_RECORDS);renderAuRec()" style="color:var(--red);font-size:10px">删</button></td></tr>`).join('')||`<tr><td colspan="7" style="text-align:center;color:var(--muted);padding:20px">暂无记录</td></tr>`;}
+function addAuRecord(){const trait=document.getElementById('au-trait').value;const price=document.getElementById('au-price').value;const buyer=document.getElementById('au-buyer').value.trim();if(!buyer)return;AU_RECORDS.push({trait,price,buyer,seller:document.getElementById('au-seller').value.trim(),benef:document.getElementById('au-benef').value.trim(),note:''});document.getElementById('au-price').value='';document.getElementById('au-buyer').value='';document.getElementById('au-seller').value='';document.getElementById('au-benef').value='';save('au_records',AU_RECORDS);renderAuRec();}
+
+// ═══════════════════════════════════════
+// YLYD
+// ═══════════════════════════════════════
+function renderYLYD(){
+  document.getElementById('dr-rota').innerHTML=DR_ROTA.map(r=>`<tr><td>${r.day}</td><td>${ptag(r.mar)}</td><td>${ptag(r.apr)}</td><td style="font-size:10px;color:var(--muted)"></td></tr>`).join('');
+  document.getElementById('dr-cl').innerHTML=DR_CL.map(i=>`<div class="cli"><input type="checkbox" style="accent-color:var(--gold)"><span class="cli-text">${i}</span></div>`).join('');
+  document.getElementById('wr-rota-wrap').innerHTML=`<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px"><div class="dc"><div class="dc-title">轮值表</div>${WR_ROTA.map(r=>`<div class="dr-row"><span class="dw">${r.week}</span><span>${ptag(r.p)} <span style="font-size:9.5px;color:var(--muted)">${r.type}</span></span></div>`).join('')}</div></div>`;
+  document.getElementById('wr-cl').innerHTML=WR_CL.map(i=>`<div class="cli"><input type="checkbox" style="accent-color:var(--green)"><span class="cli-text">${i}</span></div>`).join('');
+  document.getElementById('bs-rota-wrap').innerHTML=`<div class="dc" style="max-width:400px"><div class="dc-title">轮值表</div>${BS_ROTA.map(r=>`<div class="dr-row"><span class="dw">${r.week}</span><span>${ptag(r.p)}</span></div>`).join('')}</div>`;
+  document.getElementById('bs-cl').innerHTML=BS_CL.map(i=>`<div class="cli"><input type="checkbox" style="accent-color:var(--blue)"><span class="cli-text">${i}</span></div>`).join('');
+}
+function sEnv(s,btn){document.querySelectorAll('.env-sec').forEach(x=>x.classList.remove('on'));document.querySelectorAll('.env-tab').forEach(b=>b.classList.remove('on'));document.getElementById('env-'+s).classList.add('on');btn.classList.add('on');}
+
+// ═══════════════════════════════════════
+// GDC
+// ═══════════════════════════════════════
+let GDC_F='全部';
+function filterGDC(f,btn){GDC_F=f;document.querySelectorAll('.fbar .fb').forEach(b=>b.classList.remove('on'));btn.classList.add('on');renderGDC();}
+
+function addGDCTask(){
+  const task=document.getElementById('gdc-task')?.value.trim();
+  if(!task)return;
+  const date=document.getElementById('gdc-date')?.value||'';
+  const dl=document.getElementById('gdc-dl')?.value||'';
+  const cat=document.getElementById('gdc-cat')?.value||'视频文案';
+  const who=document.getElementById('gdc-who')?.value.trim()||'';
+  const pic=document.getElementById('gdc-pic')?.value||'Jasper';
+  GDC_TASKS.push({id:'g'+Date.now(),task,date,dl,cat,who,pic,status:'待开始',pay:''});
+  document.getElementById('gdc-task').value='';
+  if(document.getElementById('gdc-who'))document.getElementById('gdc-who').value='';
+  // Sync to Task Board
+  const nid=Math.max(0,...TASKS.map(t=>t.id),0)+1;
+  TASKS.push({id:nid,task:'🎨 GDC: '+task,person:pic,cat:'GDC job',type:'contrib',priority:'⚡ 本月',deadline:dl||date,status:'待启动',est:1,actual:'',doneDate:''});
+  // Sync to Calendar
+  if(date)EVENTS.push({id:'gev'+Date.now(),name:'🎨 '+task,date,time:'',type:'mkt',person:pic,isEvent:true});
+  save('gdc_tasks',GDC_TASKS);save('tasks',TASKS);save('events',EVENTS);
+  renderGDC();renderTasks();renderCalendar();
+}
+
+function renderGDC(){
+  // Calendar view
+  const calEl=document.getElementById('gdc-cal-view');
+  if(calEl){
+    const now=new Date();
+    const map={};
+    GDC_TASKS.forEach(t=>{const k=t.date||t.dl;if(k){if(!map[k])map[k]=[];map[k].push(t);}});
+    const statColors={待开始:{bg:'var(--purpleB)',c:'var(--purple)'},进行中:{bg:'var(--amberB)',c:'var(--amber)'},已完成:{bg:'var(--greenB)',c:'var(--green)'},已付款:{bg:'var(--blueB)',c:'var(--blue)'}};
+    let ch=`<div style="font-size:12px;font-weight:700;color:var(--purple);padding:8px 12px;background:var(--purpleB);border-radius:8px;margin-bottom:10px">${now.toLocaleDateString('zh-CN',{year:'numeric',month:'long'})} · GDC Job Calendar</div>`;
+    ch+=`<div class="mkt-cal-grid" style="margin-bottom:14px">`;
+    ['日','一','二','三','四','五','六'].forEach(h=>{ch+=`<div class="mkt-cal-head">${h}</div>`;});
+    const fd=new Date(now.getFullYear(),now.getMonth(),1).getDay();
+    const dim=new Date(now.getFullYear(),now.getMonth()+1,0).getDate();
+    for(let i=0;i<fd;i++)ch+=`<div class="mkt-cell om"></div>`;
+    for(let day=1;day<=dim;day++){
+      const iT=day===now.getDate();
+      const ds=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+      const items=(map[ds]||[]);
+      ch+=`<div class="mkt-cell${iT?' today':''}"><div class="mkt-date">${day}</div>`;
+      items.forEach(t=>{
+        ch+=`<div style="background:#0d3060;color:#fff;padding:3px 5px;border-radius:5px;margin-bottom:3px;overflow:hidden">
+          <div style="font-size:8.5px;font-weight:700;white-space:nowrap;text-overflow:ellipsis;overflow:hidden">${t.task.slice(0,16)}</div>
+          <div style="font-size:7px;opacity:.8;margin-top:1px">${t.pic||''}</div>
+        </div>`;
+      });
+      ch+=`</div>`;
+    }
+    ch+=`</div>`;
+    calEl.innerHTML=ch;
+  }
+
+  // Table
+  const fil=GDC_F==='全部'?GDC_TASKS:GDC_TASKS.filter(t=>t.status===GDC_F);
+  const stC={'待开始':'gs-pend','进行中':'gs-prog','已完成':'gs-done','已付款':'gs-paid'};
+  const listEl=document.getElementById('gdc-list');
+  if(listEl)listEl.innerHTML=fil.length?fil.map((t,i)=>{
+    const isDone=t.status==='已完成'||t.status==='已付款';
+    return`<tr style="${isDone?'opacity:.5':''}">
+    <td style="font-size:10.5px;font-family:'DM Sans',sans-serif;font-weight:600">${t.date||'—'}</td>
+    <td style="font-size:10.5px;color:${t.dl?'var(--amber)':'var(--muted)'};font-family:'DM Sans',sans-serif;font-weight:600">${t.dl||'—'}</td>
+    <td><span class="tag tcat">${t.cat}</span></td>
+    <td style="font-weight:600;font-size:11.5px">${t.task}</td>
+    <td style="font-size:10.5px">${t.who||'GDC'}</td>
+    <td>${ptag(t.pic)}</td>
+    <td>
+      ${!isDone?`<button class="tc-btn" onclick="openGDCComplete(${i})" style="background:var(--greenB);border-color:var(--green);color:var(--green)">✓ 完成</button>`:`<span style="font-size:10px;color:var(--green)">✅ ${t.doneDate||''}</span>`}
+      <button class="tc-btn" onclick="GDC_TASKS.splice(GDC_TASKS.indexOf(fil[${i}]),1);save('gdc_tasks',GDC_TASKS);renderGDC()" style="color:var(--red);font-size:10px;margin-left:4px">删</button>
+    </td>
+  </tr>`;}).join(''):'<tr><td colspan="7" style="text-align:center;color:var(--muted);padding:20px">暂无 GDC 任务</td></tr>';
+
+  const payEl=document.getElementById('gdc-pay-tbl');
+  if(payEl)payEl.innerHTML=GDC_PAY.map(p=>`<tr><td>${p.t}</td><td style="font-weight:700;color:var(--green)">${p.v}</td></tr>`).join('');
+}
+function openGDCComplete(i){
+  const fil=GDC_F==='全部'?GDC_TASKS:GDC_TASKS.filter(t=>t.status===GDC_F);
+  const t=fil[i];if(!t)return;
+  const modal=document.createElement('div');
+  modal.id='gdc-complete-modal';
+  modal.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:300;display:flex;align-items:center;justify-content:center';
+  modal.innerHTML=`<div style="background:var(--white);border-radius:14px;padding:22px;max-width:360px;width:90%;box-shadow:0 20px 60px rgba(0,0,0,.2)">
+    <div style="font-size:15px;font-weight:800;margin-bottom:4px">✅ GDC 任务完成</div>
+    <div style="font-size:11.5px;color:var(--muted);margin-bottom:14px">${t.task}</div>
+    <div class="ff" style="margin-bottom:12px"><div class="fl2">完成日期</div><input class="fi" id="gdc-done-date" type="date" value="${new Date().toISOString().split('T')[0]}"></div>
+    <div style="font-size:11px;color:var(--muted);padding:9px 12px;background:var(--purpleB);border-radius:8px;margin-bottom:14px">💰 GDC Task Fee · 参考 Company Policy 价目表</div>
+    <div style="display:flex;gap:8px">
+      <button class="add-btn" onclick="confirmGDCComplete(${i})" style="flex:1;background:linear-gradient(135deg,#6a3a96,#9b59b6)">✓ 确认</button>
+      <button class="fb" onclick="document.getElementById('gdc-complete-modal').remove()" style="flex:1">取消</button>
+    </div>
+  </div>`;
+  document.body.appendChild(modal);
+}
+function confirmGDCComplete(i){
+  const fil=GDC_F==='全部'?GDC_TASKS:GDC_TASKS.filter(t=>t.status===GDC_F);
+  const t=fil[i];if(!t)return;
+  t.status='已完成';t.doneDate=document.getElementById('gdc-done-date')?.value||'';
+  document.getElementById('gdc-complete-modal')?.remove();
+  save('gdc_tasks',GDC_TASKS);renderGDC();
+}
+function cycleGDCStatus(i){
+  const fil=GDC_F==='全部'?GDC_TASKS:GDC_TASKS.filter(t=>t.status===GDC_F);
+  const t=fil[i];if(!t)return;
+  const s=['待开始','进行中','已完成','已付款'];
+  t.status=s[(s.indexOf(t.status)+1)%s.length];
+  save('gdc_tasks',GDC_TASKS);renderGDC();
+}
+
+// ═══════════════════════════════════════
+// POLICY
+// ═══════════════════════════════════════
+function renderPolicy(){
+  document.getElementById('policy-ops').innerHTML=`<div class="pb-title">⚙️ 运营规则</div>${POL_OPS.items.map(it=>`<div class="pi"><div class="pk">${it.k}</div><div class="pv">${it.v}</div></div>`).join('')}`;
+  document.getElementById('pol-blocks').innerHTML=POLICIES.map(p=>`<div class="pb-blk"><div class="pb-title">${p.title}</div>${p.items.map(it=>`<div class="pi"><div class="pk">${it.k}</div><div class="pv">${it.v}</div></div>`).join('')}</div>`).join('');
+  document.getElementById('pay-sm').innerHTML=PAY_SM_DATA.map(p=>`<tr><td>${p.t}</td><td style="font-weight:700;color:var(--green)">${p.v}</td></tr>`).join('');
+  document.getElementById('pay-op').innerHTML=PAY_OP_DATA.map(p=>`<tr><td>${p.t}</td><td style="font-weight:700;color:var(--green)">${p.v}</td></tr>`).join('');
+  document.getElementById('donation-tbl').innerHTML=DONATION_DATA.map(d=>`<tr><td>${d.p}</td><td>${d.d}</td><td style="font-weight:700;color:var(--green)">${d.pct}</td></tr>`).join('');
+}
+
+// ═══════════════════════════════════════
+// MEETING
+// ═══════════════════════════════════════
+function renderMeeting(){
+  const mkAg=(data,id)=>{document.getElementById(id).innerHTML=data.map(a=>`<div class="ag-blk"><div class="ag-time">${a.t}</div><div class="ag-line"><div class="ag-dot"></div><div class="ag-conn"></div></div><div class="ag-body"><div class="ag-title">${a.title}</div><div class="ag-desc">${a.desc}</div><div style="margin-top:5px">${ptag(a.o)}</div></div></div>`).join('');};
+  mkAg(MO_AGENDA,'mo-agenda');mkAg(WK_AGENDA,'wk-agenda');
+  renderMinutes();
+}
+function renderMinutes(){document.getElementById('mins-list').innerHTML=MINUTES.map(m=>m.link?`<a class="fitem" href="${m.link}" target="_blank"><span>📝</span><div style="flex:1"><div class="fi-name">${m.title}</div><div style="font-size:10px;color:var(--muted);margin-top:2px">${m.date}${m.note?' · '+m.note:''}</div></div><span class="fi-arr">↗ 打开</span></a>`:`<div class="fitem"><span>📝</span><div style="flex:1"><div class="fi-name">${m.title}</div><div style="font-size:10px;color:var(--muted);margin-top:2px">${m.date}${m.note?' · '+m.note:''}</div></div><span style="color:var(--dim);font-size:11px">待填链接</span></div>`).join('');}
+function addMinute(){const title=document.getElementById('min-title').value.trim();if(!title)return;MINUTES.unshift({id:'m'+Date.now(),date:document.getElementById('min-date').value,title,link:document.getElementById('min-link').value.trim(),note:document.getElementById('min-note').value.trim()});document.getElementById('min-title').value='';document.getElementById('min-link').value='';document.getElementById('min-note').value='';save('minutes',MINUTES);renderMinutes();}
+
+// ═══════════════════════════════════════
+// DECISIONS
+// ═══════════════════════════════════════
+function renderDecisions(){
+  document.getElementById('dec-blocks').innerHTML=DEC.map((d,i)=>{
+    const vC={};Object.values(d.votes).forEach(v=>{vC[v]=(vC[v]||0)+1;});
+    const vr=Object.keys(d.votes).length>0?Object.entries(vC).map(([o,n])=>`<span style="margin-right:10px"><b>${o.slice(0,30)}</b> <span style="color:var(--gold);font-weight:700">${n}票</span></span>`).join(''):'<span style="color:var(--muted)">还没有人投票 · 点选你的答案</span>';
+    return`<div class="dec"><div class="dec-q">${d.q}</div><div style="font-size:11.5px;color:var(--text2);line-height:2;margin-bottom:10px">${d.opts.map((o,j)=>`${j+1}. ${o}`).join('<br>')}</div><div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px">${d.opts.map(o=>`<button class="vb ${d.votes['你']===o?'sel':''}" onclick="vote(${i},'${o.replace(/'/g,"\\'")}')">${o.slice(0,25)}</button>`).join('')}</div><div style="font-size:11px;color:var(--muted);padding:8px 11px;background:var(--s2);border-radius:7px;margin-bottom:6px">${vr}</div><textarea class="dec-comment" rows="1" placeholder="写下你的想法... (Enter 提交)" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();addCom(${i},this.value);this.value='';}"></textarea>${d.comments.length?`<div style="margin-top:8px">${d.comments.map(c=>`<div style="font-size:11px;padding:5px 9px;background:var(--s2);border-radius:7px;margin-bottom:4px">${c}</div>`).join('')}</div>`:''}<div style="font-size:10px;color:var(--muted);margin-top:8px">${ptag(d.owner)} · ⏰ ${d.dl}</div></div>`;
+  }).join('');
+}
+function vote(i,o){DEC[i].votes['你']=o;save('decisions',DEC);renderDecisions();}
+function addCom(i,t){if(!t.trim())return;DEC[i].comments.push(t.trim());save('decisions',DEC);renderDecisions();}
+function addDecision(){const q=document.getElementById('dec-q-new').value.trim();const optsStr=document.getElementById('dec-opts-new').value.trim();if(!q||!optsStr)return;const opts=optsStr.split('|').map(o=>o.trim()).filter(Boolean);DEC.push({id:'d'+Date.now(),q,opts,votes:{},comments:[],owner:document.getElementById('dec-owner-new').value,dl:document.getElementById('dec-dl-new').value||'待定'});document.getElementById('dec-q-new').value='';document.getElementById('dec-opts-new').value='';save('decisions',DEC);renderDecisions();updateStats();}
+
+// ═══════════════════════════════════════
+// FILES
+// ═══════════════════════════════════════
+function renderFiles(){
+  // Merge default + user added
+  const allFiles=[...DEFAULT_FILES];
+  FILE_ITEMS.forEach(item=>{
+    let found=allFiles.find(f=>f.cat.includes(item.cat));
+    if(!found){allFiles.push({cat:item.cat,items:[]});found=allFiles[allFiles.length-1];}
+    if(!found.items)found.items=[];
+    found.items.push({n:item.n,note:'',link:item.link});
+  });
+  document.getElementById('files-wrap').innerHTML=allFiles.map(fc=>{
+    const items=fc.items||[];
+    const sub=fc.sub||[];
+    let content='';
+    if(items.length)content=items.map(f=>f.link?`<a class="fitem" href="${f.link}" target="_blank"><span>📄</span><span class="fi-name">${f.n}</span><span class="fi-note">${f.note}</span><span class="fi-arr">↗</span></a>`:`<div class="fitem"><span>📄</span><span class="fi-name">${f.n}</span><span class="fi-note">${f.note}</span><span style="color:var(--dim);font-size:11px">待配置</span></div>`).join('');
+    if(sub.length)content=sub.map(s=>`<div class="fcat-sub">${s.title}</div>${s.items.map(f=>f.link?`<a class="fitem" href="${f.link}" target="_blank"><span>📄</span><span class="fi-name">${f.n}</span><span class="fi-note">${f.note}</span><span class="fi-arr">↗</span></a>`:`<div class="fitem"><span>📄</span><span class="fi-name">${f.n}</span><span class="fi-note">${f.note}</span></div>`).join('')}`).join('');
+    return`<div class="fcat"><div class="fc-head">${fc.cat}</div>${content}</div>`;
+  }).join('');
+}
+function showFileAdd(){const f=document.getElementById('file-add-form');f.style.display=f.style.display==='none'?'block':'none';}
+function addFileItem(){const n=document.getElementById('fitem-name').value.trim();const link=document.getElementById('fitem-link').value.trim();const cat=document.getElementById('fitem-cat').value;if(!n)return;FILE_ITEMS.push({n,link,cat});document.getElementById('fitem-name').value='';document.getElementById('fitem-link').value='';save('file_items',FILE_ITEMS);renderFiles();}
+
+// ═══════════════════════════════════════
+// NAV
+// ═══════════════════════════════════════
+const PT={overview:'🏠 公司总览',tasks:'🗂 Task Board',calendar:'📅 日历 & 轮值',sales:'💰 Sales & Marketing',products:'🎁 产品 & 价格',admin:'📦 Inventory & Admin',xindong:'💎 心动觉察',ylyd:'🌱 YLYD System',gdc:'🎨 GDC Marketing Job',policy:'📜 Company Policy',meeting:'📋 会议 & 记录',decisions:'⚡ 待决策',files:'📁 文件索引'};
+function go(id){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('on'));
+  document.querySelectorAll('.ni').forEach(n=>n.classList.remove('on'));
+  const pg=document.getElementById('p-'+id);if(pg)pg.classList.add('on');
+  const nis=document.querySelectorAll('.ni');const ord=Object.keys(PT);const idx=ord.indexOf(id);if(nis[idx])nis[idx].classList.add('on');
+  document.getElementById('pg-title').textContent=PT[id]||id;
+  document.getElementById('tb-pills').style.display=id==='tasks'?'flex':'none';
+  window.scrollTo(0,0);
+}
+function smeet(s,btn){document.querySelectorAll('.ms-tab').forEach(x=>x.classList.remove('on'));document.querySelectorAll('.mtabs .mt').forEach(b=>b.classList.remove('on'));document.getElementById('ms-'+s).classList.add('on');btn.classList.add('on');}
+function sProj(prefix,sec,btn){const pg=btn.closest('.page');pg.querySelectorAll('.ps').forEach(x=>x.classList.remove('on'));pg.querySelectorAll('.ptabs .pt-btn').forEach(b=>b.classList.remove('on'));document.getElementById(prefix+'-'+sec).classList.add('on');btn.classList.add('on');}
+
+// ═══════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════
+const now2=new Date();
+document.getElementById('bdate').textContent=now2.toLocaleDateString('zh-MY',{year:'numeric',month:'short',day:'numeric'});
+
+renderOverview();renderTasks();renderCalendar();renderSales();renderMktCal();renderProducts();
+renderAdmin();renderXindong();renderYLYD();renderGDC();renderPolicy();
+renderMeeting();renderDecisions();renderFiles();renderMktCal();updateStats();
+</script>
+</body>
+</html>
