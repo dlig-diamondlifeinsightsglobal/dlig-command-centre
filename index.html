@@ -1089,6 +1089,12 @@ async function loadFromSheets(){
       })).filter(r=>r.m);
     }
   }catch(e){ok=false;}
+  // 再投资捐款总额
+  try{
+    const dres=await fetch(SHEETS_API_URL+'?sheet=donation');
+    const ddata=await dres.json();
+    if(ddata&&ddata.total!==undefined)DONATION_TOTAL=Number(ddata.total)||0;
+  }catch(e){}
   if(ok){
     if(el)el.innerHTML='<span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--green)"></span>&nbsp;已连接 Google Sheets';
   }else{
@@ -1223,6 +1229,7 @@ const XD_FLOW_D2=[
   {title:'🚀 YLYD 呈现 + 报名（20min）',desc:'呈现结构 · 平静的朋友语气，不是销售员',script:'这两天，你做了三件事：看见。排序。选择。但如果没有结构，这些觉察，会慢慢消失。所以我们设计了 YLYD……升级开放到今晚 11:59pm哦。'},
 ];
 
+let DONATION_TOTAL=0; // 从 再投资捐款 tab 读取
 let SALES=[
   {m:'Jan 2026',t:10000,a:2124,n:'广告RM200',x:12,y:0,b:0,s:0},
   {m:'Feb 2026',t:18000,a:0,n:'',x:0,y:0,b:0,s:0},
@@ -1420,11 +1427,12 @@ function renderOverview(){
     </div>
   </div>
 
-  <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:14px">
+  <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:14px">
     <div class="ov-card" onclick="go('tasks')" style="padding:12px 14px"><div class="ov-icon">🚨</div><div><div class="ov-label">紧急任务</div><div class="ov-val" style="color:var(--red)">${urg.length}</div></div></div>
     <div class="ov-card" onclick="go('sales')" style="padding:12px 14px"><div class="ov-icon">📣</div><div><div class="ov-label">Marketing</div><div class="ov-val" style="color:var(--purple)">${mktTasks.length}</div></div></div>
     <div class="ov-card" onclick="go('decisions')" style="padding:12px 14px"><div class="ov-icon">⚡</div><div><div class="ov-label">待决策</div><div class="ov-val" style="color:var(--amber)">${DEC.length}</div></div></div>
     <div class="ov-card" onclick="go('admin')" style="padding:12px 14px"><div class="ov-icon">📦</div><div><div class="ov-label">物料缺货</div><div class="ov-val" style="color:var(--red)">${INV.filter(i=>i.s==='补货'||i.s==='快不够了').length}</div></div></div>
+    <div class="ov-card" style="padding:12px 14px;cursor:default;background:var(--greenB);border-color:rgba(26,110,66,.2)"><div class="ov-icon">🏦</div><div><div class="ov-label" style="color:var(--green)">已捐总额</div><div style="font-family:'DM Sans',sans-serif;font-size:16px;font-weight:800;color:var(--green);letter-spacing:-.3px">${DONATION_TOTAL>0?fRM(DONATION_TOTAL):'—'}</div></div></div>
   </div>`;
 
   document.getElementById('ov-bar').innerHTML=SALES.map(s=>{
