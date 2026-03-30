@@ -103,11 +103,15 @@ function readTaskBoard() {
     const task = String(row[h['任务内容'] ?? 0] || '').trim();
     if (!task) return;
 
-    const deadline = fmtDate(row[h['截止日期']]);
-    const doneDate = fmtDate(row[h['完成日期']]);
-    const actual   = String(row[h['用时']]  ?? '').trim();
-    const eff      = String(row[h['效率']]  ?? '').trim();
-    const status   = doneDate ? '已完成' : '待启动';
+    const deadline   = fmtDate(row[h['截止日期']]);
+    const doneDateRaw= fmtDate(row[h['完成日期']]);
+    const actual     = String(row[h['用时']]  ?? '').trim();
+    const eff        = String(row[h['效率']]  ?? '').trim();
+    // 只有完成日期 AND 用时都有填写，才算真正完成
+    // 避免 Sheet 里「完成日期」列有默认值但实际上还没完成的误判
+    const isRealDone = doneDateRaw && actual && actual !== '0';
+    const doneDate   = isRealDone ? doneDateRaw : '';
+    const status     = isRealDone ? '已完成' : '待启动';
 
     results.push({
       id:       idx + 100,

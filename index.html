@@ -556,6 +556,20 @@ body{background:var(--cream);color:var(--text);font-family:'Plus Jakarta Sans',s
 
   <!-- ══ CALENDAR ══ -->
   <div class="page" id="p-calendar">
+    <div class="sl" style="margin-top:0">🔄 活动轮值管理</div>
+    <div style="background:var(--white);border:1.5px solid var(--border);border-radius:var(--r);padding:14px;margin-bottom:18px;box-shadow:var(--sh)">
+      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px">
+        <button class="fb on" id="rot-dr-btn" onclick="showRotTab('dr',this)">☀️ Daily Redesign</button>
+        <button class="fb" id="rot-wr-btn" onclick="showRotTab('wr',this)">🌱 Weekly Realign</button>
+        <button class="fb" id="rot-bs-btn" onclick="showRotTab('bs',this)">📚 书影充电站</button>
+        <button class="fb" id="rot-clean-btn" onclick="showRotTab('clean',this)">🧹 Office 打扫</button>
+      </div>
+      <div id="rot-dr-panel"></div>
+      <div id="rot-wr-panel" style="display:none"></div>
+      <div id="rot-bs-panel" style="display:none"></div>
+      <div id="rot-clean-panel" style="display:none"></div>
+    </div>
+    <div class="sl">📅 活动日历</div>
     <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:14px">
       <div class="cal-filter" id="cal-filter" style="display:flex;gap:6px;flex-wrap:wrap;flex:1">
         <span class="fl">Filter：</span>
@@ -591,18 +605,6 @@ body{background:var(--cream);color:var(--text);font-family:'Plus Jakarta Sans',s
         <div id="cal-modal-body"></div>
       </div>
     </div>
-    <div class="divider"></div>
-    <div class="sl">🔄 活动轮值管理</div>
-    <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px">
-      <button class="fb on" id="rot-dr-btn" onclick="showRotTab('dr',this)">☀️ Daily Redesign</button>
-      <button class="fb" id="rot-wr-btn" onclick="showRotTab('wr',this)">🌱 Weekly Realign</button>
-      <button class="fb" id="rot-bs-btn" onclick="showRotTab('bs',this)">📚 书影充电站</button>
-      <button class="fb" id="rot-clean-btn" onclick="showRotTab('clean',this)">🧹 Office 打扫</button>
-    </div>
-    <div id="rot-dr-panel"></div>
-    <div id="rot-wr-panel" style="display:none"></div>
-    <div id="rot-bs-panel" style="display:none"></div>
-    <div id="rot-clean-panel" style="display:none"></div>
   </div>
 
   <!-- ══ SALES ══ -->
@@ -1124,7 +1126,7 @@ async function loadFromSheets(){
   }else{
     if(el)el.innerHTML='<span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--red)"></span>&nbsp;连接失败，使用本地数据';
   }
-  TASKS=load('tasks',TASKS);MKT_CONTENT=load('mkt_content',MKT_CONTENT);GDC_TASKS=load('gdc_tasks',GDC_TASKS);
+  // 注意：TASKS/MKT_CONTENT/GDC_TASKS 已经在上面从 Sheet 直接赋值，不再从 localStorage 加载（避免硬编码数据覆盖）
   renderTasks();renderMktCal();renderGDC();renderOverview();renderSales();updateStats();renderRotation();renderYLYD();
 }
 const COEF={'Sales':3,'Marketing':2,'System':2,'GDC':2,'Operation':1,'Admin':1};
