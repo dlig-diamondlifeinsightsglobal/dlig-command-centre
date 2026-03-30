@@ -1067,14 +1067,17 @@ async function loadFromSheets(){
   }
   if(el)el.innerHTML='<span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--amber);animation:pulse 2s infinite"></span>&nbsp;正在同步…';
   let ok=true;
-  // tasks / mkt_content / gdc_tasks
+  // tasks / mkt_content / gdc_tasks — Sheet 数据完全覆盖本地
   for(const[lsKey,sheetType]of Object.entries(SHEET_KEY_MAP)){
     try{
       const res=await fetch(SHEETS_API_URL+'?sheet='+sheetType);
       const rows=await res.json();
-      // 直接写 localStorage，不触发 syncToSheets（避免循环回写）
-      if(Array.isArray(rows)&&rows.length>0)
+      if(Array.isArray(rows)&&rows.length>0){
+        // 直接写 localStorage，不触发 syncToSheets（避免循环回写）
         try{localStorage.setItem('dlig7_'+lsKey,JSON.stringify(rows));}catch(e){}
+        // tasks: 同时更新内存变量，以便后续 render 正确
+        if(lsKey==='tasks') TASKS=rows;
+      }
     }catch(e){ok=false;}
   }
   // Sales Dashboard (read-only — user edits numbers in Sheet)
@@ -1651,8 +1654,11 @@ function addLog(){
   alert(`✅ 已记录！贡献值：${contrib}（${hours}h × ×1.0）`);
 }
 function updateStats(){
+  // 显示未完成的紧急任务数
   const u=TASKS.filter(t=>t.priority==='🔴 紧急'&&t.status!=='已完成').length;
-  const nb=document.getElementById('nb-u');if(nb)nb.textContent=u;
+  const total=TASKS.filter(t=>t.status!=='已完成').length;
+  const nb=document.getElementById('nb-u');
+  if(nb){nb.textContent=total;nb.style.display=total>0?'':'none';}
   const nb2=document.getElementById('nb-d');if(nb2)nb2.textContent=DEC.length;
 }
 let TIME_F='all';
