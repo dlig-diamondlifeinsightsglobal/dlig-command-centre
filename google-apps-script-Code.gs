@@ -8,7 +8,7 @@ const SHEET_IDS = {
   tasks: '1A3g_WPDU-R4zU8gj8gGHu885z5bk4lTBBRnCfDsstDI',
   mkt:   '1F0Ss1MuAwVRkVfWch2wepx2SvMXG3BoIBfVN0v9ye9M',
   gdc:   '1Gc0rO-gx_CBSZ60fFHvmMeTsq7dClsCU4WiSN5ii-2M',
-  pay:   '1zGy3rV0bv2dERFRWoRFhRLGj68oJ3RtAj-kiqi71DXk'  // 分钱计算 Sheet
+  admin: '1zGy3rV0bv2dERFRWoRFhRLGj68oJ3RtAj-kiqi71DXk'  // Admin Accounts Sheet
 };
 
 const TASK_TAB      = 'Task Board';
@@ -269,6 +269,58 @@ function writeSalesDashboard(items) {
   return { ok: true, count: rows.length };
 }
 
+// ─── 再投资捐款 — 读取已捐总额 ──────────────────────────────
+
+function readDonationTotal() {
+  try {
+    const ss  = SpreadsheetApp.openById(SHEET_IDS.admin);
+    const tab = ss.getSheetByName('再投资捐款');
+    if (!tab) return { error: '再投资捐款 tab not found' };
+
+    const data = tab.getDataRange().getValues();
+    const num  = v => parseFloat(String(v||'').replace(/[^0-9.\-]/g,'')) || 0;
+
+    // 找含"金额"/"已捐"/"Amount"的列，把所有数值加总
+    let hdrRow = -1, amtCol = -1;
+    for (let i = 0; i < Math.min(data.length, 20); i++) {
+      const row = data[i];
+      for (let j = 0; j < row.length; j++) {
+        const h = String(row[j]||'').trim();
+        if (h.includes('金额')||h.includes('已捐')||h.toLowerCase().includes('amount')||h.includes('捐款额')) {
+          hdrRow = i; amtCol = j; break;
+        }
+      }
+      if (hdrRow >= 0) break;
+    }
+
+    // 如果找不到列，尝试找 "已捐总额" 单元格直接读
+    if (hdrRow < 0) {
+      for (let i = 0; i < data.length; i++) {
+        for (let j = 0; j < data[i].length; j++) {
+          const cell = String(data[i][j]||'').trim();
+          if (cell.includes('已捐总额')||cell.includes('Total')) {
+            // 读右边或下面的数值
+            const right = j+1 < data[i].length ? num(data[i][j+1]) : 0;
+            const below = i+1 < data.length   ? num(data[i+1][j])  : 0;
+            const val   = right || below;
+            if (val > 0) return { total: val };
+          }
+        }
+      }
+      return { total: 0, note: 'no amount column found' };
+    }
+
+    // 把该列所有数值加总
+    let total = 0;
+    for (let i = hdrRow + 1; i < data.length; i++) {
+      total += num(data[i][amtCol]);
+    }
+    return { total };
+  } catch(e) {
+    return { error: e.message };
+  }
+}
+
 // ─── 分钱计算 — 写入汇总 Sheet ──────────────────────────────
 
 const PAY_HEADERS = ['来源','id','任务内容','负责人','类别','类型','截止日期','完成日期','用时','效率','分钱系数','应付金额'];
@@ -323,7 +375,8 @@ function doGet(e) {
     if (type === 'tasks') return respond(readTaskBoard());
     if (type === 'mkt')   return respond(readCC(SHEET_IDS.mkt, MKT_HEADERS));
     if (type === 'gdc')   return respond(readCC(SHEET_IDS.gdc, GDC_HEADERS));
-    if (type === 'sales') return respond(readSalesDashboard());
+    if (type === 'sales')    return respond(readSalesDashboard());
+    if (type === 'donation') return respond(readDonationTotal());
     return respond({ error: 'Unknown sheet: ' + type });
   } catch(err) {
     return respond({ error: err.message });
