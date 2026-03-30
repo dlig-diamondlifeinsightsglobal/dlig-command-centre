@@ -12,8 +12,8 @@ const SHEET_IDS = {
 };
 
 const TASK_TAB      = 'Task Board';
-const TASK_HDR_ROW  = 4;   // 第4行是 header
-const TASK_DATA_ROW = 5;   // 第5行起是数据
+const TASK_HDR_ROW  = 1;   // 第1行是 header
+const TASK_DATA_ROW = 2;   // 第2行起是数据
 
 // Marketing Content tab (source tab name in mkt spreadsheet)
 const MKT_TAB   = 'Marketing Content';
