@@ -237,9 +237,10 @@ function readSalesDashboard() {
   // 把 "RM10,000" / 10000 都转成数字
   const num = v => parseFloat(String(v||'').replace(/[^0-9.\-]/g,'')) || 0;
 
+  // 只保留 "Mon YYYY" 格式的月份行（Jan 2026…），过滤标题/合计/产品拆解行
   return data.slice(hdrIdx + 1).filter(row => {
     const f = String(row[0]||'').trim();
-    return f !== '' && !f.startsWith('H1') && !f.startsWith('TOTAL') && !f.startsWith('二');
+    return /^(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s+\d{4}$/.test(f);
   }).map(row => {
     const get = (...names) => { const i = col(...names); return i >= 0 ? row[i] : ''; };
     return {
