@@ -1702,7 +1702,7 @@ function renderMktCal(){
     ch+=`<div class="mkt-cell${iT?' today':''}"><div class="mkt-date">${day}</div>`;
     items.forEach(m=>{
       const sc=statColors[m.status]||statColors['待发布'];
-      ch+=`<div style="background:${sc.bg};color:${sc.c};padding:2px 4px;border-radius:4px;font-size:8px;font-weight:700;margin-bottom:2px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;cursor:pointer" onclick="toggleMktStatus('${m.id}')">${m.person?m.person+': ':''} ${m.title.slice(0,10)}</div>`;
+      ch+=`<div style="background:${sc.bg};color:${sc.c};padding:3px 5px;border-radius:4px;font-size:8px;font-weight:700;margin-bottom:2px;overflow:hidden;cursor:pointer;line-height:1.4" onclick="toggleMktStatus('${m.id}')"><div style="white-space:nowrap;text-overflow:ellipsis;overflow:hidden">${m.title.slice(0,14)}</div>${m.person?`<div style="font-size:7px;opacity:.75;white-space:nowrap;text-overflow:ellipsis;overflow:hidden">${m.person}</div>`:''}</div>`;
     });
     ch+=`</div>`;
   }
@@ -1716,10 +1716,10 @@ function renderMktCal(){
     const effStr=effVal!==null?effLabel(effVal):'—';
     const effColor=effVal>=1?'var(--green)':effVal>=0.5?'var(--amber)':effVal===0?'var(--red)':'var(--muted)';
     return`<tr>
-    <td style="font-family:'DM Sans',sans-serif;font-size:11px;font-weight:600">${fmtD(m.date)}</td>
-    <td style="font-weight:600;max-width:200px">${m.title}</td>
+    <td><input type="date" style="border:none;background:transparent;font-family:'DM Sans',sans-serif;font-size:10.5px;font-weight:600;outline:none;cursor:pointer" value="${m.date||''}" onchange="editMkt('${m.id}','date',this.value)"></td>
+    <td style="min-width:160px"><input style="border:none;background:transparent;font-family:'Plus Jakarta Sans',sans-serif;font-size:11px;font-weight:600;width:100%;outline:none" value="${(m.title||'').replace(/"/g,'&quot;')}" onchange="editMkt('${m.id}','title',this.value)"></td>
     <td><span class="tag tcat" style="font-size:9px">${m.type||'—'}</span></td>
-    <td style="font-size:10.5px;color:${m.dl?'var(--amber)':'var(--muted)'};font-family:'DM Sans',sans-serif">${fmtD(m.dl)||'—'}</td>
+    <td><input type="date" style="border:none;background:transparent;font-family:'DM Sans',sans-serif;font-size:10.5px;color:var(--amber);outline:none;cursor:pointer" value="${m.dl||''}" onchange="editMkt('${m.id}','dl',this.value)"></td>
     <td style="font-size:10.5px;color:var(--green);font-family:'DM Sans',sans-serif">${fmtD(m.doneDate)||'—'}</td>
     <td style="font-size:10px;font-weight:600;color:${effColor}">${effStr}</td>
     <td>
@@ -2067,11 +2067,11 @@ function renderGDC(){
     const effStr=effVal!==null?effLabel(effVal):'—';
     const effColor=effVal>=1?'var(--green)':effVal>=0.5?'var(--amber)':effVal===0?'var(--red)':'var(--muted)';
     return`<tr>
-    <td style="font-size:10.5px;font-family:'DM Sans',sans-serif;font-weight:600">${fmtD(t.date)||'—'}</td>
-    <td style="font-weight:600;font-size:11px">${t.task}</td>
+    <td><input type="date" style="border:none;background:transparent;font-family:'DM Sans',sans-serif;font-size:10.5px;font-weight:600;outline:none;cursor:pointer" value="${t.date||''}" onchange="editGDC('${t.id}','date',this.value)"></td>
+    <td style="min-width:160px"><input style="border:none;background:transparent;font-family:'Plus Jakarta Sans',sans-serif;font-size:11px;font-weight:600;width:100%;outline:none" value="${(t.task||'').replace(/"/g,'&quot;')}" onchange="editGDC('${t.id}','task',this.value)"></td>
     <td><span class="tag tcat" style="font-size:9px">${t.platform||'—'}</span></td>
     <td><span class="tag tcat" style="font-size:9px">${t.cat||'—'}</span></td>
-    <td style="font-size:10.5px;color:${t.dl?'var(--amber)':'var(--muted)'};font-family:'DM Sans',sans-serif">${fmtD(t.dl)||'—'}</td>
+    <td><input type="date" style="border:none;background:transparent;font-family:'DM Sans',sans-serif;font-size:10.5px;color:var(--amber);outline:none;cursor:pointer" value="${t.dl||''}" onchange="editGDC('${t.id}','dl',this.value)"></td>
     <td style="font-size:10.5px;color:var(--green);font-family:'DM Sans',sans-serif">${fmtD(t.doneDate)||'—'}</td>
     <td style="font-size:10px;font-weight:600;color:${effColor}">${effStr}</td>
     <td style="font-size:10.5px">${t.who||'—'}</td>
@@ -2197,6 +2197,8 @@ function sProj(prefix,sec,btn){const pg=btn.closest('.page');pg.querySelectorAll
 // ═══════════════════════════════════════
 // MARKETING HELPERS
 // ═══════════════════════════════════════
+function editMkt(id,field,val){const m=MKT_CONTENT.find(x=>x.id===id);if(m){m[field]=val;save('mkt_content',MKT_CONTENT);renderMktCal();}}
+function editGDC(id,field,val){const t=GDC_TASKS.find(x=>x.id===id);if(t){t[field]=val;save('gdc_tasks',GDC_TASKS);renderGDC();}}
 function completeMktItem(id){
   const m=MKT_CONTENT.find(x=>x.id===id);
   if(!m)return;
