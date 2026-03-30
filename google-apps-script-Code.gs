@@ -412,6 +412,24 @@ function readEventsTab() {
   }));
 }
 
+// ─── ROTATION 轮值 写入 ──────────────────────────────────────
+
+function writeRotationTab(items) {
+  const ss  = SpreadsheetApp.openById(SHEET_IDS.tasks);
+  let tab   = ss.getSheetByName(ROTATION_TAB);
+  if (!tab) {
+    tab = ss.insertSheet(ROTATION_TAB);
+    tab.getRange(1,1,1,4).setValues([['Date','Activity','Person','Notes']])
+       .setFontWeight('bold').setBackground('#fdf8f2');
+  }
+  const lastRow = tab.getLastRow();
+  if (lastRow > 1) tab.getRange(2, 1, lastRow - 1, 4).clearContent();
+  if (!items.length) return { ok: true, count: 0 };
+  const rows = items.map(item => [item.date||'', item.act||'', item.person||'', item.theme||'']);
+  tab.getRange(2, 1, rows.length, 4).setValues(rows);
+  return { ok: true, count: rows.length };
+}
+
 // ─── ROTATION 轮值 读取 ──────────────────────────────────────
 
 function readRotationTab() {
@@ -581,9 +599,10 @@ function doPost(e) {
   const type = (e.parameter && e.parameter.sheet) || '';
   try {
     const data = JSON.parse(e.postData.contents);
-    if (type === 'tasks') return respond(writeTaskBoard(Array.isArray(data) ? data : []));
-    if (type === 'mkt')   return respond(writeMarketingContent(Array.isArray(data) ? data : []));
-    if (type === 'gdc')   return respond(writeGDCJobs(Array.isArray(data) ? data : []));
+    if (type === 'tasks')    return respond(writeTaskBoard(Array.isArray(data) ? data : []));
+    if (type === 'mkt')      return respond(writeMarketingContent(Array.isArray(data) ? data : []));
+    if (type === 'gdc')      return respond(writeGDCJobs(Array.isArray(data) ? data : []));
+    if (type === 'rotation') return respond(writeRotationTab(Array.isArray(data) ? data : []));
     if (type === 'pay') {
       return respond(writePaySheet(data.tasks, data.mkt, data.gdc));
     }

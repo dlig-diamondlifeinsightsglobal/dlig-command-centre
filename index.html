@@ -592,16 +592,17 @@ body{background:var(--cream);color:var(--text);font-family:'Plus Jakarta Sans',s
       </div>
     </div>
     <div class="divider"></div>
-    <div class="sl">🧹 Office 打扫值日生</div>
-    <div style="background:var(--white);border:1.5px solid var(--border);border-radius:var(--r);padding:14px;margin-bottom:14px;box-shadow:var(--sh)">
-      <div style="display:flex;gap:8px;align-items:flex-end;flex-wrap:wrap;margin-bottom:12px">
-        <div class="ff"><div class="fl2">日期</div><input class="fi" id="clean-date" type="date" style="width:140px"></div>
-        <div class="ff"><div class="fl2">负责人</div><select class="fs" id="clean-person" style="width:110px"><option>Li Joo</option><option>Jasper</option><option>Stella</option><option>Roy</option><option>轮流</option></select></div>
-        <div class="ff" style="flex:1;min-width:150px"><div class="fl2">备注</div><input class="fi" id="clean-note" placeholder="例：拖地+倒垃圾"></div>
-        <button class="add-btn" onclick="addClean()">+ 添加</button>
-      </div>
-      <table class="pt"><thead><tr><th>日期</th><th>负责人</th><th>备注</th><th style="width:50px">完成</th><th style="width:40px"></th></tr></thead><tbody id="clean-body"></tbody></table>
+    <div class="sl">🔄 活动轮值管理</div>
+    <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px">
+      <button class="fb on" id="rot-dr-btn" onclick="showRotTab('dr',this)">☀️ Daily Redesign</button>
+      <button class="fb" id="rot-wr-btn" onclick="showRotTab('wr',this)">🌱 Weekly Realign</button>
+      <button class="fb" id="rot-bs-btn" onclick="showRotTab('bs',this)">📚 书影充电站</button>
+      <button class="fb" id="rot-clean-btn" onclick="showRotTab('clean',this)">🧹 Office 打扫</button>
     </div>
+    <div id="rot-dr-panel"></div>
+    <div id="rot-wr-panel" style="display:none"></div>
+    <div id="rot-bs-panel" style="display:none"></div>
+    <div id="rot-clean-panel" style="display:none"></div>
   </div>
 
   <!-- ══ SALES ══ -->
@@ -1091,11 +1092,14 @@ async function loadFromSheets(){
       try{localStorage.setItem('dlig7_events',JSON.stringify(evrows));}catch(e){}
     }
   }catch(e){}
-  // Rotation 轮值
+  // Rotation 轮值（从 Sheet 解析到 ROTATION_DATA）
   try{
     const rotres=await fetch(SHEETS_API_URL+'?sheet=rotation');
     const rotrows=await rotres.json();
-    if(Array.isArray(rotrows)&&rotrows.length>0) ROTATION=rotrows;
+    if(Array.isArray(rotrows)&&rotrows.length>0){
+      ROTATION_DATA=parseRotationRows(rotrows);
+      try{localStorage.setItem('dlig7_rotation_data',JSON.stringify(ROTATION_DATA));}catch(e){}
+    }
   }catch(e){}
   // Sales Dashboard (read-only — user edits numbers in Sheet)
   try{
@@ -1121,7 +1125,7 @@ async function loadFromSheets(){
     if(el)el.innerHTML='<span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--red)"></span>&nbsp;连接失败，使用本地数据';
   }
   TASKS=load('tasks',TASKS);MKT_CONTENT=load('mkt_content',MKT_CONTENT);GDC_TASKS=load('gdc_tasks',GDC_TASKS);
-  renderTasks();renderMktCal();renderGDC();renderOverview();renderSales();updateStats();
+  renderTasks();renderMktCal();renderGDC();renderOverview();renderSales();updateStats();renderRotation();renderYLYD();
 }
 const COEF={'Sales':3,'Marketing':2,'System':2,'GDC':2,'Operation':1,'Admin':1};
 const PAY_SM_DATA=[{t:'✍ 视频文案（2篇）',v:'RM5'},{t:'✍ 信息文案模版（2篇）',v:'RM5'},{t:'📣 制作 Post 图+文案',v:'RM15'},{t:'🖼 制作海报（1张）',v:'RM15'},{t:'📝 视频脚本（1支）',v:'RM5'},{t:'📱 剪辑短视频-一键成片（1min内）',v:'RM20'},{t:'📱 剪辑短视频（1min内）',v:'RM50'},{t:'🎬 剪辑YouTube（25min内）',v:'RM100'},{t:'🧠 Landing Page 文案',v:'RM50'},{t:'🖥 Landing Page 制作',v:'RM150'}];
@@ -1312,21 +1316,79 @@ const TEAM=[
   {p:'Stella',role:'⚙️ Operation',color:'#7a3080',loc:'The Seed · 拜五',resp:['YLYD 日常运营','活动准备 & 执行','GDC Marketing 执行','补货管理']},
   {p:'Roy',role:'🗂 Admin & System',color:'#1a6e42',loc:'Bukit Impian · 拜二',resp:['Infinite Sales/Automation','Inventory Tracking','银行账务','Account & Finance']},
 ];
-const DR_ROTA=[
-  {day:'Mon 一',mar:'Roy',apr:'Roy'},{day:'Tue 二',mar:'Roy',apr:'Roy'},
-  {day:'Wed 三',mar:'Stella',apr:'Stella'},{day:'Thu 四',mar:'Jasper',apr:'Jasper'},
-  {day:'Fri 五',mar:'Stella',apr:'Stella'},{day:'Sat 六',mar:'Li Joo',apr:'Li Joo'},
-  {day:'Sun 日',mar:'Li Joo',apr:'Li Joo'},
-];
-const WR_ROTA=[
-  {week:'3月 W3 (19/3)',p:'Li Joo',type:'觉察续航'},{week:'3月 W4 (26/3)',p:'Li Joo',type:'智慧充电'},
-  {week:'4月 W1 (02/4)',p:'待定',type:'觉察续航'},{week:'4月 W2 (09/4)',p:'待定',type:'智慧充电'},
-  {week:'4月 W3 (16/4)',p:'待定',type:'觉察续航'},{week:'4月 W4 (23/4)',p:'待定',type:'智慧充电'},
-];
-const BS_ROTA=[
-  {week:'4月 W2 Sat (11/4)',p:'待定'},{week:'4月 W4 Sat (25/4)',p:'待定'},
-  {week:'5月 W2 Sat (09/5)',p:'待定'},{week:'5月 W4 Sat (23/5)',p:'待定'},
-];
+// ── 活动轮值总数据（从 Sheet Rotation 轮值 tab 加载）──────────
+let ROTATION_DATA=load('rotation_data',{
+  dr:[  // Daily Redesign Space 空间官（每月按星期填）
+    {month:'Apr 2026',mon:'Roy',tue:'Roy',wed:'Stella',thu:'Jasper',fri:'Stella',sat:'Li Joo'},
+    {month:'May 2026',mon:'',tue:'',wed:'',thu:'',fri:'',sat:''},
+  ],
+  wr:[  // YLYD Weekly Realign（每周四）
+    {date:'2026-04-02',person:'Li Joo',theme:'Week 1 智慧充电'},
+    {date:'2026-04-09',person:'',theme:'Week 2 觉察续航'},
+    {date:'2026-04-16',person:'',theme:'Week 3 智慧充电'},
+    {date:'2026-04-23',person:'',theme:'Week 4 觉察续航'},
+    {date:'2026-04-30',person:'',theme:'Week 5 Me Time'},
+  ],
+  bs:[  // 书影充电站（每月Week 2 & 4 Sat）
+    {date:'2026-04-11',person:'Li Joo',notes:'Week 2 Sat'},
+    {date:'2026-04-25',person:'',notes:'Week 4 Sat'},
+    {date:'2026-05-09',person:'',notes:'Week 2 Sat'},
+    {date:'2026-05-23',person:'',notes:'Week 4 Sat'},
+  ],
+  clean:[  // Office 打扫（每周四）
+    {date:'2026-04-02',sweep:'Li Joo',mop:'Jasper',stairs:'Stella',restock:'Roy'},
+    {date:'2026-04-09',sweep:'',mop:'',stairs:'',restock:''},
+    {date:'2026-04-16',sweep:'',mop:'',stairs:'',restock:''},
+    {date:'2026-04-23',sweep:'',mop:'',stairs:'',restock:''},
+    {date:'2026-04-30',sweep:'',mop:'',stairs:'',restock:''},
+  ]
+});
+function parseRotationRows(rows){
+  const data={dr:[],wr:[],bs:[],clean:[]};
+  const drM={};
+  rows.forEach(r=>{
+    const a=r.act||'';
+    if(a.startsWith('Daily-')){
+      if(!drM[r.date])drM[r.date]={month:r.date,mon:'',tue:'',wed:'',thu:'',fri:'',sat:''};
+      const d=a.replace('Daily-','').toLowerCase();
+      drM[r.date][d]=r.person||'';
+    } else if(a==='YLYD Realign'){
+      data.wr.push({date:r.date,person:r.person||'',theme:r.theme||''});
+    } else if(a==='书影充电站'){
+      data.bs.push({date:r.date,person:r.person||'',notes:r.theme||''});
+    } else if(a.startsWith('Office-')){
+      const key=r.date;
+      if(!data.clean.find(x=>x.date===key))data.clean.push({date:key,sweep:'',mop:'',stairs:'',restock:''});
+      const c=data.clean.find(x=>x.date===key);
+      if(a==='Office-扫地')c.sweep=r.person||'';
+      else if(a==='Office-抹地')c.mop=r.person||'';
+      else if(a==='Office-楼梯口')c.stairs=r.person||'';
+      else if(a==='Office-补货')c.restock=r.person||'';
+    }
+  });
+  data.dr=Object.values(drM);
+  data.wr.sort((a,b)=>a.date.localeCompare(b.date));
+  data.bs.sort((a,b)=>a.date.localeCompare(b.date));
+  data.clean.sort((a,b)=>a.date.localeCompare(b.date));
+  return data;
+}
+function saveRotationToSheet(){
+  save('rotation_data',ROTATION_DATA);
+  if(!SHEETS_API_URL)return;
+  const rows=[];
+  const days=['mon','tue','wed','thu','fri','sat'];
+  const dayNames=['Mon','Tue','Wed','Thu','Fri','Sat'];
+  ROTATION_DATA.dr.forEach(m=>days.forEach((d,i)=>{if(m[d])rows.push({date:m.month,act:'Daily-'+dayNames[i],person:m[d],theme:''});}));
+  ROTATION_DATA.wr.forEach(r=>rows.push({date:r.date,act:'YLYD Realign',person:r.person||'',theme:r.theme||''}));
+  ROTATION_DATA.bs.forEach(r=>rows.push({date:r.date,act:'书影充电站',person:r.person||'',theme:r.notes||''}));
+  ROTATION_DATA.clean.forEach(r=>{
+    rows.push({date:r.date,act:'Office-扫地',person:r.sweep||'',theme:''});
+    rows.push({date:r.date,act:'Office-抹地',person:r.mop||'',theme:''});
+    rows.push({date:r.date,act:'Office-楼梯口',person:r.stairs||'',theme:''});
+    rows.push({date:r.date,act:'Office-补货',person:r.restock||'',theme:''});
+  });
+  fetch(SHEETS_API_URL+'?sheet=rotation',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(rows)}).catch(()=>{});
+}
 const DR_CL=['Polling 确认出席者（2-3天前）','开始前5分钟 Start Zoom','准时 6:10 开始','分享每日主题 / 笔的故事四步骤','主持结束 7:20','记录出席人数'];
 const WR_CL=['Polling 确认出席者（2-3天前）','Send Zoom link / 确认地点','准备当周主题 & 内容','准时 2pm 开始','主持整场 1-2小时','拍照 & Post 活动花絮'];
 const BS_CL=['Polling 确认出席者（2-3天前）','Send Zoom link','准备当月书/影选题','准时 2:30pm 开始','主持分享 & 讨论（1.5小时）','Post 精华 Social Media'];
@@ -2076,15 +2138,146 @@ function addAuRecord(){const trait=document.getElementById('au-trait').value;con
 // ═══════════════════════════════════════
 // YLYD
 // ═══════════════════════════════════════
+const PEOPLE=['Li Joo','Jasper','Stella','Roy','待定'];
+const PSEL=(cur,onch)=>`<select style="border:none;background:transparent;font-size:10.5px;cursor:pointer;outline:none;font-family:'Plus Jakarta Sans',sans-serif" onchange="${onch}">${['','Li Joo','Jasper','Stella','Roy','待定'].map(p=>`<option ${cur===p?'selected':''}>${p||'—'}</option>`).join('')}</select>`;
+const DAY_KEYS=['mon','tue','wed','thu','fri','sat'];
+const DAY_LABELS=['Mon 一','Tue 二','Wed 三','Thu 四','Fri 五','Sat 六'];
+
 function renderYLYD(){
-  document.getElementById('dr-rota').innerHTML=DR_ROTA.map(r=>`<tr><td>${r.day}</td><td>${ptag(r.mar)}</td><td>${ptag(r.apr)}</td><td style="font-size:10px;color:var(--muted)"></td></tr>`).join('');
+  // DR — 用 ROTATION_DATA.dr 动态生成列
+  const drMonths=ROTATION_DATA.dr;
+  const drHead='<tr><th>星期</th>'+drMonths.map(m=>`<th style="font-size:10px">${m.month}</th>`).join('')+'</tr>';
+  const drRows=DAY_KEYS.map((d,i)=>`<tr><td style="font-weight:600;font-size:11px">${DAY_LABELS[i]}</td>${drMonths.map(m=>`<td>${ptag(m[d])||'<span style="color:var(--muted)">—</span>'}</td>`).join('')}</tr>`).join('');
+  document.getElementById('dr-rota').innerHTML=drHead+drRows;
   document.getElementById('dr-cl').innerHTML=DR_CL.map(i=>`<div class="cli"><input type="checkbox" style="accent-color:var(--gold)"><span class="cli-text">${i}</span></div>`).join('');
-  document.getElementById('wr-rota-wrap').innerHTML=`<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px"><div class="dc"><div class="dc-title">轮值表</div>${WR_ROTA.map(r=>`<div class="dr-row"><span class="dw">${r.week}</span><span>${ptag(r.p)} <span style="font-size:9.5px;color:var(--muted)">${r.type}</span></span></div>`).join('')}</div></div>`;
+  // WR
+  document.getElementById('wr-rota-wrap').innerHTML=`<div class="dc" style="max-width:500px"><div class="dc-title">轮值表</div>${ROTATION_DATA.wr.map(r=>`<div class="dr-row"><span class="dw">${fmtD(r.date)}</span><span>${ptag(r.person)||'<span style="color:var(--muted);font-size:10px">待定</span>'} <span style="font-size:9.5px;color:var(--muted)">${r.theme||''}</span></span></div>`).join('')}</div>`;
   document.getElementById('wr-cl').innerHTML=WR_CL.map(i=>`<div class="cli"><input type="checkbox" style="accent-color:var(--green)"><span class="cli-text">${i}</span></div>`).join('');
-  document.getElementById('bs-rota-wrap').innerHTML=`<div class="dc" style="max-width:400px"><div class="dc-title">轮值表</div>${BS_ROTA.map(r=>`<div class="dr-row"><span class="dw">${r.week}</span><span>${ptag(r.p)}</span></div>`).join('')}</div>`;
+  // BS
+  document.getElementById('bs-rota-wrap').innerHTML=`<div class="dc" style="max-width:400px"><div class="dc-title">轮值表</div>${ROTATION_DATA.bs.map(r=>`<div class="dr-row"><span class="dw">${fmtD(r.date)}</span><span>${ptag(r.person)||'<span style="color:var(--muted);font-size:10px">待定</span>'} <span style="font-size:9.5px;color:var(--muted)">${r.notes||''}</span></span></div>`).join('')}</div>`;
   document.getElementById('bs-cl').innerHTML=BS_CL.map(i=>`<div class="cli"><input type="checkbox" style="accent-color:var(--blue)"><span class="cli-text">${i}</span></div>`).join('');
 }
 function sEnv(s,btn){document.querySelectorAll('.env-sec').forEach(x=>x.classList.remove('on'));document.querySelectorAll('.env-tab').forEach(b=>b.classList.remove('on'));document.getElementById('env-'+s).classList.add('on');btn.classList.add('on');}
+
+// ═══════════════════════════════════════
+// ROTATION MANAGEMENT (Calendar page)
+// ═══════════════════════════════════════
+let ROT_TAB='dr';
+function showRotTab(t,btn){
+  ROT_TAB=t;
+  document.querySelectorAll('[id^="rot-"][id$="-btn"]').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+  ['dr','wr','bs','clean'].forEach(k=>{document.getElementById('rot-'+k+'-panel').style.display=k===t?'':'none';});
+}
+
+function renderRotation(){
+  renderRotDR(); renderRotWR(); renderRotBS(); renderRotClean();
+}
+
+function renderRotDR(){
+  const el=document.getElementById('rot-dr-panel');if(!el)return;
+  const today=new Date().toISOString().slice(0,7);
+  let html=`<div style="font-size:11px;color:var(--muted);margin-bottom:8px">☀️ 每天 6:10–7:20am · 按月设定空间官 · Zoom: <a href="https://us06web.zoom.us/j/7707709233" target="_blank" style="color:var(--blue)">7707709233</a></div>`;
+  html+=`<div style="overflow-x:auto"><table class="pt"><thead><tr><th>星期/月份</th>${ROTATION_DATA.dr.map(m=>`<th style="min-width:90px"><div style="display:flex;align-items:center;gap:4px">${m.month}<button onclick="delRotDRMonth('${m.month}')" style="background:none;border:none;color:var(--red);cursor:pointer;font-size:9px;padding:0">✕</button></div></th>`).join('')}</tr></thead><tbody>`;
+  DAY_KEYS.forEach((d,i)=>{
+    html+=`<tr><td style="font-weight:700;font-size:11px">${DAY_LABELS[i]}</td>${ROTATION_DATA.dr.map((m,mi)=>`<td>${PSEL(m[d],`editRotDR('${m.month}','${d}',this.value)`)}</td>`).join('')}</tr>`;
+  });
+  html+=`</tbody></table></div>`;
+  html+=`<div style="margin-top:10px;display:flex;gap:8px;align-items:center">
+    <input class="fi" id="add-dr-month" placeholder="May 2026" style="width:120px">
+    <button class="add-btn" onclick="addRotDRMonth()">+ 添加月份</button>
+    <button class="fb" style="font-size:10px" onclick="syncRotation()">☁️ 同步到 Sheet</button>
+  </div>`;
+  el.innerHTML=html;
+}
+
+function renderRotWR(){
+  const el=document.getElementById('rot-wr-panel');if(!el)return;
+  const today=new Date().toISOString().split('T')[0];
+  let html=`<div style="font-size:11px;color:var(--muted);margin-bottom:8px">🌱 每周四 2:00–4:00pm · 主持人提前 2-3 天 Polling 出席人数</div>`;
+  html+=`<table class="pt"><thead><tr><th style="width:110px">日期（周四）</th><th>主题</th><th style="width:120px">主持人</th><th style="width:40px"></th></tr></thead><tbody>`;
+  ROTATION_DATA.wr.forEach(r=>{
+    const past=r.date<today;
+    html+=`<tr style="${past?'opacity:0.45':''}"><td style="font-family:'DM Sans',sans-serif;font-size:11px;font-weight:600">${fmtD(r.date)}</td>
+    <td><input style="border:none;background:transparent;font-size:10.5px;width:100%;outline:none" value="${r.theme||''}" onchange="editRotWR('${r.date}','theme',this.value)" placeholder="主题"></td>
+    <td>${PSEL(r.person,`editRotWR('${r.date}','person',this.value)`)}</td>
+    <td><button class="tc-btn" onclick="delRotWR('${r.date}')" style="color:var(--red);font-size:10px">删</button></td></tr>`;
+  });
+  html+=`</tbody></table><div style="display:flex;gap:8px;margin-top:10px;align-items:flex-end;flex-wrap:wrap">
+    <div class="ff"><div class="fl2">周四日期</div><input class="fi" id="add-wr-date" type="date" style="width:150px"></div>
+    <div class="ff"><div class="fl2">主题</div><input class="fi" id="add-wr-theme" placeholder="智慧充电 / 觉察续航" style="width:160px"></div>
+    <div class="ff"><div class="fl2">主持人</div><select class="fs" id="add-wr-person"><option value="">待定</option>${PEOPLE.map(p=>`<option>${p}</option>`).join('')}</select></div>
+    <button class="add-btn" onclick="addRotWR()">+ 添加</button>
+    <button class="fb" style="font-size:10px" onclick="syncRotation()">☁️ 同步到 Sheet</button>
+  </div>`;
+  el.innerHTML=html;
+}
+
+function renderRotBS(){
+  const el=document.getElementById('rot-bs-panel');if(!el)return;
+  const today=new Date().toISOString().split('T')[0];
+  let html=`<div style="font-size:11px;color:var(--muted);margin-bottom:8px">📚 每月 Week 2 & 4 周六 2:30–4:00pm · YLYD 终身会员专属</div>`;
+  html+=`<table class="pt"><thead><tr><th style="width:110px">日期（周六）</th><th>备注</th><th style="width:120px">主持人</th><th style="width:40px"></th></tr></thead><tbody>`;
+  ROTATION_DATA.bs.forEach(r=>{
+    const past=r.date<today;
+    html+=`<tr style="${past?'opacity:0.45':''}"><td style="font-family:'DM Sans',sans-serif;font-size:11px;font-weight:600">${fmtD(r.date)}</td>
+    <td><input style="border:none;background:transparent;font-size:10.5px;width:100%;outline:none" value="${r.notes||''}" onchange="editRotBS('${r.date}','notes',this.value)" placeholder="Week 2 / Week 4"></td>
+    <td>${PSEL(r.person,`editRotBS('${r.date}','person',this.value)`)}</td>
+    <td><button class="tc-btn" onclick="delRotBS('${r.date}')" style="color:var(--red);font-size:10px">删</button></td></tr>`;
+  });
+  html+=`</tbody></table><div style="display:flex;gap:8px;margin-top:10px;align-items:flex-end;flex-wrap:wrap">
+    <div class="ff"><div class="fl2">周六日期</div><input class="fi" id="add-bs-date" type="date" style="width:150px"></div>
+    <div class="ff"><div class="fl2">备注</div><input class="fi" id="add-bs-notes" placeholder="Week 2 Sat" style="width:130px"></div>
+    <div class="ff"><div class="fl2">主持人</div><select class="fs" id="add-bs-person"><option value="">待定</option>${PEOPLE.map(p=>`<option>${p}</option>`).join('')}</select></div>
+    <button class="add-btn" onclick="addRotBS()">+ 添加</button>
+    <button class="fb" style="font-size:10px" onclick="syncRotation()">☁️ 同步到 Sheet</button>
+  </div>`;
+  el.innerHTML=html;
+}
+
+function renderRotClean(){
+  const el=document.getElementById('rot-clean-panel');if(!el)return;
+  const today=new Date().toISOString().split('T')[0];
+  let html=`<div style="font-size:11px;color:var(--muted);margin-bottom:8px">🧹 每周四 · 4 项任务轮流 · 已完成打勾</div>`;
+  html+=`<div style="overflow-x:auto"><table class="pt"><thead><tr><th style="width:100px">日期（周四）</th><th>扫地</th><th>抹地</th><th>楼梯口/抹桌子</th><th>补货</th><th style="width:50px">✓</th><th style="width:40px"></th></tr></thead><tbody>`;
+  ROTATION_DATA.clean.forEach(r=>{
+    const past=r.date<today;
+    const done=r.done||false;
+    html+=`<tr style="${past&&!done?'opacity:0.45':done?'background:var(--greenB)':''}">
+    <td style="font-family:'DM Sans',sans-serif;font-size:11px;font-weight:600">${fmtD(r.date)}</td>
+    <td>${PSEL(r.sweep,`editRotClean('${r.date}','sweep',this.value)`)}</td>
+    <td>${PSEL(r.mop,`editRotClean('${r.date}','mop',this.value)`)}</td>
+    <td>${PSEL(r.stairs,`editRotClean('${r.date}','stairs',this.value)`)}</td>
+    <td>${PSEL(r.restock,`editRotClean('${r.date}','restock',this.value)`)}</td>
+    <td><input type="checkbox" ${done?'checked':''} style="accent-color:var(--green)" onchange="editRotClean('${r.date}','done',this.checked)"></td>
+    <td><button class="tc-btn" onclick="delRotClean('${r.date}')" style="color:var(--red);font-size:10px">删</button></td></tr>`;
+  });
+  html+=`</tbody></table></div><div style="display:flex;gap:8px;margin-top:10px;align-items:center;flex-wrap:wrap">
+    <div class="ff"><div class="fl2">周四日期</div><input class="fi" id="add-clean-date" type="date" style="width:150px"></div>
+    <button class="add-btn" onclick="addRotClean()">+ 添加周次</button>
+    <button class="fb" style="font-size:10px" onclick="syncRotation()">☁️ 同步到 Sheet</button>
+  </div>`;
+  el.innerHTML=html;
+}
+
+// ─── Rotation edit/add/delete ────────────────────────────────
+function editRotDR(month,day,val){const m=ROTATION_DATA.dr.find(x=>x.month===month);if(m){m[day]=val;saveRotationToSheet();renderYLYD();}}
+function addRotDRMonth(){const m=document.getElementById('add-dr-month').value.trim();if(!m)return;if(!ROTATION_DATA.dr.find(x=>x.month===m)){ROTATION_DATA.dr.push({month:m,mon:'',tue:'',wed:'',thu:'',fri:'',sat:''});saveRotationToSheet();}document.getElementById('add-dr-month').value='';renderRotDR();renderYLYD();}
+function delRotDRMonth(m){ROTATION_DATA.dr=ROTATION_DATA.dr.filter(x=>x.month!==m);saveRotationToSheet();renderRotDR();renderYLYD();}
+
+function editRotWR(date,field,val){const r=ROTATION_DATA.wr.find(x=>x.date===date);if(r){r[field]=val;saveRotationToSheet();renderRotWR();renderYLYD();}}
+function addRotWR(){const date=document.getElementById('add-wr-date').value;if(!date)return;if(!ROTATION_DATA.wr.find(r=>r.date===date)){ROTATION_DATA.wr.push({date,person:document.getElementById('add-wr-person').value,theme:document.getElementById('add-wr-theme').value});ROTATION_DATA.wr.sort((a,b)=>a.date.localeCompare(b.date));saveRotationToSheet();}document.getElementById('add-wr-date').value='';document.getElementById('add-wr-theme').value='';renderRotWR();renderYLYD();}
+function delRotWR(date){ROTATION_DATA.wr=ROTATION_DATA.wr.filter(x=>x.date!==date);saveRotationToSheet();renderRotWR();renderYLYD();}
+
+function editRotBS(date,field,val){const r=ROTATION_DATA.bs.find(x=>x.date===date);if(r){r[field]=val;saveRotationToSheet();renderRotBS();renderYLYD();}}
+function addRotBS(){const date=document.getElementById('add-bs-date').value;if(!date)return;if(!ROTATION_DATA.bs.find(r=>r.date===date)){ROTATION_DATA.bs.push({date,person:document.getElementById('add-bs-person').value,notes:document.getElementById('add-bs-notes').value});ROTATION_DATA.bs.sort((a,b)=>a.date.localeCompare(b.date));saveRotationToSheet();}document.getElementById('add-bs-date').value='';document.getElementById('add-bs-notes').value='';renderRotBS();renderYLYD();}
+function delRotBS(date){ROTATION_DATA.bs=ROTATION_DATA.bs.filter(x=>x.date!==date);saveRotationToSheet();renderRotBS();renderYLYD();}
+
+function editRotClean(date,field,val){const r=ROTATION_DATA.clean.find(x=>x.date===date);if(r){r[field]=val;saveRotationToSheet();renderRotClean();}}
+function addRotClean(){const date=document.getElementById('add-clean-date').value;if(!date)return;if(!ROTATION_DATA.clean.find(r=>r.date===date)){ROTATION_DATA.clean.push({date,sweep:'',mop:'',stairs:'',restock:'',done:false});ROTATION_DATA.clean.sort((a,b)=>a.date.localeCompare(b.date));saveRotationToSheet();}document.getElementById('add-clean-date').value='';renderRotClean();}
+function delRotClean(date){ROTATION_DATA.clean=ROTATION_DATA.clean.filter(x=>x.date!==date);saveRotationToSheet();renderRotClean();}
+
+function syncRotation(){saveRotationToSheet();const el=document.querySelector('[id^="rot-"][id$="-btn"].on');el&&el.parentElement.insertAdjacentHTML('afterend','<div id="rot-sync-msg" style="font-size:10px;color:var(--green);margin-bottom:6px">✅ 已同步到 Google Sheet</div>');setTimeout(()=>{const m=document.getElementById('rot-sync-msg');if(m)m.remove();},3000);}
 
 // ═══════════════════════════════════════
 // GDC
@@ -2326,7 +2519,7 @@ function renderClean(){
     <td><button class="tc-btn" onclick="CLEAN.splice(CLEAN.indexOf(sorted[${i}]),1);save('clean7',CLEAN);renderClean()" style="color:var(--red);font-size:10px">删</button></td>
   </tr>`).join(''):'<tr><td colspan="5" style="text-align:center;color:var(--muted);padding:16px">暂无记录</td></tr>';
 }
-renderOverview();renderTasks();renderCalendar();renderSales();renderMktCal();renderProducts();renderClean();
+renderOverview();renderTasks();renderCalendar();renderSales();renderMktCal();renderProducts();renderClean();renderRotation();renderYLYD();
 renderAdmin();renderXindong();renderYLYD();renderGDC();renderPolicy();
 renderMeeting();renderDecisions();renderFiles();renderMktCal();updateStats();
 loadFromSheets(); // 从 Google Sheets 拉取最新数据（异步）
