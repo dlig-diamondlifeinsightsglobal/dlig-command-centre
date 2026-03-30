@@ -539,6 +539,7 @@ body{background:var(--cream);color:var(--text);font-family:'Plus Jakarta Sans',s
       <button class="fb" id="vl" onclick="sv('list')">列表</button>
       <div class="sep"></div>
       <button class="fb" onclick="fp('marketing',this)" style="color:var(--purple)">📣 Marketing</button>
+      <button class="fb" onclick="catFilter('GDC job',this)" style="color:var(--purple)">🎨 GDC job</button>
       <button class="fb" onclick="fp('fee',this)" style="color:var(--purple)">💰 Task Fee</button>
     </div>
     <div class="board" id="board-view"></div>
@@ -549,7 +550,7 @@ body{background:var(--cream);color:var(--text);font-family:'Plus Jakarta Sans',s
         <button class="fb" id="tf-month" onclick="setTimeFilter('month',this)">本月</button>
         <button class="fb" id="tf-30" onclick="setTimeFilter('30',this)">近30天</button>
       </div>
-      <table class="pt"><thead><tr><th>Task 内容</th><th>负责人</th><th>类别</th><th>类型</th><th>优先级</th><th>Deadline</th><th>完成日期</th><th>Hours</th><th>效率</th><th>操作</th></tr></thead><tbody id="lb"></tbody></table>
+      <table class="pt"><thead><tr><th style="min-width:200px">Task 内容</th><th style="min-width:80px">负责人</th><th style="max-width:100px">类别</th><th style="max-width:80px">类型</th><th style="max-width:80px">优先级</th><th style="min-width:120px">Deadline</th><th style="min-width:80px">完成日期</th><th style="max-width:60px">Hours</th><th style="max-width:60px">效率</th><th style="max-width:80px">操作</th></tr></thead><tbody id="lb"></tbody></table>
     </div>
   </div>
 
@@ -603,12 +604,14 @@ body{background:var(--cream);color:var(--text);font-family:'Plus Jakarta Sans',s
       <table class="pt"><thead><tr><th>月份</th><th>Target</th><th>Actual</th><th>达成率%</th><th>Shortfall</th><th>心动觉察</th><th>YLYD</th><th>体验包</th><th>设计册</th><th>备注</th></tr></thead>
       <tbody id="mo-body"></tbody><tfoot id="mo-foot"></tfoot></table>
     </div>
-    <div class="sl" style="margin-top:18px">📋 本月销售（Mar 2026）</div>
-    <div class="ss-grid" id="ss-curr"></div>
-    <div class="sl">📦 本月产品拆解</div>
-    <div class="card" style="overflow-x:auto;padding:14px;">
-      <table class="pt"><thead><tr><th>产品</th><th>目标人数</th><th>会员价</th><th>目标营收</th><th>实际人数</th><th>实际营收</th><th>差距</th><th>达成率</th></tr></thead>
-      <tbody id="sb-body"></tbody></table>
+    <div style="background:var(--blueB);border:2px solid rgba(26,79,138,.2);border-radius:14px;padding:16px;margin-bottom:16px;margin-top:18px">
+      <div class="sl" style="margin-top:0;color:var(--blue)">📋 本月销售（<span id="curr-month-label">Mar 2026</span>）</div>
+      <div class="ss-grid" id="ss-curr"></div>
+      <div class="sl" style="color:var(--blue)">📦 本月产品拆解</div>
+      <div class="card" style="overflow-x:auto;padding:14px;">
+        <table class="pt"><thead><tr><th>产品</th><th>目标人数</th><th>会员价</th><th>目标营收</th><th>实际人数</th><th>实际营收</th><th>差距</th><th>达成率</th></tr></thead>
+        <tbody id="sb-body"></tbody><tfoot id="sb-foot"></tfoot></table>
+      </div>
     </div>
     <div class="sl" style="margin-top:18px">🎯 Marketing Strategy 重点</div>
     <div class="card"><div id="strategy-remarks" style="font-size:12px;line-height:1.9;color:var(--text2)"></div></div>
@@ -627,7 +630,7 @@ body{background:var(--cream);color:var(--text);font-family:'Plus Jakarta Sans',s
           <option>📱 DLIG 剪辑短视频（1min内）</option><option>🎬 DLIG 剪辑YouTube（25min内）</option>
           <option>🧠 DLIG Landing Page 文案</option><option>🖥 DLIG Landing Page 制作</option>
         </select></div>
-        <div class="ff"><div class="fl2">负责人</div><select class="fs" id="mc-person" style="width:100px"><option>Jasper</option><option>Li Joo</option><option>Stella</option><option>Roy</option><option>GDC</option></select></div>
+        <div class="ff"><div class="fl2">负责人</div><select class="fs" id="mc-person" style="width:100px"><option>Jasper</option><option>Li Joo</option><option>Stella</option><option>Roy</option><option>GDC</option><option>待认领</option></select></div>
         <button class="add-btn" style="background:linear-gradient(135deg,#6a3a96,#9b59b6)" onclick="addMktContent()">+ 添加</button>
       </div>
     </div>
@@ -637,7 +640,7 @@ body{background:var(--cream);color:var(--text);font-family:'Plus Jakarta Sans',s
       <button class="fb" onclick="mktCalNextMonth()">下月 ›</button>
     </div>
     <div id="mkt-cal-view"></div>
-    <div style="overflow-x:auto;margin-bottom:8px"><table class="pt"><thead><tr><th>发布日期</th><th>平台</th><th>类型</th><th>标题</th><th>完成DL</th><th>负责人</th><th>状态</th></tr></thead><tbody id="mkt-list-body"></tbody></table></div>
+    <div style="overflow-x:auto;margin-bottom:8px"><table class="pt"><thead><tr><th>发布日期</th><th style="min-width:160px">发布内容</th><th>类型</th><th>Deadline</th><th>完成日期</th><th>效率</th><th>操作</th></tr></thead><tbody id="mkt-list-body"></tbody></table></div>
 
     <div class="sl" style="margin-top:18px">🔗 直达链接</div>
     <div class="ql-wrap">
@@ -819,19 +822,22 @@ body{background:var(--cream);color:var(--text);font-family:'Plus Jakarta Sans',s
 
   <!-- ══ GDC MARKETING JOB ══ -->
   <div class="page" id="p-gdc">
-    <div class="ib" style="background:var(--purpleB);border:1.5px solid rgba(106,58,150,.25)"><b style="color:var(--purple)">🎨 GDC Marketing Job — Operation 负责人：Jasper / Stella</b>记录外包任务，完成后链接 Task Board 贡献记录。每月 RM2,500 package。</div>
+    <div class="ib" style="background:var(--purpleB);border:1.5px solid rgba(106,58,150,.25)"><b style="color:var(--purple)">🎨 GDC Marketing Job</b> — 记录外包任务，每月 RM2,500 package。完成后同步到 Task Board。</div>
     <div style="background:var(--white);border:1.5px solid var(--border);border-radius:var(--r);padding:14px;margin-bottom:14px;box-shadow:var(--sh)">
       <div style="display:flex;gap:8px;align-items:flex-end;flex-wrap:wrap">
-        <div class="ff" style="flex:2;min-width:150px"><div class="fl2">任务内容</div><input class="fi" id="gdc-task" placeholder="描述 GDC 任务..."></div>
-        <div class="ff"><div class="fl2">发布/开始日期</div><input class="fi" id="gdc-date" type="date" style="width:145px"></div>
-        <div class="ff"><div class="fl2">完成Deadline</div><input class="fi" id="gdc-dl" type="date" style="width:145px"></div>
-        <div class="ff"><div class="fl2">类型</div><select class="fs" id="gdc-cat" style="width:130px">
-          <option>视频文案</option><option>图文文案</option><option>金句图文</option>
-          <option>视频拍摄</option><option>视频脚本</option><option>短视频剪辑</option>
-          <option>DLIG对接</option><option>方案讨论</option><option>Project管理</option>
+        <div class="ff" style="flex:2;min-width:160px"><div class="fl2">内容标题</div><input class="fi" id="gdc-task" placeholder="描述 GDC 内容任务..."></div>
+        <div class="ff"><div class="fl2">发布日期</div><input class="fi" id="gdc-date" type="date" style="width:140px"></div>
+        <div class="ff"><div class="fl2">完成 Deadline</div><input class="fi" id="gdc-dl" type="date" style="width:140px"></div>
+        <div class="ff"><div class="fl2">平台</div><select class="fs" id="gdc-platform" style="width:130px">
+          <option>DCW Page</option><option>GDC Page</option><option>Jenny 老师 Page</option>
         </select></div>
-        <div class="ff"><div class="fl2">负责 GDC</div><input class="fi" id="gdc-who" placeholder="GDC 姓名" style="width:110px"></div>
-        <div class="ff"><div class="fl2">DLIG 跟进</div><select class="fs" id="gdc-pic" style="width:100px"><option>Jasper</option><option>Li Joo</option><option>Stella</option><option>Roy</option></select></div>
+        <div class="ff"><div class="fl2">类型</div><select class="fs" id="gdc-cat" style="width:160px">
+          <option>GDC 视频文案</option><option>GDC 图文文案</option><option>GDC 金句图文</option>
+          <option>GDC 视频拍摄</option><option>GDC 视频脚本</option><option>GDC 短视频剪辑</option>
+          <option>GDC DLIG对接</option><option>GDC 方案讨论</option><option>GDC Project管理</option>
+        </select></div>
+        <div class="ff"><div class="fl2">负责 GDC</div><input class="fi" id="gdc-who" placeholder="GDC 姓名" style="width:100px"></div>
+        <div class="ff"><div class="fl2">DLIG 跟进</div><select class="fs" id="gdc-pic" style="width:100px"><option>Jasper</option><option>Li Joo</option><option>Stella</option><option>Roy</option><option>待认领</option></select></div>
         <button class="add-btn" style="background:linear-gradient(135deg,#6a3a96,#9b59b6)" onclick="addGDCTask()">+ 添加</button>
       </div>
     </div>
@@ -843,8 +849,13 @@ body{background:var(--cream);color:var(--text);font-family:'Plus Jakarta Sans',s
       <button class="fb" onclick="filterGDC('已完成',this)">已完成</button>
       <button class="fb" onclick="filterGDC('已付款',this)">已付款</button>
     </div>
+    <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px">
+      <button class="fb" onclick="gdcCalPrevMonth()">‹ 上月</button>
+      <div id="gdc-cur-month" style="font-size:12px;font-weight:700;color:var(--text);min-width:100px;text-align:center"></div>
+      <button class="fb" onclick="gdcCalNextMonth()">下月 ›</button>
+    </div>
     <div id="gdc-cal-view"></div>
-    <div style="overflow-x:auto;margin-bottom:14px"><table class="pt"><thead><tr><th>发布日期</th><th>Deadline</th><th>类型</th><th>发布内容</th><th>GDC对接</th><th>DLIG负责人</th><th>操作</th></tr></thead><tbody id="gdc-list"></tbody></table></div>
+    <div style="overflow-x:auto;margin-bottom:14px"><table class="pt"><thead><tr><th>发布日期</th><th style="min-width:180px">发布内容</th><th>平台</th><th>类型</th><th>Deadline</th><th>完成日期</th><th>效率</th><th>GDC 对接</th><th>DLIG负责</th><th>操作</th></tr></thead><tbody id="gdc-list"></tbody></table></div>
     <div class="sl">💰 GDC 外包收费参考</div>
     <div class="card" style="overflow-x:auto;padding:14px"><table class="pay-table"><thead><tr><th>任务类型</th><th>比例</th></tr></thead><tbody id="gdc-pay-tbl"></tbody></table></div>
     <div class="sl" style="margin-top:14px">🔗 相关链接</div>
@@ -1022,6 +1033,8 @@ const stag=s=>{const m={'已完成':'sb-done','进行中':'sb-prog','待启动':
 const fRM=n=>{const v=parseFloat((n||'').toString().replace(/[^0-9.-]/g,''));return isNaN(v)?'—':'RM'+v.toLocaleString('en-MY',{minimumFractionDigits:0});}
 const save=(k,v)=>{try{localStorage.setItem('dlig7_'+k,JSON.stringify(v));}catch(e){} syncToSheets(k,v);}
 const load=(k,def)=>{try{const v=localStorage.getItem('dlig7_'+k);return v?JSON.parse(v):def;}catch(e){return def;}}
+const fmtD=v=>{if(!v||v==='—')return'—';try{const d=new Date(v);if(isNaN(d))return v;return`${d.getDate()}/${d.getMonth()+1}/${d.getFullYear()}`;}catch(e){return v;}};
+function calcEffDL(dl,done){if(!dl||!done)return null;try{const d=Math.floor((new Date(done)-new Date(dl))/86400000);if(d<=-2)return 1.5;if(d<=0)return 1;if(d<=3)return 0.5;return 0;}catch(e){return null;}}
 
 // ═══════════════════════════════════════
 // GOOGLE SHEETS 同步层
@@ -1531,6 +1544,7 @@ function renderTasks(){
   if(TF==='全部')fil=TASKS;
   else if(TF==='marketing')fil=TASKS.filter(t=>t.cat==='Marketing');
   else if(TF==='fee')fil=TASKS.filter(t=>t.type==='fee');
+  else if(TF==='GDC job')fil=TASKS.filter(t=>t.cat==='GDC job');
   else fil=TASKS.filter(t=>t.person===TF||t.person==='All'||t.person==='全员');
 
   if(TV==='board'){
@@ -1583,17 +1597,17 @@ function renderTasks(){
       const isDone=t.status==='已完成';
       const PEOPLE=['全员','Li Joo','Jasper','Stella','Roy','待认领'];
       const CATS=['Operation','Marketing','✍ 视频文案/信息文案','📣 制作Post图+文案','🖼 制作海报','📝 视频脚本','📱 剪辑短视频-一键成片','📱 剪辑短视频','🎬 剪辑YouTube','🧠 Landing Page文案','🖥 Landing Page制作','Sales','Admin','System','GDC job'];
-      return`<tr style="${isDone?'opacity:.45':''}">
-        <td><input style="border:none;background:transparent;font-family:'Plus Jakarta Sans',sans-serif;font-size:11.5px;font-weight:500;width:100%;outline:none;${isDone?'text-decoration:line-through':''}" value="${t.task.replace(/"/g,'&quot;')}" onchange="editTask(${t.id},'task',this.value)">${t.desc?`<div contenteditable="true" style="font-size:10px;color:var(--muted);margin-top:3px;line-height:1.5;outline:none;padding:2px 0;border-bottom:1px dashed transparent" onfocus="this.style.borderBottomColor='var(--border)'" onblur="editTask(${t.id},'desc',this.innerText.trim());this.style.borderBottomColor='transparent'" title="点击编辑描述">${t.desc}</div>`:''}</td>
+      return`<tr>
+        <td><input style="border:none;background:transparent;font-family:'Plus Jakarta Sans',sans-serif;font-size:11.5px;font-weight:500;width:100%;outline:none;${isDone?'text-decoration:line-through;color:var(--muted)':''}" value="${t.task.replace(/"/g,'&quot;')}" onchange="editTask(${t.id},'task',this.value)">${t.desc?`<div contenteditable="true" style="font-size:10px;color:var(--muted);margin-top:3px;line-height:1.5;outline:none;padding:2px 0;border-bottom:1px dashed transparent" onfocus="this.style.borderBottomColor='var(--border)'" onblur="editTask(${t.id},'desc',this.innerText.trim());this.style.borderBottomColor='transparent'" title="点击编辑描述">${t.desc}</div>`:''}</td>
         <td><select style="border:none;background:transparent;font-family:'Plus Jakarta Sans',sans-serif;font-size:11px;cursor:pointer;outline:none" onchange="editTask(${t.id},'person',this.value)">${PEOPLE.map(p=>`<option ${p===t.person?'selected':''}>${p}</option>`).join('')}</select></td>
-        <td><select style="border:none;background:transparent;font-family:'Plus Jakarta Sans',sans-serif;font-size:10px;cursor:pointer;outline:none;max-width:120px" onchange="editTask(${t.id},'cat',this.value)">${CATS.map(c=>`<option ${c===t.cat?'selected':''}>${c}</option>`).join('')}</select></td>
+        <td><select style="border:none;background:transparent;font-family:'Plus Jakarta Sans',sans-serif;font-size:10px;cursor:pointer;outline:none;max-width:90px" onchange="editTask(${t.id},'cat',this.value)">${CATS.map(c=>`<option ${c===t.cat?'selected':''}>${c}</option>`).join('')}</select></td>
         <td><select style="border:none;background:transparent;font-family:'Plus Jakarta Sans',sans-serif;font-size:10px;cursor:pointer;outline:none" onchange="editTask(${t.id},'type',this.value)"><option value="contrib" ${t.type==='contrib'?'selected':''}>⏱ 贡献</option><option value="fee" ${t.type==='fee'?'selected':''}>💰 Fee</option></select></td>
         <td><select style="border:none;background:transparent;font-family:'Plus Jakarta Sans',sans-serif;font-size:10px;cursor:pointer;outline:none" onchange="editTask(${t.id},'priority',this.value)"><option ${t.priority==='🔴 紧急'?'selected':''}>🔴 紧急</option><option ${t.priority==='🟡 本周'?'selected':''}>🟡 本周</option><option ${t.priority==='⚡ 本月'?'selected':''}>⚡ 本月</option><option ${t.priority==='⭐ 长期'?'selected':''}>⭐ 长期</option></select></td>
-        <td><input type="date" style="border:none;background:transparent;font-family:'DM Sans',sans-serif;font-size:10.5px;font-weight:600;cursor:pointer;outline:none" value="${t.deadline||''}" onchange="editTask(${t.id},'deadline',this.value)"></td>
-        <td style="font-family:'DM Sans',sans-serif;font-size:10.5px;font-weight:600;color:var(--green)">${t.doneDate||'—'}</td>
+        <td><input type="date" style="border:none;background:transparent;font-family:'DM Sans',sans-serif;font-size:10.5px;font-weight:600;cursor:pointer;outline:none;max-width:120px" value="${t.deadline||''}" onchange="editTask(${t.id},'deadline',this.value)"></td>
+        <td style="font-family:'DM Sans',sans-serif;font-size:10.5px;font-weight:600;color:var(--green)">${fmtD(t.doneDate)}</td>
         <td style="text-align:center;font-family:'DM Sans',sans-serif;font-size:11px;font-weight:600">${t.actual||'—'}</td>
         <td style="color:${e>=1?'var(--green)':e>=0.5?'var(--amber)':e===0?'var(--red)':'var(--muted)'};font-size:10px;font-weight:600">${e!==null?effLabel(e):'—'}</td>
-        <td>${!isDone?`<button class="tc-btn" onclick="openComplete(${t.id})" style="font-size:10px;background:var(--greenB);border-color:var(--green);color:var(--green)">✓ 完成</button>`:'✅'}</td>
+        <td>${!isDone?`<button class="tc-btn" onclick="openComplete(${t.id})" style="font-size:10px;background:var(--greenB);border-color:var(--green);color:var(--green)">✓ 完成</button>`:`<span style="color:var(--green);font-size:10px">✅ 已完成</span>`}</td>
       </tr>`;
     }).join('');
   }
@@ -1628,6 +1642,7 @@ let TIME_F='all';
 function setTimeFilter(f,btn){TIME_F=f;document.querySelectorAll('#tf-all,#tf-month,#tf-30').forEach(b=>b.classList.remove('on'));btn.classList.add('on');renderTasks();}
 function editTask(id,field,val){const t=TASKS.find(x=>x.id===id);if(t){t[field]=val;save('tasks',TASKS);if(field==='priority'||field==='deadline')renderOverview();}}
 function fp(p,btn){TF=p;document.querySelectorAll('.fbar .fb').forEach(b=>b.classList.remove('on'));btn.classList.add('on');renderTasks();}
+function catFilter(cat,btn){TF=cat;document.querySelectorAll('.fbar .fb').forEach(b=>b.classList.remove('on'));btn.classList.add('on');renderTasks();}
 function sv(v){TV=v;document.getElementById('vb').classList.toggle('on',v==='board');document.getElementById('vl').classList.toggle('on',v==='list');renderTasks();}
 function switchAB(s,btn){document.querySelectorAll('.ab-tab').forEach(b=>b.classList.remove('on'));document.querySelectorAll('.ab-section').forEach(x=>x.classList.remove('on'));btn.classList.add('on');document.getElementById('ab-'+s).classList.add('on');}
 
@@ -1696,17 +1711,24 @@ function renderMktCal(){
   ch+=`</div>`;
   calEl.innerHTML=ch;
 
-  const statC={已发布:'ms-done',进行中:'ms-prog',待发布:'ms-todo'};
   const listEl=document.getElementById('mkt-list-body');
-  if(listEl)listEl.innerHTML=MKT_CONTENT.sort((a,b)=>a.date.localeCompare(b.date)).map(m=>`<tr>
-    <td style="font-family:'DM Sans',sans-serif;font-size:11px;font-weight:600">${m.date}</td>
-    <td><span class="tag tcat">${m.platform}</span></td>
-    <td><span class="tag tcat">${m.type||'—'}</span></td>
-    <td style="font-weight:600">${m.title}</td>
-    <td style="font-size:10.5px;color:${m.dl?'var(--red)':'var(--muted)'}">${m.dl||'—'}</td>
-    <td>${ptag(m.person)}</td>
-    <td><span class="mkt-status ${statC[m.status]||'ms-todo'}" onclick="toggleMktStatus('${m.id}')">${m.status}</span></td>
-  </tr>`).join('');
+  if(listEl)listEl.innerHTML=MKT_CONTENT.sort((a,b)=>a.date.localeCompare(b.date)).map(m=>{
+    const isDone=m.status==='已发布';
+    const effVal=isDone&&m.dl&&m.doneDate?calcEffDL(m.dl,m.doneDate):null;
+    const effStr=effVal!==null?effLabel(effVal):'—';
+    const effColor=effVal>=1?'var(--green)':effVal>=0.5?'var(--amber)':effVal===0?'var(--red)':'var(--muted)';
+    return`<tr>
+    <td style="font-family:'DM Sans',sans-serif;font-size:11px;font-weight:600">${fmtD(m.date)}</td>
+    <td style="font-weight:600;max-width:200px">${m.title}</td>
+    <td><span class="tag tcat" style="font-size:9px">${m.type||'—'}</span></td>
+    <td style="font-size:10.5px;color:${m.dl?'var(--amber)':'var(--muted)'};font-family:'DM Sans',sans-serif">${fmtD(m.dl)||'—'}</td>
+    <td style="font-size:10.5px;color:var(--green);font-family:'DM Sans',sans-serif">${fmtD(m.doneDate)||'—'}</td>
+    <td style="font-size:10px;font-weight:600;color:${effColor}">${effStr}</td>
+    <td>
+      ${!isDone?`<button class="tc-btn" onclick="completeMktItem('${m.id}')" style="background:var(--greenB);border-color:var(--green);color:var(--green);font-size:10px">✓ 完成</button>`:`<span style="color:var(--green);font-size:10px">✅</span>`}
+      <button class="tc-btn" onclick="deleteMktItem('${m.id}')" style="color:var(--red);font-size:10px;margin-left:4px">删</button>
+    </td>
+  </tr>`;}).join('');
 }
 function toggleMktStatus(id){
   const m=MKT_CONTENT.find(x=>x.id===id);if(!m)return;
@@ -1837,6 +1859,7 @@ function showCalDetail(ds){
 function renderSales(){
   const totT=SALES.reduce((a,b)=>a+b.t,0),totA=SALES.reduce((a,b)=>a+b.a,0);
   const curr=SALES.find(s=>s.m==='Mar 2026')||SALES[0];
+  const currLbl=document.getElementById('curr-month-label');if(currLbl)currLbl.textContent=curr.m;
   const cp=curr.t>0?(curr.a/curr.t*100):0;
   const mkCard=(l,v,c,prog)=>`<div class="sc"><div class="sc-lbl">${l}</div><div class="sc-val" style="color:${c}">${v}</div>${prog!=null?`<div class="pb"><div class="pf" style="width:${Math.min(100,prog)}%;background:${prog<30?'var(--red)':prog<70?'var(--amber)':'var(--green)'}"></div></div>`:''}</div>`;
   document.getElementById('ss-h1').innerHTML=[
@@ -1859,6 +1882,9 @@ function renderSales(){
     const p=s.tr>0?(s.ar/s.tr*100):0;
     return`<tr><td style="font-weight:600">${s.p}</td><td style="text-align:center">${s.tp}</td><td>${fRM(s.pr)}</td><td>${fRM(s.tr)}</td><td style="text-align:center;font-weight:700">${s.ap}</td><td style="color:var(--green);font-weight:700">${fRM(s.ar)}</td><td style="color:${s.ar>=s.tr?'var(--green)':'var(--red)'};font-size:10.5px">${fRM(s.ar-s.tr)}</td><td><span style="font-size:10px;font-weight:700;color:${p<30?'var(--red)':p<70?'var(--amber)':'var(--green)'}">${p.toFixed(0)}%</span></td></tr>`;
   }).join('');
+  const totAr=SBD.reduce((a,b)=>a+b.ar,0),totTr=SBD.reduce((a,b)=>a+b.tr,0);
+  const sbFoot=document.getElementById('sb-foot');
+  if(sbFoot)sbFoot.innerHTML=`<tr style="background:var(--blueB);font-weight:800"><td>TOTAL</td><td>—</td><td>—</td><td style="font-family:'Space Mono',monospace">${fRM(totTr)}</td><td style="text-align:center">—</td><td style="font-family:'Space Mono',monospace;color:var(--green)">${fRM(totAr)}</td><td style="font-family:'Space Mono',monospace;color:${totAr>=totTr?'var(--green)':'var(--red)'}">${fRM(totAr-totTr)}</td><td><span style="font-size:10px;font-weight:700;color:${totAr/totTr*100<50?'var(--red)':'var(--green)'}">${totTr>0?(totAr/totTr*100).toFixed(0):0}%</span></td></tr>`;
   document.getElementById('strategy-remarks').innerHTML=STRATEGY.map(s=>`<div style="padding:5px 0;border-bottom:1px solid var(--border)">${s}</div>`).join('');
   renderMktCal();
 }
@@ -1984,48 +2010,50 @@ function filterGDC(f,btn){GDC_F=f;document.querySelectorAll('.fbar .fb').forEach
 
 function addGDCTask(){
   const task=document.getElementById('gdc-task')?.value.trim();
-  if(!task)return;
   const date=document.getElementById('gdc-date')?.value||'';
+  if(!task)return;
   const dl=document.getElementById('gdc-dl')?.value||'';
-  const cat=document.getElementById('gdc-cat')?.value||'视频文案';
+  const platform=document.getElementById('gdc-platform')?.value||'GDC Page';
+  const cat=document.getElementById('gdc-cat')?.value||'GDC 视频文案';
   const who=document.getElementById('gdc-who')?.value.trim()||'';
   const pic=document.getElementById('gdc-pic')?.value||'Jasper';
-  GDC_TASKS.push({id:'g'+Date.now(),task,date,dl,cat,who,pic,status:'待开始',pay:''});
-  document.getElementById('gdc-task').value='';
-  if(document.getElementById('gdc-who'))document.getElementById('gdc-who').value='';
-  // Sync to Task Board
+  const newT={id:'g'+Date.now(),task,date,dl,platform,cat,who,pic,status:'待开始',doneDate:'',eff:'',pay:''};
+  GDC_TASKS.push(newT);
+  // 同步到 Task Board
   const nid=Math.max(0,...TASKS.map(t=>t.id),0)+1;
-  TASKS.push({id:nid,task:'🎨 GDC: '+task,person:pic,cat:'GDC job',type:'contrib',priority:'⚡ 本月',deadline:dl||date,status:'待启动',est:1,actual:'',doneDate:''});
-  // Sync to Calendar
-  if(date)EVENTS.push({id:'gev'+Date.now(),name:'🎨 '+task,date,time:'',type:'mkt',person:pic,isEvent:true});
-  save('gdc_tasks',GDC_TASKS);save('tasks',TASKS);save('events',EVENTS);
-  renderGDC();renderTasks();renderCalendar();
+  TASKS.push({id:nid,task:`🎨 ${platform}: ${task}`,person:pic,cat:'GDC job',type:'fee',priority:'⚡ 本月',deadline:dl||date,status:'待启动',est:1,actual:'',doneDate:'',desc:''});
+  document.getElementById('gdc-task').value='';
+  if(document.getElementById('gdc-date'))document.getElementById('gdc-date').value='';
+  if(document.getElementById('gdc-dl'))document.getElementById('gdc-dl').value='';
+  save('gdc_tasks',GDC_TASKS);save('tasks',TASKS);
+  renderGDC();renderTasks();
 }
 
+let GDC_CAL_MONTH=null;
+function gdcCalPrevMonth(){if(!GDC_CAL_MONTH)GDC_CAL_MONTH=new Date();GDC_CAL_MONTH=new Date(GDC_CAL_MONTH.getFullYear(),GDC_CAL_MONTH.getMonth()-1,1);renderGDC();}
+function gdcCalNextMonth(){if(!GDC_CAL_MONTH)GDC_CAL_MONTH=new Date();GDC_CAL_MONTH=new Date(GDC_CAL_MONTH.getFullYear(),GDC_CAL_MONTH.getMonth()+1,1);renderGDC();}
+
 function renderGDC(){
-  // Calendar view
   const calEl=document.getElementById('gdc-cal-view');
   if(calEl){
-    const now=new Date();
+    if(!GDC_CAL_MONTH)GDC_CAL_MONTH=new Date();
+    const now=GDC_CAL_MONTH;
+    const curMEl=document.getElementById('gdc-cur-month');
+    if(curMEl)curMEl.textContent=now.toLocaleDateString('zh-CN',{year:'numeric',month:'long'});
     const map={};
     GDC_TASKS.forEach(t=>{const k=t.date||t.dl;if(k){if(!map[k])map[k]=[];map[k].push(t);}});
-    const statColors={待开始:{bg:'var(--purpleB)',c:'var(--purple)'},进行中:{bg:'var(--amberB)',c:'var(--amber)'},已完成:{bg:'var(--greenB)',c:'var(--green)'},已付款:{bg:'var(--blueB)',c:'var(--blue)'}};
-    let ch=`<div style="font-size:12px;font-weight:700;color:var(--purple);padding:8px 12px;background:var(--purpleB);border-radius:8px;margin-bottom:10px">${now.toLocaleDateString('zh-CN',{year:'numeric',month:'long'})} · GDC Job Calendar</div>`;
-    ch+=`<div class="mkt-cal-grid" style="margin-bottom:14px">`;
+    let ch=`<div class="mkt-cal-grid" style="margin-bottom:14px">`;
     ['日','一','二','三','四','五','六'].forEach(h=>{ch+=`<div class="mkt-cal-head">${h}</div>`;});
     const fd=new Date(now.getFullYear(),now.getMonth(),1).getDay();
     const dim=new Date(now.getFullYear(),now.getMonth()+1,0).getDate();
     for(let i=0;i<fd;i++)ch+=`<div class="mkt-cell om"></div>`;
     for(let day=1;day<=dim;day++){
-      const iT=day===now.getDate();
+      const iT=day===new Date().getDate()&&now.getMonth()===new Date().getMonth()&&now.getFullYear()===new Date().getFullYear();
       const ds=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
       const items=(map[ds]||[]);
       ch+=`<div class="mkt-cell${iT?' today':''}"><div class="mkt-date">${day}</div>`;
       items.forEach(t=>{
-        ch+=`<div style="background:#0d3060;color:#fff;padding:3px 5px;border-radius:5px;margin-bottom:3px;overflow:hidden">
-          <div style="font-size:8.5px;font-weight:700;white-space:nowrap;text-overflow:ellipsis;overflow:hidden">${t.task.slice(0,16)}</div>
-          <div style="font-size:7px;opacity:.8;margin-top:1px">${t.pic||''}</div>
-        </div>`;
+        ch+=`<div style="background:#0d3060;color:#fff;padding:2px 4px;border-radius:4px;font-size:8px;font-weight:700;margin-bottom:2px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis">${t.task.slice(0,14)}</div>`;
       });
       ch+=`</div>`;
     }
@@ -2033,24 +2061,28 @@ function renderGDC(){
     calEl.innerHTML=ch;
   }
 
-  // Table
   const fil=GDC_F==='全部'?GDC_TASKS:GDC_TASKS.filter(t=>t.status===GDC_F);
-  const stC={'待开始':'gs-pend','进行中':'gs-prog','已完成':'gs-done','已付款':'gs-paid'};
   const listEl=document.getElementById('gdc-list');
   if(listEl)listEl.innerHTML=fil.length?fil.map((t,i)=>{
     const isDone=t.status==='已完成'||t.status==='已付款';
-    return`<tr style="${isDone?'opacity:.5':''}">
-    <td style="font-size:10.5px;font-family:'DM Sans',sans-serif;font-weight:600">${t.date||'—'}</td>
-    <td style="font-size:10.5px;color:${t.dl?'var(--amber)':'var(--muted)'};font-family:'DM Sans',sans-serif;font-weight:600">${t.dl||'—'}</td>
-    <td><span class="tag tcat">${t.cat}</span></td>
-    <td style="font-weight:600;font-size:11.5px">${t.task}</td>
-    <td style="font-size:10.5px">${t.who||'GDC'}</td>
+    const effVal=isDone&&t.dl&&t.doneDate?calcEffDL(t.dl,t.doneDate):null;
+    const effStr=effVal!==null?effLabel(effVal):'—';
+    const effColor=effVal>=1?'var(--green)':effVal>=0.5?'var(--amber)':effVal===0?'var(--red)':'var(--muted)';
+    return`<tr>
+    <td style="font-size:10.5px;font-family:'DM Sans',sans-serif;font-weight:600">${fmtD(t.date)||'—'}</td>
+    <td style="font-weight:600;font-size:11px">${t.task}</td>
+    <td><span class="tag tcat" style="font-size:9px">${t.platform||'—'}</span></td>
+    <td><span class="tag tcat" style="font-size:9px">${t.cat||'—'}</span></td>
+    <td style="font-size:10.5px;color:${t.dl?'var(--amber)':'var(--muted)'};font-family:'DM Sans',sans-serif">${fmtD(t.dl)||'—'}</td>
+    <td style="font-size:10.5px;color:var(--green);font-family:'DM Sans',sans-serif">${fmtD(t.doneDate)||'—'}</td>
+    <td style="font-size:10px;font-weight:600;color:${effColor}">${effStr}</td>
+    <td style="font-size:10.5px">${t.who||'—'}</td>
     <td>${ptag(t.pic)}</td>
     <td>
-      ${!isDone?`<button class="tc-btn" onclick="openGDCComplete(${i})" style="background:var(--greenB);border-color:var(--green);color:var(--green)">✓ 完成</button>`:`<span style="font-size:10px;color:var(--green)">✅ ${t.doneDate||''}</span>`}
+      ${!isDone?`<button class="tc-btn" onclick="openGDCComplete(${i})" style="background:var(--greenB);border-color:var(--green);color:var(--green);font-size:10px">✓ 完成</button>`:`<span style="font-size:10px;color:var(--green)">✅</span>`}
       <button class="tc-btn" onclick="GDC_TASKS.splice(GDC_TASKS.indexOf(fil[${i}]),1);save('gdc_tasks',GDC_TASKS);renderGDC()" style="color:var(--red);font-size:10px;margin-left:4px">删</button>
     </td>
-  </tr>`;}).join(''):'<tr><td colspan="7" style="text-align:center;color:var(--muted);padding:20px">暂无 GDC 任务</td></tr>';
+  </tr>`;}).join(''):'<tr><td colspan="10" style="text-align:center;color:var(--muted);padding:20px">暂无 GDC 任务</td></tr>';
 
   const payEl=document.getElementById('gdc-pay-tbl');
   if(payEl)payEl.innerHTML=GDC_PAY.map(p=>`<tr><td>${p.t}</td><td style="font-weight:700;color:var(--green)">${p.v}</td></tr>`).join('');
@@ -2076,7 +2108,9 @@ function openGDCComplete(i){
 function confirmGDCComplete(i){
   const fil=GDC_F==='全部'?GDC_TASKS:GDC_TASKS.filter(t=>t.status===GDC_F);
   const t=fil[i];if(!t)return;
-  t.status='已完成';t.doneDate=document.getElementById('gdc-done-date')?.value||'';
+  t.status='已完成';
+  t.doneDate=document.getElementById('gdc-done-date')?.value||new Date().toISOString().split('T')[0];
+  if(t.dl)t.eff=calcEffDL(t.dl,t.doneDate);
   document.getElementById('gdc-complete-modal')?.remove();
   save('gdc_tasks',GDC_TASKS);renderGDC();
 }
@@ -2163,6 +2197,23 @@ function go(id){
 }
 function smeet(s,btn){document.querySelectorAll('.ms-tab').forEach(x=>x.classList.remove('on'));document.querySelectorAll('.mtabs .mt').forEach(b=>b.classList.remove('on'));document.getElementById('ms-'+s).classList.add('on');btn.classList.add('on');}
 function sProj(prefix,sec,btn){const pg=btn.closest('.page');pg.querySelectorAll('.ps').forEach(x=>x.classList.remove('on'));pg.querySelectorAll('.ptabs .pt-btn').forEach(b=>b.classList.remove('on'));document.getElementById(prefix+'-'+sec).classList.add('on');btn.classList.add('on');}
+
+// ═══════════════════════════════════════
+// MARKETING HELPERS
+// ═══════════════════════════════════════
+function completeMktItem(id){
+  const m=MKT_CONTENT.find(x=>x.id===id);
+  if(!m)return;
+  m.status='已发布';
+  m.doneDate=new Date().toISOString().split('T')[0];
+  if(m.dl)m.eff=calcEffDL(m.dl,m.doneDate);
+  save('mkt_content',MKT_CONTENT);
+  renderMktCal();
+}
+function deleteMktItem(id){
+  const idx=MKT_CONTENT.findIndex(x=>x.id===id);
+  if(idx>=0){MKT_CONTENT.splice(idx,1);save('mkt_content',MKT_CONTENT);renderMktCal();}
+}
 
 // ═══════════════════════════════════════
 // INIT
