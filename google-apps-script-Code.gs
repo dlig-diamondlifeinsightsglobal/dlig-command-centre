@@ -100,7 +100,7 @@ function readTaskBoard() {
     const status = doneDate ? '已完成' : '待启动';
 
     results.push({
-      id:       idx + 1,
+      id:       idx + 100, // 从100起避免和网站默认数据冲突
       task,
       person:   String(row[h['负责人']] ?? '').trim(),
       cat:      String(row[h['类别']]   ?? '').trim(),
@@ -278,44 +278,37 @@ function readDonationTotal() {
     if (!tab) return { error: '再投资捐款 tab not found' };
 
     const data = tab.getDataRange().getValues();
-    const num  = v => parseFloat(String(v||'').replace(/[^0-9.\-]/g,'')) || 0;
+    const num  = v => parseFloat(String(v||'').replace(/[^0-9,\.\-]/g,'').replace(/,/g,'')) || 0;
 
-    // 找含"金额"/"已捐"/"Amount"的列，把所有数值加总
-    let hdrRow = -1, amtCol = -1;
-    for (let i = 0; i < Math.min(data.length, 20); i++) {
-      const row = data[i];
-      for (let j = 0; j < row.length; j++) {
-        const h = String(row[j]||'').trim();
-        if (h.includes('金额')||h.includes('已捐')||h.toLowerCase().includes('amount')||h.includes('捐款额')) {
-          hdrRow = i; amtCol = j; break;
-        }
-      }
-      if (hdrRow >= 0) break;
-    }
-
-    // 如果找不到列，尝试找 "已捐总额" 单元格直接读
-    if (hdrRow < 0) {
-      for (let i = 0; i < data.length; i++) {
-        for (let j = 0; j < data[i].length; j++) {
-          const cell = String(data[i][j]||'').trim();
-          if (cell.includes('已捐总额')||cell.includes('Total')) {
-            // 读右边或下面的数值
-            const right = j+1 < data[i].length ? num(data[i][j+1]) : 0;
-            const below = i+1 < data.length   ? num(data[i+1][j])  : 0;
-            const val   = right || below;
-            if (val > 0) return { total: val };
+    // 方法1：找 "Total Reinvested" 行 → 读该行最后一个有数值的格
+    for (let i = 0; i < data.length; i++) {
+      for (let j = 0; j < data[i].length; j++) {
+        const cell = String(data[i][j]||'').trim();
+        if (cell.includes('Total Reinvested') || cell.includes('已捐总额') || cell.includes('Total')) {
+          // 从该行最右边找数值
+          for (let k = data[i].length - 1; k > j; k--) {
+            const v = num(data[i][k]);
+            if (v > 0) return { total: v };
           }
         }
       }
-      return { total: 0, note: 'no amount column found' };
     }
 
-    // 把该列所有数值加总
-    let total = 0;
-    for (let i = hdrRow + 1; i < data.length; i++) {
-      total += num(data[i][amtCol]);
+    // 方法2：找 "已捐总额" 列 header，加总该列所有数值
+    for (let i = 0; i < Math.min(data.length, 20); i++) {
+      for (let j = 0; j < data[i].length; j++) {
+        const h = String(data[i][j]||'').trim();
+        if (h === '已捐总额' || h === '已捐金额(RM)' || h === '已捐金额') {
+          let total = 0;
+          for (let r = i + 1; r < data.length; r++) {
+            total += num(data[r][j]);
+          }
+          return { total };
+        }
+      }
     }
-    return { total };
+
+    return { total: 0, note: 'Total Reinvested row not found' };
   } catch(e) {
     return { error: e.message };
   }
