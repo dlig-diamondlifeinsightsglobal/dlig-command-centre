@@ -550,7 +550,7 @@ body{background:var(--cream);color:var(--text);font-family:'Plus Jakarta Sans',s
         <button class="fb" id="tf-month" onclick="setTimeFilter('month',this)">本月</button>
         <button class="fb" id="tf-30" onclick="setTimeFilter('30',this)">近30天</button>
       </div>
-      <table class="pt"><thead><tr><th style="min-width:200px">Task 内容</th><th style="min-width:80px">负责人</th><th style="max-width:100px">类别</th><th style="max-width:80px">类型</th><th style="max-width:80px">优先级</th><th style="min-width:120px">Deadline</th><th style="min-width:80px">完成日期</th><th style="max-width:60px">Hours</th><th style="max-width:60px">效率</th><th style="max-width:80px">操作</th></tr></thead><tbody id="lb"></tbody></table>
+      <table class="pt" style="table-layout:fixed;width:100%"><thead><tr><th style="width:28%">Task 内容</th><th style="width:7%">负责人</th><th style="width:9%">类别</th><th style="width:6%">类型</th><th style="width:7%">优先级</th><th style="width:9%">Deadline</th><th style="width:8%">完成日期</th><th style="width:5%">Hours</th><th style="width:6%">效率</th><th style="width:8%">操作</th></tr></thead><tbody id="lb"></tbody></table>
     </div>
   </div>
 
@@ -590,6 +590,17 @@ body{background:var(--cream);color:var(--text);font-family:'Plus Jakarta Sans',s
         <div id="cal-modal-body"></div>
       </div>
     </div>
+    <div class="divider"></div>
+    <div class="sl">🧹 Office 打扫值日生</div>
+    <div style="background:var(--white);border:1.5px solid var(--border);border-radius:var(--r);padding:14px;margin-bottom:14px;box-shadow:var(--sh)">
+      <div style="display:flex;gap:8px;align-items:flex-end;flex-wrap:wrap;margin-bottom:12px">
+        <div class="ff"><div class="fl2">日期</div><input class="fi" id="clean-date" type="date" style="width:140px"></div>
+        <div class="ff"><div class="fl2">负责人</div><select class="fs" id="clean-person" style="width:110px"><option>Li Joo</option><option>Jasper</option><option>Stella</option><option>Roy</option><option>轮流</option></select></div>
+        <div class="ff" style="flex:1;min-width:150px"><div class="fl2">备注</div><input class="fi" id="clean-note" placeholder="例：拖地+倒垃圾"></div>
+        <button class="add-btn" onclick="addClean()">+ 添加</button>
+      </div>
+      <table class="pt"><thead><tr><th>日期</th><th>负责人</th><th>备注</th><th style="width:50px">完成</th><th style="width:40px"></th></tr></thead><tbody id="clean-body"></tbody></table>
+    </div>
   </div>
 
   <!-- ══ SALES ══ -->
@@ -601,7 +612,7 @@ body{background:var(--cream);color:var(--text);font-family:'Plus Jakarta Sans',s
     <div class="ss-grid" id="ss-h1"></div>
     <div class="sl">📊 H1 月度达成</div>
     <div class="card" style="overflow-x:auto;padding:14px;">
-      <table class="pt"><thead><tr><th>月份</th><th>Target</th><th>Actual</th><th>达成率%</th><th>Shortfall</th><th>心动觉察</th><th>YLYD</th><th>体验包</th><th>设计册</th><th>备注</th></tr></thead>
+      <table class="pt" style="table-layout:fixed;width:100%"><thead><tr><th style="width:75px">月份</th><th style="width:90px">Target</th><th style="width:90px">Actual</th><th style="width:60px">达成率</th><th style="width:90px">Shortfall</th><th style="width:52px;font-size:9px">心动觉察</th><th style="width:48px;font-size:9px">YLYD</th><th style="width:48px;font-size:9px">体验包</th><th style="width:48px;font-size:9px">设计册</th><th>备注</th></tr></thead>
       <tbody id="mo-body"></tbody><tfoot id="mo-foot"></tfoot></table>
     </div>
     <div style="background:var(--blueB);border:2px solid rgba(26,79,138,.2);border-radius:14px;padding:16px;margin-bottom:16px;margin-top:18px">
@@ -1436,7 +1447,7 @@ function renderOverview(){
       recur.push({name:'YLYD Realign',date:ds,time:'2:00pm',type:'ylyd',person:'轮值'});
     }
   }
-  const upEvents=EVENTS.filter(e=>{const d=new Date(e.date);return d>=now&&d<=twoWk;});
+  const upEvents=EVENTS.filter(e=>{const d=new Date(e.date);return d>=now&&d<=twoWk&&!e.fromTask;});
   const allEv=[...upEvents,...recur].sort((a,b)=>a.date.localeCompare(b.date));
   // Group by date, skip days with only empty
   const byDate={};
@@ -1537,7 +1548,7 @@ function confirmComplete(id){
 function renderTasks(){
   const sm={'待处理':'待启动','待建立':'待启动','待认领':'待启动','待确认':'待启动','待决策':'待决策'};
   const norm=s=>sm[s]||s;
-  const cols=[{k:'待启动',dot:'#bbb',bdr:'#ccc'},{k:'进行中',dot:'var(--amber)',bdr:'var(--amber)'},{k:'待决策',dot:'var(--red)',bdr:'var(--red)'},{k:'已完成',dot:'var(--green)',bdr:'var(--green)'}];
+  const cols=[{k:'🔴 紧急',dot:'var(--red)',bdr:'var(--red)'},{k:'🟡 本周',dot:'var(--amber)',bdr:'var(--amber)'},{k:'⚡ 本月',dot:'var(--gold)',bdr:'var(--gold)'},{k:'⭐ 长期',dot:'var(--blue)',bdr:'var(--blue)'}];
   let fil;
   if(TF==='全部')fil=TASKS;
   else if(TF==='marketing')fil=TASKS.filter(t=>t.cat==='Marketing');
@@ -1549,8 +1560,8 @@ function renderTasks(){
     document.getElementById('board-view').style.display='grid';
     document.getElementById('list-view').style.display='none';
     document.getElementById('board-view').innerHTML=cols.map(c=>{
-      const items=fil.filter(t=>norm(t.status)===c.k);
-      const cls={待启动:'todo',进行中:'prog',已完成:'done',待决策:'blk'}[c.k]||'todo';
+      const items=fil.filter(t=>t.status!=='已完成'&&(t.priority===c.k||(c.k==='⚡ 本月'&&!t.priority)));
+      const cls='todo';
       return`<div>
         <div class="col-head" style="border-color:${c.bdr}"><div class="col-dot" style="background:${c.dot}"></div><div class="col-lbl" style="color:${c.dot}">${c.k}</div><div class="col-n">${items.length}</div></div>
         ${items.length?items.map(t=>{
@@ -1596,7 +1607,7 @@ function renderTasks(){
       const PEOPLE=['全员','Li Joo','Jasper','Stella','Roy','待认领'];
       const CATS=['Operation','Marketing','✍ 视频文案/信息文案','📣 制作Post图+文案','🖼 制作海报','📝 视频脚本','📱 剪辑短视频-一键成片','📱 剪辑短视频','🎬 剪辑YouTube','🧠 Landing Page文案','🖥 Landing Page制作','Sales','Admin','System','GDC job'];
       return`<tr>
-        <td><input style="border:none;background:transparent;font-family:'Plus Jakarta Sans',sans-serif;font-size:11.5px;font-weight:500;width:100%;outline:none;${isDone?'text-decoration:line-through;color:var(--muted)':''}" value="${t.task.replace(/"/g,'&quot;')}" onchange="editTask(${t.id},'task',this.value)">${t.desc?`<div contenteditable="true" style="font-size:10px;color:var(--muted);margin-top:3px;line-height:1.5;outline:none;padding:2px 0;border-bottom:1px dashed transparent" onfocus="this.style.borderBottomColor='var(--border)'" onblur="editTask(${t.id},'desc',this.innerText.trim());this.style.borderBottomColor='transparent'" title="点击编辑描述">${t.desc}</div>`:''}</td>
+        <td style="cursor:pointer" onclick="openTaskNote(${t.id})" title="点击查看/编辑备注"><div style="font-size:11.5px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;${isDone?'text-decoration:line-through;color:var(--muted)':''}">${t.task}</div>${t.desc?`<div style="font-size:10px;color:var(--muted);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">📝 ${t.desc}</div>`:''}</td>
         <td><select style="border:none;background:transparent;font-family:'Plus Jakarta Sans',sans-serif;font-size:11px;cursor:pointer;outline:none" onchange="editTask(${t.id},'person',this.value)">${PEOPLE.map(p=>`<option ${p===t.person?'selected':''}>${p}</option>`).join('')}</select></td>
         <td><select style="border:none;background:transparent;font-family:'Plus Jakarta Sans',sans-serif;font-size:10px;cursor:pointer;outline:none;max-width:90px" onchange="editTask(${t.id},'cat',this.value)">${CATS.map(c=>`<option ${c===t.cat?'selected':''}>${c}</option>`).join('')}</select></td>
         <td><select style="border:none;background:transparent;font-family:'Plus Jakarta Sans',sans-serif;font-size:10px;cursor:pointer;outline:none" onchange="editTask(${t.id},'type',this.value)"><option value="contrib" ${t.type==='contrib'?'selected':''}>⏱ 贡献</option><option value="fee" ${t.type==='fee'?'selected':''}>💰 Fee</option></select></td>
@@ -1639,6 +1650,36 @@ function updateStats(){
 let TIME_F='all';
 function setTimeFilter(f,btn){TIME_F=f;document.querySelectorAll('#tf-all,#tf-month,#tf-30').forEach(b=>b.classList.remove('on'));btn.classList.add('on');renderTasks();}
 function editTask(id,field,val){const t=TASKS.find(x=>x.id===id);if(t){t[field]=val;save('tasks',TASKS);if(field==='priority'||field==='deadline')renderOverview();}}
+function openTaskNote(id){
+  const t=TASKS.find(x=>x.id===id);if(!t)return;
+  const ex=document.getElementById('task-note-modal');if(ex)ex.remove();
+  const modal=document.createElement('div');
+  modal.id='task-note-modal';
+  modal.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:1000;display:flex;align-items:center;justify-content:center;padding:20px';
+  modal.innerHTML=`<div style="background:#fff;border-radius:14px;padding:24px;width:100%;max-width:540px;box-shadow:0 8px 40px rgba(0,0,0,.18)">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px;gap:12px">
+      <div style="font-size:13px;font-weight:800;color:var(--text);line-height:1.4;flex:1">${t.task}</div>
+      <button onclick="document.getElementById('task-note-modal').remove()" style="border:none;background:none;font-size:20px;cursor:pointer;color:var(--muted);flex-shrink:0">✕</button>
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px">
+      <span style="font-size:10px;background:var(--s2);padding:3px 8px;border-radius:6px;color:var(--muted)">👤 ${t.person||'—'}</span>
+      <span style="font-size:10px;background:var(--s2);padding:3px 8px;border-radius:6px;color:var(--muted)">📅 ${fmtD(t.deadline)||'—'}</span>
+      <span style="font-size:10px;background:var(--s2);padding:3px 8px;border-radius:6px;color:var(--muted)">${t.priority||'—'}</span>
+      <span style="font-size:10px;background:var(--s2);padding:3px 8px;border-radius:6px;color:var(--muted)">${t.status||'—'}</span>
+    </div>
+    <div style="font-size:11px;font-weight:700;color:var(--text);margin-bottom:6px">📝 备注 / Notes</div>
+    <textarea id="task-note-input" style="width:100%;border:1.5px solid var(--border);border-radius:8px;padding:10px;font-family:inherit;font-size:12px;line-height:1.6;resize:vertical;min-height:110px;outline:none;color:var(--text)" placeholder="备注、参考链接、背景说明…">${t.desc||''}</textarea>
+    <div style="font-size:11px;font-weight:700;color:var(--text);margin:12px 0 6px">✏️ 修改 Task 名称</div>
+    <input id="task-name-input" style="width:100%;border:1.5px solid var(--border);border-radius:8px;padding:8px 10px;font-family:inherit;font-size:12px;outline:none;color:var(--text)" value="${t.task.replace(/"/g,'&quot;')}">
+    <div style="display:flex;gap:8px;margin-top:14px;justify-content:flex-end">
+      <button onclick="document.getElementById('task-note-modal').remove()" style="padding:7px 16px;border:1.5px solid var(--border);border-radius:8px;background:#fff;cursor:pointer;font-size:12px">取消</button>
+      <button onclick="(()=>{const desc=document.getElementById('task-note-input').value.trim();const name=document.getElementById('task-name-input').value.trim();editTask(${t.id},'desc',desc);if(name)editTask(${t.id},'task',name);document.getElementById('task-note-modal').remove();renderTasks();})()" style="padding:7px 18px;background:var(--goldG);color:#fff;border:none;border-radius:8px;cursor:pointer;font-size:12px;font-weight:700">💾 保存</button>
+    </div>
+  </div>`;
+  modal.onclick=e=>{if(e.target===modal)modal.remove();};
+  document.body.appendChild(modal);
+  setTimeout(()=>document.getElementById('task-note-input')?.focus(),100);
+}
 function fp(p,btn){TF=p;document.querySelectorAll('.fbar .fb').forEach(b=>b.classList.remove('on'));btn.classList.add('on');renderTasks();}
 function catFilter(cat,btn){TF=cat;document.querySelectorAll('.fbar .fb').forEach(b=>b.classList.remove('on'));btn.classList.add('on');renderTasks();}
 function sv(v){TV=v;document.getElementById('vb').classList.toggle('on',v==='board');document.getElementById('vl').classList.toggle('on',v==='list');renderTasks();}
@@ -1661,7 +1702,7 @@ function addMktContent(){
   const nid=Math.max(0,...TASKS.map(t=>t.id),0)+1;
   TASKS.push({id:nid,task:`📣 ${platform}: ${title}`,person,cat:'Marketing',type:'fee',priority:'⚡ 本月',deadline:dl||date,status:'待启动',est:1,actual:'',doneDate:''});
   // Sync to Calendar events
-  EVENTS.push({id:'ev'+Date.now(),name:'📣 '+title,date,time:'',type:'mkt',person,isEvent:true});
+  EVENTS.push({id:'ev'+Date.now(),name:'📣 '+title,date,time:'',type:'mkt',person,isEvent:true,fromTask:true});
   document.getElementById('mc-title').value='';
   save('mkt_content',MKT_CONTENT);save('tasks',TASKS);save('events',EVENTS);
   renderMktCal();renderTasks();renderCalendar();
@@ -1718,7 +1759,7 @@ function renderMktCal(){
     return`<tr>
     <td><input type="date" style="border:none;background:transparent;font-family:'DM Sans',sans-serif;font-size:10.5px;font-weight:600;outline:none;cursor:pointer" value="${m.date||''}" onchange="editMkt('${m.id}','date',this.value)"></td>
     <td style="min-width:160px"><input style="border:none;background:transparent;font-family:'Plus Jakarta Sans',sans-serif;font-size:11px;font-weight:600;width:100%;outline:none" value="${(m.title||'').replace(/"/g,'&quot;')}" onchange="editMkt('${m.id}','title',this.value)"></td>
-    <td><span class="tag tcat" style="font-size:9px">${m.type||'—'}</span></td>
+    <td><select style="border:none;background:transparent;font-size:9px;cursor:pointer;outline:none;max-width:130px" onchange="editMkt('${m.id}','type',this.value)">${['✍ DLIG 视频文案','✍ DLIG 信息文案模版','📣 DLIG Post 图+文案','🖼 DLIG 海报（1张）','📱 DLIG 视频脚本（1支）','📱 DLIG 剪辑短视频-一键成片','📱 DLIG 剪辑短视频（1min内）','🎬 DLIG 剪辑YouTube（25min内）','🧠 DLIG Landing Page 文案','🖥 DLIG Landing Page 制作'].map(opt=>`<option ${m.type===opt?'selected':''}>${opt}</option>`).join('')}</select></td>
     <td><input type="date" style="border:none;background:transparent;font-family:'DM Sans',sans-serif;font-size:10.5px;color:var(--amber);outline:none;cursor:pointer" value="${m.dl||''}" onchange="editMkt('${m.id}','dl',this.value)"></td>
     <td style="font-size:10.5px;color:var(--green);font-family:'DM Sans',sans-serif">${fmtD(m.doneDate)||'—'}</td>
     <td style="font-size:10px;font-weight:600;color:${effColor}">${effStr}</td>
@@ -2051,7 +2092,7 @@ function renderGDC(){
       const items=(map[ds]||[]);
       ch+=`<div class="mkt-cell${iT?' today':''}"><div class="mkt-date">${day}</div>`;
       items.forEach(t=>{
-        ch+=`<div style="background:#0d3060;color:#fff;padding:2px 4px;border-radius:4px;font-size:8px;font-weight:700;margin-bottom:2px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis">${t.task.slice(0,14)}</div>`;
+        ch+=`<div style="background:#0d3060;color:#fff;padding:3px 5px;border-radius:4px;font-size:8px;font-weight:700;margin-bottom:2px;overflow:hidden;cursor:pointer;line-height:1.4"><div style="white-space:nowrap;text-overflow:ellipsis;overflow:hidden">${t.task.slice(0,14)}</div>${t.pic?`<div style="font-size:7px;opacity:.75;white-space:nowrap;overflow:hidden">${t.pic}</div>`:''}</div>`;
       });
       ch+=`</div>`;
     }
@@ -2069,8 +2110,8 @@ function renderGDC(){
     return`<tr>
     <td><input type="date" style="border:none;background:transparent;font-family:'DM Sans',sans-serif;font-size:10.5px;font-weight:600;outline:none;cursor:pointer" value="${t.date||''}" onchange="editGDC('${t.id}','date',this.value)"></td>
     <td style="min-width:160px"><input style="border:none;background:transparent;font-family:'Plus Jakarta Sans',sans-serif;font-size:11px;font-weight:600;width:100%;outline:none" value="${(t.task||'').replace(/"/g,'&quot;')}" onchange="editGDC('${t.id}','task',this.value)"></td>
-    <td><span class="tag tcat" style="font-size:9px">${t.platform||'—'}</span></td>
-    <td><span class="tag tcat" style="font-size:9px">${t.cat||'—'}</span></td>
+    <td><select style="border:none;background:transparent;font-size:9px;cursor:pointer;outline:none" onchange="editGDC('${t.id}','platform',this.value)">${['DCW Page','GDC Page','Jenny 老师 Page'].map(opt=>`<option ${t.platform===opt?'selected':''}>${opt}</option>`).join('')}</select></td>
+    <td><select style="border:none;background:transparent;font-size:9px;cursor:pointer;outline:none;max-width:110px" onchange="editGDC('${t.id}','cat',this.value)">${['GDC 视频文案','GDC 图文文案','GDC 金句图文','GDC 视频拍摄','GDC 视频脚本','GDC 短视频剪辑','GDC DLIG对接','GDC 方案讨论','GDC Project管理'].map(opt=>`<option ${t.cat===opt?'selected':''}>${opt}</option>`).join('')}</select></td>
     <td><input type="date" style="border:none;background:transparent;font-family:'DM Sans',sans-serif;font-size:10.5px;color:var(--amber);outline:none;cursor:pointer" value="${t.dl||''}" onchange="editGDC('${t.id}','dl',this.value)"></td>
     <td style="font-size:10.5px;color:var(--green);font-family:'DM Sans',sans-serif">${fmtD(t.doneDate)||'—'}</td>
     <td style="font-size:10px;font-weight:600;color:${effColor}">${effStr}</td>
@@ -2219,7 +2260,28 @@ function deleteMktItem(id){
 const now2=new Date();
 document.getElementById('bdate').textContent=now2.toLocaleDateString('zh-MY',{year:'numeric',month:'short',day:'numeric'});
 
-renderOverview();renderTasks();renderCalendar();renderSales();renderMktCal();renderProducts();
+let CLEAN=load('clean7',[]);
+function addClean(){
+  const date=document.getElementById('clean-date')?.value;if(!date)return;
+  const person=document.getElementById('clean-person')?.value||'';
+  const note=document.getElementById('clean-note')?.value.trim()||'';
+  CLEAN.push({id:'cl'+Date.now(),date,person,note,done:false});
+  document.getElementById('clean-date').value='';
+  if(document.getElementById('clean-note'))document.getElementById('clean-note').value='';
+  save('clean7',CLEAN);renderClean();
+}
+function renderClean(){
+  const el=document.getElementById('clean-body');if(!el)return;
+  const sorted=[...CLEAN].sort((a,b)=>a.date.localeCompare(b.date));
+  el.innerHTML=sorted.length?sorted.map((c,i)=>`<tr style="${c.done?'opacity:.5':''}">
+    <td style="font-family:'DM Sans',sans-serif;font-size:11px;font-weight:600">${fmtD(c.date)}</td>
+    <td>${ptag(c.person)}</td>
+    <td style="font-size:11px;color:var(--muted)">${c.note||'—'}</td>
+    <td style="text-align:center"><input type="checkbox" ${c.done?'checked':''} onchange="CLEAN[${CLEAN.indexOf(sorted[i])}].done=this.checked;save('clean7',CLEAN);renderClean()"></td>
+    <td><button class="tc-btn" onclick="CLEAN.splice(CLEAN.indexOf(sorted[${i}]),1);save('clean7',CLEAN);renderClean()" style="color:var(--red);font-size:10px">删</button></td>
+  </tr>`).join(''):'<tr><td colspan="5" style="text-align:center;color:var(--muted);padding:16px">暂无记录</td></tr>';
+}
+renderOverview();renderTasks();renderCalendar();renderSales();renderMktCal();renderProducts();renderClean();
 renderAdmin();renderXindong();renderYLYD();renderGDC();renderPolicy();
 renderMeeting();renderDecisions();renderFiles();renderMktCal();updateStats();
 loadFromSheets(); // 从 Google Sheets 拉取最新数据（异步）
