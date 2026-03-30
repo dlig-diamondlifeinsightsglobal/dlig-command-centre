@@ -7,7 +7,8 @@
 const SHEET_IDS = {
   tasks: '1A3g_WPDU-R4zU8gj8gGHu885z5bk4lTBBRnCfDsstDI',
   mkt:   '1F0Ss1MuAwVRkVfWch2wepx2SvMXG3BoIBfVN0v9ye9M',
-  gdc:   '1Gc0rO-gx_CBSZ60fFHvmMeTsq7dClsCU4WiSN5ii-2M'
+  gdc:   '1Gc0rO-gx_CBSZ60fFHvmMeTsq7dClsCU4WiSN5ii-2M',
+  pay:   '1zGy3rV0bv2dERFRWoRFhRLGj68oJ3RtAj-kiqi71DXk'  // 分钱计算 Sheet
 };
 
 const TASK_TAB      = 'Task Board';
@@ -217,27 +218,39 @@ function readSalesDashboard() {
   const data = tab.getDataRange().getValues();
   if (data.length < 2) return [];
 
-  const hdrs = data[0].map(h => String(h).trim());
+  // ── 找真正的 header 行（含"月份"的那行）────────────────────
+  let hdrIdx = -1;
+  for (let i = 0; i < Math.min(data.length, 15); i++) {
+    const first = String(data[i][0] || '').trim();
+    if (first === '月份' || first === 'Month') { hdrIdx = i; break; }
+  }
+  if (hdrIdx < 0) return { error: 'Header row (月份) not found in first 15 rows' };
+
+  const hdrs = data[hdrIdx].map(h => String(h).trim());
   const h = {};
   hdrs.forEach((name, i) => { if (name) h[name] = i; });
 
-  // flexible column lookup — accepts multiple possible names
   const col = (...names) => {
     for (const n of names) { if (h[n] !== undefined) return h[n]; }
     return -1;
   };
+  // 把 "RM10,000" / 10000 都转成数字
+  const num = v => parseFloat(String(v||'').replace(/[^0-9.\-]/g,'')) || 0;
 
-  return data.slice(1).filter(row => String(row[0] || '').trim() !== '').map(row => {
+  return data.slice(hdrIdx + 1).filter(row => {
+    const f = String(row[0]||'').trim();
+    return f !== '' && !f.startsWith('H1') && !f.startsWith('TOTAL') && !f.startsWith('二');
+  }).map(row => {
     const get = (...names) => { const i = col(...names); return i >= 0 ? row[i] : ''; };
     return {
-      month:  String(get('月份','Month','month') || '').trim(),
-      target: Number(get('Target','目标','target'))  || 0,
-      actual: Number(get('Actual','实际','actual'))  || 0,
-      xd:     Number(get('心动觉察','XD','xd'))      || 0,
-      ylyd:   Number(get('YLYD','ylyd'))             || 0,
-      exp:    Number(get('体验包','Exp','exp'))       || 0,
-      book:   Number(get('设计册','Book','book'))     || 0,
-      note:   String(get('备注','Note','note') || '').trim()
+      month:  String(get('月份','Month') || '').trim(),
+      target: num(get('Target (RM)','Target','目标')),
+      actual: num(get('Actual (RM)','Actual','实际')),
+      xd:     num(get('心动觉察','XD')),
+      ylyd:   num(get('YLYD System','YLYD')),
+      exp:    num(get('YLYD 体验包','体验包')),
+      book:   num(get('设计册','Book')),
+      note:   String(get('备注','Note') || '').trim()
     };
   });
 }
@@ -252,6 +265,52 @@ function writeSalesDashboard(items) {
   if (!items.length) return { ok: true, count: 0 };
   const rows = items.map(item => SALES_HEADERS.map(k => item[k] ?? ''));
   tab.getRange(2, 1, rows.length, SALES_HEADERS.length).setValues(rows);
+  return { ok: true, count: rows.length };
+}
+
+// ─── 分钱计算 — 写入汇总 Sheet ──────────────────────────────
+
+const PAY_HEADERS = ['来源','id','任务内容','负责人','类别','类型','截止日期','完成日期','用时','效率','分钱系数','应付金额'];
+const COEF_MAP   = {Sales:3,Marketing:2,System:2,GDC:2,'GDC job':2,Operation:1,Admin:1};
+
+function writePaySheet(tasks, mkt, gdc) {
+  const ss  = SpreadsheetApp.openById(SHEET_IDS.pay);
+  // 找或创建 "分钱汇总" tab
+  let tab = ss.getSheetByName('分钱汇总');
+  if (!tab) {
+    tab = ss.insertSheet('分钱汇总');
+    tab.getRange(1,1,1,PAY_HEADERS.length).setValues([PAY_HEADERS]).setFontWeight('bold').setBackground('#fdf8f2');
+  }
+  const lastRow = tab.getLastRow();
+  if (lastRow > 1) tab.getRange(2,1,lastRow-1,PAY_HEADERS.length).clearContent();
+
+  const rows = [];
+
+  // Task Board 任务
+  (tasks||[]).forEach(t => {
+    if (!t.person || t.person==='All' || t.person==='全员') return;
+    const eff   = t.eff || calcEff(t.deadline, t.doneDate) || '';
+    const coef  = COEF_MAP[t.cat] || 1;
+    const hours = parseFloat(t.actual) || 0;
+    const pay   = t.type==='fee' ? '' : (hours * coef * (parseFloat(eff)||1)).toFixed(1);
+    rows.push(['TaskBoard', t.id||'', t.task||'', t.person||'', t.cat||'', t.type==='fee'?'Fee':'贡献', t.deadline||'', t.doneDate||'', hours||'', eff, coef, pay]);
+  });
+
+  // GDC 任务
+  (gdc||[]).forEach(t => {
+    if (!t.doneDate) return; // 只记录已完成
+    const eff = calcEff(t.dl, t.doneDate) || '';
+    rows.push(['GDC', t.id||'', t.task||'', t.pic||'', 'GDC', 'Fee', t.dl||'', t.doneDate||'', '', eff, 2, '']);
+  });
+
+  // Marketing 内容
+  (mkt||[]).forEach(m => {
+    if (!m.doneDate) return;
+    const eff = calcEff(m.dl, m.doneDate) || '';
+    rows.push(['Marketing', m.id||'', m.title||'', m.person||'', 'Marketing', 'Fee', m.dl||'', m.doneDate||'', '', eff, 2, '']);
+  });
+
+  if (rows.length > 0) tab.getRange(2,1,rows.length,PAY_HEADERS.length).setValues(rows);
   return { ok: true, count: rows.length };
 }
 
@@ -281,6 +340,10 @@ function doPost(e) {
     if (type === 'mkt')   return respond(writeCC(SHEET_IDS.mkt, MKT_HEADERS, data));
     if (type === 'gdc')   return respond(writeCC(SHEET_IDS.gdc, GDC_HEADERS, data));
     if (type === 'sales') return respond(writeSalesDashboard(data));
+    if (type === 'pay') {
+      // data = { tasks:[...], gdc:[...], mkt:[...] }
+      return respond(writePaySheet(data.tasks, data.mkt, data.gdc));
+    }
     return respond({ error: 'Unknown sheet: ' + type });
   } catch(err) {
     return respond({ error: err.message });
