@@ -651,7 +651,7 @@ body{background:var(--cream);color:var(--text);font-family:'Plus Jakarta Sans',s
       <button class="fb" onclick="mktCalNextMonth()">下月 ›</button>
     </div>
     <div id="mkt-cal-view"></div>
-    <div style="overflow-x:auto;margin-bottom:8px"><table class="pt"><thead><tr><th>发布日期</th><th style="min-width:160px">发布内容</th><th>类型</th><th>Deadline</th><th>完成日期</th><th>效率</th><th>操作</th></tr></thead><tbody id="mkt-list-body"></tbody></table></div>
+    <div style="overflow-x:auto;margin-bottom:8px"><table class="pt"><thead><tr><th>发布日期</th><th style="min-width:160px">发布内容</th><th>类型</th><th>负责人</th><th>Deadline</th><th>完成日期</th><th>效率</th><th>操作</th></tr></thead><tbody id="mkt-list-body"></tbody></table></div>
 
     <div class="sl" style="margin-top:18px">🔗 直达链接</div>
     <div class="ql-wrap">
@@ -1075,11 +1075,27 @@ async function loadFromSheets(){
       if(Array.isArray(rows)&&rows.length>0){
         // 直接写 localStorage，不触发 syncToSheets（避免循环回写）
         try{localStorage.setItem('dlig7_'+lsKey,JSON.stringify(rows));}catch(e){}
-        // tasks: 同时更新内存变量，以便后续 render 正确
-        if(lsKey==='tasks') TASKS=rows;
+        if(lsKey==='tasks')       TASKS=rows;
+        if(lsKey==='mkt_content') MKT_CONTENT=rows;
+        if(lsKey==='gdc_tasks')   GDC_TASKS=rows;
       }
     }catch(e){ok=false;}
   }
+  // Events 活动（从 Sheet 读取，覆盖硬编码活动）
+  try{
+    const evres=await fetch(SHEETS_API_URL+'?sheet=events');
+    const evrows=await evres.json();
+    if(Array.isArray(evrows)&&evrows.length>0){
+      EVENTS=evrows;
+      try{localStorage.setItem('dlig7_events',JSON.stringify(evrows));}catch(e){}
+    }
+  }catch(e){}
+  // Rotation 轮值
+  try{
+    const rotres=await fetch(SHEETS_API_URL+'?sheet=rotation');
+    const rotrows=await rotres.json();
+    if(Array.isArray(rotrows)&&rotrows.length>0) ROTATION=rotrows;
+  }catch(e){}
   // Sales Dashboard (read-only — user edits numbers in Sheet)
   try{
     const sres=await fetch(SHEETS_API_URL+'?sheet=sales');
@@ -1138,6 +1154,7 @@ let EVENTS=load('events',[
   {id:'e5',name:'Monthly Meeting',date:'2026-03-31',type:'meet',person:'All'},
   {id:'e6',name:'Monthly Meeting',date:'2026-04-28',type:'meet',person:'All'},
 ]);
+let ROTATION=[]; // 从 Rotation 轮值 tab 读取，格式：[{date:'2026-04-03',person:'Li Joo'},...]
 let MINUTES=load('minutes',[{id:'m1',date:'2026-03-25',title:'Meeting Minutes 2026 W12',link:'https://docs.google.com/document/d/12v7NoM7aPpbywPvMGa6dSIZa6_dshPfC9Oz1TYC-bc4/edit',note:'分钱机制讨论'}]);
 let ATTENDANCE=load('attendance',{});
 let SB_RECORDS=load('sb_records',[]);
@@ -1450,13 +1467,15 @@ function renderOverview(){
   // ── 接下来2周 · 卡片式 · 只show events
   const now=new Date(),twoWk=new Date(now.getTime()+14*86400000);
   // Only show proper events (not tasks/deadlines), include recurring
+  // 从 ROTATION 找某天的轮值人
+  const rotPerson=ds=>{ const r=ROTATION.find(x=>x.date===ds); return r?r.person:'轮值'; };
   const recur=[];
   for(let i=0;i<14;i++){
     const d=new Date(now.getTime()+i*86400000);
     if(d.getDay()===4){
       const ds=d.toISOString().split('T')[0];
       recur.push({name:'Weekly Meeting',date:ds,time:'8:00am',type:'meet',person:'全员'});
-      recur.push({name:'YLYD Realign',date:ds,time:'2:00pm',type:'ylyd',person:'轮值'});
+      recur.push({name:'YLYD Realign',date:ds,time:'2:00pm',type:'ylyd',person:rotPerson(ds)});
     }
   }
   const upEvents=EVENTS.filter(e=>{const d=new Date(e.date);return d>=now&&d<=twoWk&&!e.fromTask&&e.type!=='mkt'&&e.type!=='gdc';});
@@ -1775,6 +1794,7 @@ function renderMktCal(){
     <td><input type="date" style="border:none;background:transparent;font-family:'DM Sans',sans-serif;font-size:10.5px;font-weight:600;outline:none;cursor:pointer" value="${m.date||''}" onchange="editMkt('${m.id}','date',this.value)"></td>
     <td style="min-width:160px"><input style="border:none;background:transparent;font-family:'Plus Jakarta Sans',sans-serif;font-size:11px;font-weight:600;width:100%;outline:none" value="${(m.title||'').replace(/"/g,'&quot;')}" onchange="editMkt('${m.id}','title',this.value)"></td>
     <td><select style="border:none;background:transparent;font-size:9px;cursor:pointer;outline:none;max-width:130px" onchange="editMkt('${m.id}','type',this.value)">${['✍ DLIG 视频文案','✍ DLIG 信息文案模版','📣 DLIG Post 图+文案','🖼 DLIG 海报（1张）','📱 DLIG 视频脚本（1支）','📱 DLIG 剪辑短视频-一键成片','📱 DLIG 剪辑短视频（1min内）','🎬 DLIG 剪辑YouTube（25min内）','🧠 DLIG Landing Page 文案','🖥 DLIG Landing Page 制作'].map(opt=>`<option ${m.type===opt?'selected':''}>${opt}</option>`).join('')}</select></td>
+    <td><select style="border:none;background:transparent;font-size:10px;cursor:pointer;outline:none" onchange="editMkt('${m.id}','person',this.value)">${['Jasper','Li Joo','Stella','Roy','GDC','待认领'].map(opt=>`<option ${m.person===opt?'selected':''}>${opt}</option>`).join('')}</select></td>
     <td><input type="date" style="border:none;background:transparent;font-family:'DM Sans',sans-serif;font-size:10.5px;color:var(--amber);outline:none;cursor:pointer" value="${m.dl||''}" onchange="editMkt('${m.id}','dl',this.value)"></td>
     <td style="font-size:10.5px;color:var(--green);font-family:'DM Sans',sans-serif">${fmtD(m.doneDate)||'—'}</td>
     <td style="font-size:10px;font-weight:600;color:${effColor}">${effStr}</td>

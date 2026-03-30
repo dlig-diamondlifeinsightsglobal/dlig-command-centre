@@ -1,27 +1,28 @@
 // ═══════════════════════════════════════════════════════════════
-// DLIG Command Centre — Google Apps Script v2
-// Task Board: 双向同步原版 tab
-// Marketing / GDC: 存进 CommandCentre tab 做存档
+// DLIG Command Centre — Google Apps Script v3
+// Task Board:        双向同步 Task Board tab（第1行 header）
+// Marketing Content: 直接读写 Sales & Marketing 的 Marketing Content tab
+// GDC:               直接读写 GDC spreadsheet 的 GDC_JOB_TAB tab
+// Events & Rotation: 读 Task Board spreadsheet 里的 "Events 活动" & "Rotation 轮值" tab
 // ═══════════════════════════════════════════════════════════════
 
 const SHEET_IDS = {
   tasks: '1A3g_WPDU-R4zU8gj8gGHu885z5bk4lTBBRnCfDsstDI',
   mkt:   '1F0Ss1MuAwVRkVfWch2wepx2SvMXG3BoIBfVN0v9ye9M',
   gdc:   '1Gc0rO-gx_CBSZ60fFHvmMeTsq7dClsCU4WiSN5ii-2M',
-  admin: '1zGy3rV0bv2dERFRWoRFhRLGj68oJ3RtAj-kiqi71DXk'  // Admin Accounts Sheet
+  admin: '1zGy3rV0bv2dERFRWoRFhRLGj68oJ3RtAj-kiqi71DXk'
 };
 
 const TASK_TAB      = 'Task Board';
-const TASK_HDR_ROW  = 1;   // 第1行是 header
-const TASK_DATA_ROW = 2;   // 第2行起是数据
+const TASK_HDR_ROW  = 1;
+const TASK_DATA_ROW = 2;
 
-// Marketing Content tab (source tab name in mkt spreadsheet)
-const MKT_TAB   = 'Marketing Content';
-// Sales Dashboard tab (source tab in mkt spreadsheet — website reads, user edits)
-const SALES_TAB = 'Sales Dashboard';
+const MKT_TAB       = 'Marketing Content';  // tab 名在 Sales & Marketing spreadsheet
+const GDC_JOB_TAB   = 'GDC Marketing Job';  // ⚠️ 请改成你 GDC spreadsheet 里的实际 tab 名
+const SALES_TAB     = 'Sales Dashboard';
+const EVENTS_TAB    = 'Events 活动';         // 在 Task Board spreadsheet 里新建这个 tab
+const ROTATION_TAB  = 'Rotation 轮值';       // 在 Task Board spreadsheet 里新建这个 tab
 
-const MKT_HEADERS   = ['id','title','date','platform','cat','person','status','doneDate','actual','eff'];
-const GDC_HEADERS   = ['id','task','date','dl','cat','who','pic','status','pay'];
 const SALES_HEADERS = ['month','target','actual','xd','ylyd','exp','book','note'];
 
 // ─── 工具函数 ────────────────────────────────────────────────
@@ -71,6 +72,19 @@ function normPriority(raw) {
   return s;
 }
 
+// ─── 灵活的列查找工具 ─────────────────────────────────────────
+
+function makeFlexFinder(hdrs) {
+  const lower = hdrs.map(h => String(h||'').trim().toLowerCase());
+  return function findCol(...names) {
+    for (const n of names) {
+      const i = lower.indexOf(n.toLowerCase());
+      if (i >= 0) return i;
+    }
+    return -1;
+  };
+}
+
 // ─── TASK BOARD 读取 ─────────────────────────────────────────
 
 function readTaskBoard() {
@@ -80,7 +94,6 @@ function readTaskBoard() {
   const all = tab.getDataRange().getValues();
   if (all.length < TASK_HDR_ROW) return [];
 
-  // 建立 header → 列索引 映射
   const hdrs = all[TASK_HDR_ROW - 1];
   const h = {};
   hdrs.forEach((name, i) => { h[String(name).trim()] = i; });
@@ -93,14 +106,11 @@ function readTaskBoard() {
     const deadline = fmtDate(row[h['截止日期']]);
     const doneDate = fmtDate(row[h['完成日期']]);
     const actual   = String(row[h['用时']]  ?? '').trim();
-    // 效率从 Sheet 读取（如果有），否则留空（网站会动态计算显示）
     const eff      = String(row[h['效率']]  ?? '').trim();
-
-    // 没有 status 列 → 根据完成日期推断
-    const status = doneDate ? '已完成' : '待启动';
+    const status   = doneDate ? '已完成' : '待启动';
 
     results.push({
-      id:       idx + 100, // 从100起避免和网站默认数据冲突
+      id:       idx + 100,
       task,
       person:   String(row[h['负责人']] ?? '').trim(),
       cat:      String(row[h['类别']]   ?? '').trim(),
@@ -111,7 +121,7 @@ function readTaskBoard() {
       actual,
       eff,
       status,
-      desc:     '',   // desc 是网站专用，不从 Sheet 读取
+      desc:     '',
       est:      0
     });
   });
@@ -131,7 +141,6 @@ function writeTaskBoard(tasks) {
   hdrs.forEach((name, i) => { h[String(name).trim()] = i; });
   const numCols = hdrs.length;
 
-  // 保留 参考/SOP 和 备注（按任务内容匹配）
   const preserved = {};
   all.slice(TASK_DATA_ROW - 1).forEach(row => {
     const key = String(row[h['任务内容'] ?? 0] || '').trim();
@@ -141,7 +150,6 @@ function writeTaskBoard(tasks) {
     };
   });
 
-  // 清除数据行（保留第1-3行标题 & 第4行 header）
   const lastRow = tab.getLastRow();
   if (lastRow >= TASK_DATA_ROW) {
     tab.getRange(TASK_DATA_ROW, 1, lastRow - TASK_DATA_ROW + 1, numCols).clearContent();
@@ -173,39 +181,265 @@ function writeTaskBoard(tasks) {
   return { ok: true, count: rows.length };
 }
 
-// ─── COMMANDCENTRE tab（Marketing / GDC）────────────────────
+// ─── MARKETING CONTENT 读取（直接读原版 tab）────────────────
 
-function getCCTab(sheetId, headers) {
-  const ss = SpreadsheetApp.openById(sheetId);
-  let tab  = ss.getSheetByName('CommandCentre');
-  if (!tab) {
-    tab = ss.insertSheet('CommandCentre');
-    tab.getRange(1, 1, 1, headers.length)
-       .setValues([headers]).setFontWeight('bold').setBackground('#fdf8f2');
-  }
-  return tab;
-}
+function readMarketingContent() {
+  const ss = SpreadsheetApp.openById(SHEET_IDS.mkt);
+  const tab = ss.getSheetByName(MKT_TAB);
+  if (!tab) return { error: 'Marketing Content tab not found in S&M spreadsheet' };
 
-function readCC(sheetId, headers) {
-  const tab  = getCCTab(sheetId, headers);
   const data = tab.getDataRange().getValues();
-  if (data.length <= 1) return [];
+  if (data.length < 2) return [];
+
   const hdrs = data[0];
-  return data.slice(1).filter(r => r[0] !== '').map(row => {
-    const obj = {};
-    hdrs.forEach((h, i) => { obj[h] = typeof row[i] === 'number' ? row[i] : String(row[i] ?? ''); });
-    return obj;
-  });
+  const find = makeFlexFinder(hdrs);
+
+  const col = {
+    id:       find('id'),
+    title:    find('内容标题','title','标题','发布内容','内容','content'),
+    date:     find('发布日期','date','日期'),
+    platform: find('平台','platform'),
+    type:     find('类型','type','内容类型','content type'),
+    cat:      find('类别','cat','category'),
+    person:   find('负责人','person','who','负责'),
+    dl:       find('截止日期','deadline','dl','due'),
+    doneDate: find('完成日期','done date','donedate'),
+    actual:   find('用时','actual','hours'),
+    eff:      find('效率','eff','efficiency'),
+    status:   find('状态','status')
+  };
+
+  const g  = (row, c) => c >= 0 ? String(row[c] ?? '').trim() : '';
+  const fd = (row, c) => c >= 0 ? fmtDate(row[c]) : '';
+
+  return data.slice(1)
+    .filter(r => g(r, col.title) || fd(r, col.date))
+    .map((row, idx) => ({
+      id:       g(row, col.id)   || ('mc' + (idx + 100)),
+      title:    g(row, col.title),
+      date:     fd(row, col.date)     || g(row, col.date),
+      platform: g(row, col.platform),
+      type:     g(row, col.type)      || g(row, col.cat),
+      cat:      g(row, col.cat)       || g(row, col.type),
+      person:   g(row, col.person),
+      dl:       fd(row, col.dl)       || g(row, col.dl),
+      doneDate: fd(row, col.doneDate) || g(row, col.doneDate),
+      actual:   g(row, col.actual),
+      eff:      g(row, col.eff),
+      status:   g(row, col.status)    || '待发布'
+    }));
 }
 
-function writeCC(sheetId, headers, items) {
-  const tab     = getCCTab(sheetId, headers);
+// ─── MARKETING CONTENT 写入（直接写原版 tab）────────────────
+
+function writeMarketingContent(items) {
+  const ss  = SpreadsheetApp.openById(SHEET_IDS.mkt);
+  const tab = ss.getSheetByName(MKT_TAB);
+  if (!tab) return { error: 'Marketing Content tab not found' };
+
+  const hdrs    = tab.getRange(1, 1, 1, tab.getLastColumn()).getValues()[0];
+  const find    = makeFlexFinder(hdrs);
+  const numCols = hdrs.length;
+
+  const colMap = {
+    id:       find('id'),
+    title:    find('内容标题','title','标题','发布内容','内容','content'),
+    date:     find('发布日期','date','日期'),
+    platform: find('平台','platform'),
+    type:     find('类型','type','内容类型'),
+    cat:      find('类别','cat'),
+    person:   find('负责人','person','who'),
+    dl:       find('截止日期','deadline','dl'),
+    doneDate: find('完成日期','donedate'),
+    actual:   find('用时','actual'),
+    eff:      find('效率','eff'),
+    status:   find('状态','status')
+  };
+
   const lastRow = tab.getLastRow();
-  if (lastRow > 1) tab.getRange(2, 1, lastRow - 1, headers.length).clearContent();
+  if (lastRow > 1) tab.getRange(2, 1, lastRow - 1, numCols).clearContent();
   if (!items.length) return { ok: true, count: 0 };
-  const rows = items.map(item => headers.map(h => item[h] ?? ''));
-  tab.getRange(2, 1, rows.length, headers.length).setValues(rows);
+
+  const rows = items.map(item => {
+    const row = new Array(numCols).fill('');
+    Object.entries(colMap).forEach(([field, idx]) => {
+      if (idx >= 0 && item[field] !== undefined) row[idx] = item[field] ?? '';
+    });
+    return row;
+  });
+
+  tab.getRange(2, 1, rows.length, numCols).setValues(rows);
   return { ok: true, count: rows.length };
+}
+
+// ─── GDC MARKETING JOB 读取（直接读原版 tab）───────────────
+
+function readGDCJobs() {
+  const ss = SpreadsheetApp.openById(SHEET_IDS.gdc);
+  // 尝试多个可能的 tab 名
+  let tab = ss.getSheetByName(GDC_JOB_TAB);
+  if (!tab) {
+    for (const n of ['GDC Job','Marketing Job','Jobs','GDC','Sheet1','工作表1']) {
+      tab = ss.getSheetByName(n);
+      if (tab) break;
+    }
+  }
+  if (!tab) tab = ss.getSheets()[0]; // 拿第一个 tab 作 fallback
+  if (!tab) return { error: 'No tab found in GDC spreadsheet' };
+
+  const data = tab.getDataRange().getValues();
+  if (data.length < 2) return [];
+
+  const hdrs = data[0];
+  const find = makeFlexFinder(hdrs);
+
+  const col = {
+    id:     find('id'),
+    task:   find('任务内容','task','内容','job','工作'),
+    date:   find('发布日期','date','日期'),
+    dl:     find('截止日期','deadline','dl','due'),
+    cat:    find('类别','cat','type','类型','category'),
+    who:    find('负责人','who','person','负责 gdc','负责'),
+    pic:    find('pic','截图','screenshot'),
+    status: find('状态','status'),
+    pay:    find('pay','费用','amount','金额')
+  };
+
+  const g  = (row, c) => c >= 0 ? String(row[c] ?? '').trim() : '';
+  const fd = (row, c) => c >= 0 ? fmtDate(row[c]) : '';
+
+  return data.slice(1)
+    .filter(r => g(r, col.task))
+    .map((row, idx) => ({
+      id:     g(row, col.id) || ('gdc' + (idx + 100)),
+      task:   g(row, col.task),
+      date:   fd(row, col.date)     || g(row, col.date),
+      dl:     fd(row, col.dl)       || g(row, col.dl),
+      cat:    g(row, col.cat),
+      who:    g(row, col.who),
+      pic:    g(row, col.pic),
+      status: g(row, col.status)    || '待发布',
+      pay:    g(row, col.pay)
+    }));
+}
+
+// ─── GDC MARKETING JOB 写入 ──────────────────────────────────
+
+function writeGDCJobs(items) {
+  const ss = SpreadsheetApp.openById(SHEET_IDS.gdc);
+  let tab = ss.getSheetByName(GDC_JOB_TAB);
+  if (!tab) {
+    for (const n of ['GDC Job','Marketing Job','Jobs','GDC','Sheet1','工作表1']) {
+      tab = ss.getSheetByName(n);
+      if (tab) break;
+    }
+  }
+  if (!tab) tab = ss.getSheets()[0];
+  if (!tab) return { error: 'No tab found in GDC spreadsheet' };
+
+  const hdrs    = tab.getRange(1, 1, 1, tab.getLastColumn()).getValues()[0];
+  const find    = makeFlexFinder(hdrs);
+  const numCols = hdrs.length;
+
+  const colMap = {
+    id:     find('id'),
+    task:   find('任务内容','task','内容','job'),
+    date:   find('发布日期','date','日期'),
+    dl:     find('截止日期','deadline','dl'),
+    cat:    find('类别','cat','type','类型'),
+    who:    find('负责人','who','person'),
+    pic:    find('pic','截图'),
+    status: find('状态','status'),
+    pay:    find('pay','费用')
+  };
+
+  const lastRow = tab.getLastRow();
+  if (lastRow > 1) tab.getRange(2, 1, lastRow - 1, numCols).clearContent();
+  if (!items.length) return { ok: true, count: 0 };
+
+  const rows = items.map(item => {
+    const row = new Array(numCols).fill('');
+    Object.entries(colMap).forEach(([field, idx]) => {
+      if (idx >= 0 && item[field] !== undefined) row[idx] = item[field] ?? '';
+    });
+    return row;
+  });
+
+  tab.getRange(2, 1, rows.length, numCols).setValues(rows);
+  return { ok: true, count: rows.length };
+}
+
+// ─── EVENTS 活动 读取（Task Board spreadsheet）──────────────
+
+function readEventsTab() {
+  const ss  = SpreadsheetApp.openById(SHEET_IDS.tasks);
+  const tab = ss.getSheetByName(EVENTS_TAB);
+  if (!tab) return [];
+
+  const data = tab.getDataRange().getValues();
+  if (data.length < 2) return [];
+
+  const hdrs = data[0];
+  const find = makeFlexFinder(hdrs);
+
+  const col = {
+    date:   find('date','日期','活动日期'),
+    name:   find('name','活动名称','内容','标题'),
+    time:   find('time','时间'),
+    type:   find('type','类型'),
+    person: find('person','负责人','who'),
+    active: find('active','是否启用','启用')
+  };
+
+  const g  = (row, c) => c >= 0 ? String(row[c] ?? '').trim() : '';
+  const fd = (row, c) => c >= 0 ? fmtDate(row[c]) : '';
+
+  return data.slice(1).filter(row => {
+    const d = fd(row, col.date) || g(row, col.date);
+    if (!d || !g(row, col.name)) return false;
+    if (col.active >= 0) {
+      const act = g(row, col.active).toLowerCase();
+      if (['false','no','0','✗','x','否'].includes(act)) return false;
+    }
+    return true;
+  }).map((row, idx) => ({
+    id:     'ev_s_' + (idx + 1),
+    name:   g(row, col.name),
+    date:   fd(row, col.date) || g(row, col.date),
+    time:   g(row, col.time),
+    type:   g(row, col.type) || 'meet',
+    person: g(row, col.person)
+  }));
+}
+
+// ─── ROTATION 轮值 读取 ──────────────────────────────────────
+
+function readRotationTab() {
+  const ss  = SpreadsheetApp.openById(SHEET_IDS.tasks);
+  const tab = ss.getSheetByName(ROTATION_TAB);
+  if (!tab) return [];
+
+  const data = tab.getDataRange().getValues();
+  if (data.length < 2) return [];
+
+  const hdrs = data[0];
+  const find = makeFlexFinder(hdrs);
+
+  const col = {
+    date:   find('date','日期','周四','thursday','week','周次'),
+    person: find('person','负责人','who','ylyd person','主持人'),
+    note:   find('note','备注')
+  };
+
+  const g  = (row, c) => c >= 0 ? String(row[c] ?? '').trim() : '';
+  const fd = (row, c) => c >= 0 ? fmtDate(row[c]) : '';
+
+  return data.slice(1).filter(row => {
+    return (fd(row, col.date) || g(row, col.date)) && g(row, col.person);
+  }).map(row => ({
+    date:   fd(row, col.date) || g(row, col.date),
+    person: g(row, col.person)
+  }));
 }
 
 // ─── SALES DASHBOARD ────────────────────────────────────────
@@ -218,13 +452,12 @@ function readSalesDashboard() {
   const data = tab.getDataRange().getValues();
   if (data.length < 2) return [];
 
-  // ── 找真正的 header 行（含"月份"的那行）────────────────────
   let hdrIdx = -1;
   for (let i = 0; i < Math.min(data.length, 15); i++) {
     const first = String(data[i][0] || '').trim();
     if (first === '月份' || first === 'Month') { hdrIdx = i; break; }
   }
-  if (hdrIdx < 0) return { error: 'Header row (月份) not found in first 15 rows' };
+  if (hdrIdx < 0) return { error: 'Header row (月份) not found' };
 
   const hdrs = data[hdrIdx].map(h => String(h).trim());
   const h = {};
@@ -234,10 +467,8 @@ function readSalesDashboard() {
     for (const n of names) { if (h[n] !== undefined) return h[n]; }
     return -1;
   };
-  // 把 "RM10,000" / 10000 都转成数字
   const num = v => parseFloat(String(v||'').replace(/[^0-9.\-]/g,'')) || 0;
 
-  // 只保留 "Mon YYYY" 格式的月份行（Jan 2026…），过滤标题/合计/产品拆解行
   return data.slice(hdrIdx + 1).filter(row => {
     const f = String(row[0]||'').trim();
     return /^(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s+\d{4}$/.test(f);
@@ -256,20 +487,7 @@ function readSalesDashboard() {
   });
 }
 
-function writeSalesDashboard(items) {
-  const ss  = SpreadsheetApp.openById(SHEET_IDS.mkt);
-  const tab = ss.getSheetByName(SALES_TAB);
-  if (!tab) return { error: 'Sales Dashboard tab not found' };
-
-  const lastRow = tab.getLastRow();
-  if (lastRow > 1) tab.getRange(2, 1, lastRow - 1, SALES_HEADERS.length).clearContent();
-  if (!items.length) return { ok: true, count: 0 };
-  const rows = items.map(item => SALES_HEADERS.map(k => item[k] ?? ''));
-  tab.getRange(2, 1, rows.length, SALES_HEADERS.length).setValues(rows);
-  return { ok: true, count: rows.length };
-}
-
-// ─── 再投资捐款 — 读取已捐总额 ──────────────────────────────
+// ─── 再投资捐款 ──────────────────────────────────────────────
 
 function readDonationTotal() {
   try {
@@ -280,12 +498,10 @@ function readDonationTotal() {
     const data = tab.getDataRange().getValues();
     const num  = v => parseFloat(String(v||'').replace(/[^0-9,\.\-]/g,'').replace(/,/g,'')) || 0;
 
-    // 方法1：找 "Total Reinvested" 行 → 读该行最后一个有数值的格
     for (let i = 0; i < data.length; i++) {
       for (let j = 0; j < data[i].length; j++) {
         const cell = String(data[i][j]||'').trim();
         if (cell.includes('Total Reinvested') || cell.includes('已捐总额') || cell.includes('Total')) {
-          // 从该行最右边找数值
           for (let k = data[i].length - 1; k > j; k--) {
             const v = num(data[i][k]);
             if (v > 0) return { total: v };
@@ -293,35 +509,19 @@ function readDonationTotal() {
         }
       }
     }
-
-    // 方法2：找 "已捐总额" 列 header，加总该列所有数值
-    for (let i = 0; i < Math.min(data.length, 20); i++) {
-      for (let j = 0; j < data[i].length; j++) {
-        const h = String(data[i][j]||'').trim();
-        if (h === '已捐总额' || h === '已捐金额(RM)' || h === '已捐金额') {
-          let total = 0;
-          for (let r = i + 1; r < data.length; r++) {
-            total += num(data[r][j]);
-          }
-          return { total };
-        }
-      }
-    }
-
-    return { total: 0, note: 'Total Reinvested row not found' };
+    return { total: 0 };
   } catch(e) {
     return { error: e.message };
   }
 }
 
-// ─── 分钱计算 — 写入汇总 Sheet ──────────────────────────────
+// ─── 分钱汇总写入 ────────────────────────────────────────────
 
 const PAY_HEADERS = ['来源','id','任务内容','负责人','类别','类型','截止日期','完成日期','用时','效率','分钱系数','应付金额'];
 const COEF_MAP   = {Sales:3,Marketing:2,System:2,GDC:2,'GDC job':2,Operation:1,Admin:1};
 
 function writePaySheet(tasks, mkt, gdc) {
-  const ss  = SpreadsheetApp.openById(SHEET_IDS.pay);
-  // 找或创建 "分钱汇总" tab
+  const ss  = SpreadsheetApp.openById(SHEET_IDS.admin);
   let tab = ss.getSheetByName('分钱汇总');
   if (!tab) {
     tab = ss.insertSheet('分钱汇总');
@@ -332,7 +532,6 @@ function writePaySheet(tasks, mkt, gdc) {
 
   const rows = [];
 
-  // Task Board 任务
   (tasks||[]).forEach(t => {
     if (!t.person || t.person==='All' || t.person==='全员') return;
     const eff   = t.eff || calcEff(t.deadline, t.doneDate) || '';
@@ -342,14 +541,12 @@ function writePaySheet(tasks, mkt, gdc) {
     rows.push(['TaskBoard', t.id||'', t.task||'', t.person||'', t.cat||'', t.type==='fee'?'Fee':'贡献', t.deadline||'', t.doneDate||'', hours||'', eff, coef, pay]);
   });
 
-  // GDC 任务
   (gdc||[]).forEach(t => {
-    if (!t.doneDate) return; // 只记录已完成
+    if (!t.doneDate) return;
     const eff = calcEff(t.dl, t.doneDate) || '';
-    rows.push(['GDC', t.id||'', t.task||'', t.pic||'', 'GDC', 'Fee', t.dl||'', t.doneDate||'', '', eff, 2, '']);
+    rows.push(['GDC', t.id||'', t.task||'', t.who||t.pic||'', 'GDC', 'Fee', t.dl||'', t.doneDate||'', '', eff, 2, '']);
   });
 
-  // Marketing 内容
   (mkt||[]).forEach(m => {
     if (!m.doneDate) return;
     const eff = calcEff(m.dl, m.doneDate) || '';
@@ -365,11 +562,13 @@ function writePaySheet(tasks, mkt, gdc) {
 function doGet(e) {
   const type = (e.parameter && e.parameter.sheet) || '';
   try {
-    if (type === 'tasks') return respond(readTaskBoard());
-    if (type === 'mkt')   return respond(readCC(SHEET_IDS.mkt, MKT_HEADERS));
-    if (type === 'gdc')   return respond(readCC(SHEET_IDS.gdc, GDC_HEADERS));
+    if (type === 'tasks')    return respond(readTaskBoard());
+    if (type === 'mkt')      return respond(readMarketingContent());
+    if (type === 'gdc')      return respond(readGDCJobs());
     if (type === 'sales')    return respond(readSalesDashboard());
     if (type === 'donation') return respond(readDonationTotal());
+    if (type === 'events')   return respond(readEventsTab());
+    if (type === 'rotation') return respond(readRotationTab());
     return respond({ error: 'Unknown sheet: ' + type });
   } catch(err) {
     return respond({ error: err.message });
@@ -382,13 +581,10 @@ function doPost(e) {
   const type = (e.parameter && e.parameter.sheet) || '';
   try {
     const data = JSON.parse(e.postData.contents);
-    if (!Array.isArray(data)) return respond({ error: 'Expected JSON array' });
-    if (type === 'tasks') return respond(writeTaskBoard(data));
-    if (type === 'mkt')   return respond(writeCC(SHEET_IDS.mkt, MKT_HEADERS, data));
-    if (type === 'gdc')   return respond(writeCC(SHEET_IDS.gdc, GDC_HEADERS, data));
-    if (type === 'sales') return respond(writeSalesDashboard(data));
+    if (type === 'tasks') return respond(writeTaskBoard(Array.isArray(data) ? data : []));
+    if (type === 'mkt')   return respond(writeMarketingContent(Array.isArray(data) ? data : []));
+    if (type === 'gdc')   return respond(writeGDCJobs(Array.isArray(data) ? data : []));
     if (type === 'pay') {
-      // data = { tasks:[...], gdc:[...], mkt:[...] }
       return respond(writePaySheet(data.tasks, data.mkt, data.gdc));
     }
     return respond({ error: 'Unknown sheet: ' + type });
