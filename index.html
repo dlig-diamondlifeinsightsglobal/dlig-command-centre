@@ -843,9 +843,11 @@ body{background:var(--cream);color:var(--text);font-family:'Plus Jakarta Sans',s
         <div class="ff" style="flex:2;min-width:160px"><div class="fl2">内容标题</div><input class="fi" id="gdc-task" placeholder="描述 GDC 内容任务..."></div>
         <div class="ff"><div class="fl2">发布日期</div><input class="fi" id="gdc-date" type="date" style="width:140px"></div>
         <div class="ff"><div class="fl2">完成 Deadline</div><input class="fi" id="gdc-dl" type="date" style="width:140px"></div>
-        <div class="ff"><div class="fl2">平台</div><select class="fs" id="gdc-platform" style="width:130px">
-          <option>DCW Page</option><option>GDC Page</option><option>Jenny 老师 Page</option>
-        </select></div>
+        <div class="ff"><div class="fl2">平台（可多选）</div><div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding:4px 0">
+          <label style="font-size:11px;display:flex;align-items:center;gap:4px;cursor:pointer"><input type="checkbox" id="gdc-plt-dcw" value="DCW Page"> DCW Page</label>
+          <label style="font-size:11px;display:flex;align-items:center;gap:4px;cursor:pointer"><input type="checkbox" id="gdc-plt-gdc" value="GDC Page"> GDC Page</label>
+          <label style="font-size:11px;display:flex;align-items:center;gap:4px;cursor:pointer"><input type="checkbox" id="gdc-plt-jenny" value="Jenny 老师 Page"> Jenny 老师</label>
+        </div></div>
         <div class="ff"><div class="fl2">类型</div><select class="fs" id="gdc-cat" style="width:160px">
           <option>GDC 视频文案</option><option>GDC 图文文案</option><option>GDC 金句图文</option>
           <option>GDC 视频拍摄</option><option>GDC 视频脚本</option><option>GDC 短视频剪辑</option>
@@ -2310,7 +2312,9 @@ function addGDCTask(){
   const date=document.getElementById('gdc-date')?.value||'';
   if(!task)return;
   const dl=document.getElementById('gdc-dl')?.value||'';
-  const platform=document.getElementById('gdc-platform')?.value||'GDC Page';
+  const _plts=['gdc-plt-dcw','gdc-plt-gdc','gdc-plt-jenny'].map(id=>document.getElementById(id)).filter(el=>el&&el.checked).map(el=>el.value);
+  const platform=_plts.length?_plts.join(', '):'GDC Page';
+  ['gdc-plt-dcw','gdc-plt-gdc','gdc-plt-jenny'].forEach(id=>{const el=document.getElementById(id);if(el)el.checked=false;});
   const cat=document.getElementById('gdc-cat')?.value||'GDC 视频文案';
   const who=document.getElementById('gdc-who')?.value.trim()||'';
   const pic=document.getElementById('gdc-pic')?.value||'Jasper';
@@ -2377,15 +2381,18 @@ function renderGDC(){
     <td style="font-size:10.5px">${t.who||'—'}</td>
     <td>${ptag(t.pic)}</td>
     <td>
-      ${!isDone?`<button class="tc-btn" onclick="openGDCComplete(${i})" style="background:var(--greenB);border-color:var(--green);color:var(--green);font-size:10px">✓ 完成</button>`:`<span style="font-size:10px;color:var(--green)">✅</span>`}
-      <button class="tc-btn" onclick="GDC_TASKS.splice(GDC_TASKS.indexOf(fil[${i}]),1);save('gdc_tasks',GDC_TASKS);renderGDC()" style="color:var(--red);font-size:10px;margin-left:4px">删</button>
+      ${!isDone?`<button class="tc-btn" onclick="openGDCComplete('${t.id}')" style="background:var(--greenB);border-color:var(--green);color:var(--green);font-size:10px">✓ 完成</button>`:`<span style="font-size:10px;color:var(--green)">✅</span>`}
+      <button class="tc-btn" onclick="delGDCTask('${t.id}')" style="color:var(--red);font-size:10px;margin-left:4px">删</button>
     </td>
   </tr>`;}).join(''):'<tr><td colspan="10" style="text-align:center;color:var(--muted);padding:20px">暂无 GDC 任务</td></tr>';
 
 }
-function openGDCComplete(i){
-  const fil=GDC_F==='全部'?GDC_TASKS:GDC_TASKS.filter(t=>t.status===GDC_F);
-  const t=fil[i];if(!t)return;
+function delGDCTask(id){
+  GDC_TASKS.splice(GDC_TASKS.findIndex(t=>String(t.id)===String(id)),1);
+  save('gdc_tasks',GDC_TASKS);renderGDC();
+}
+function openGDCComplete(id){
+  const t=GDC_TASKS.find(x=>String(x.id)===String(id));if(!t)return;
   const modal=document.createElement('div');
   modal.id='gdc-complete-modal';
   modal.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:300;display:flex;align-items:center;justify-content:center';
@@ -2395,24 +2402,22 @@ function openGDCComplete(i){
     <div class="ff" style="margin-bottom:12px"><div class="fl2">完成日期</div><input class="fi" id="gdc-done-date" type="date" value="${new Date().toISOString().split('T')[0]}"></div>
     <div style="font-size:11px;color:var(--muted);padding:9px 12px;background:var(--purpleB);border-radius:8px;margin-bottom:14px">💰 GDC Task Fee · 参考 Company Policy 价目表</div>
     <div style="display:flex;gap:8px">
-      <button class="add-btn" onclick="confirmGDCComplete(${i})" style="flex:1;background:linear-gradient(135deg,#6a3a96,#9b59b6)">✓ 确认</button>
+      <button class="add-btn" onclick="confirmGDCComplete('${t.id}')" style="flex:1;background:linear-gradient(135deg,#6a3a96,#9b59b6)">✓ 确认</button>
       <button class="fb" onclick="document.getElementById('gdc-complete-modal').remove()" style="flex:1">取消</button>
     </div>
   </div>`;
   document.body.appendChild(modal);
 }
-function confirmGDCComplete(i){
-  const fil=GDC_F==='全部'?GDC_TASKS:GDC_TASKS.filter(t=>t.status===GDC_F);
-  const t=fil[i];if(!t)return;
+function confirmGDCComplete(id){
+  const t=GDC_TASKS.find(x=>String(x.id)===String(id));if(!t)return;
   t.status='已完成';
   t.doneDate=document.getElementById('gdc-done-date')?.value||new Date().toISOString().split('T')[0];
   if(t.dl)t.eff=calcEffDL(t.dl,t.doneDate);
   document.getElementById('gdc-complete-modal')?.remove();
   save('gdc_tasks',GDC_TASKS);renderGDC();
 }
-function cycleGDCStatus(i){
-  const fil=GDC_F==='全部'?GDC_TASKS:GDC_TASKS.filter(t=>t.status===GDC_F);
-  const t=fil[i];if(!t)return;
+function cycleGDCStatus(id){
+  const t=GDC_TASKS.find(x=>String(x.id)===String(id));if(!t)return;
   const s=['待开始','进行中','已完成','已付款'];
   t.status=s[(s.indexOf(t.status)+1)%s.length];
   save('gdc_tasks',GDC_TASKS);renderGDC();
