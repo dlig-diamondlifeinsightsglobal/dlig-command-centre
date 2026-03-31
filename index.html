@@ -982,13 +982,14 @@ body{background:var(--cream);color:var(--text);font-family:'Plus Jakarta Sans',s
       <button class="mt on" onclick="smeet('monthly',this)">📋 Monthly Meeting</button>
       <button class="mt" onclick="smeet('weekly',this)">⚡ Weekly Meeting</button>
       <button class="mt" onclick="smeet('minutes',this)">📝 会议记录</button>
+      <button class="mt" onclick="smeet('special',this)">🔔 特别会议</button>
     </div>
     <div class="ms-tab on" id="ms-monthly">
-      <div class="ib ib-gold"><b>📅 Monthly Meeting — 每月最后拜二</b>全员参与 · 每人准备部门报告</div>
+      <div class="ib ib-gold"><b>📅 Monthly Meeting — 每月最后拜二</b>全员参与 · 每人准备部门报告 · <a onclick="go('decisions')" style="color:var(--gold);cursor:pointer;text-decoration:underline">⚡ 点击先去投票</a></div>
       <div class="ag-wrap" id="mo-agenda"></div>
     </div>
     <div class="ms-tab" id="ms-weekly">
-      <div class="ib ib-blue"><b>⚡ Weekly Meeting — 每周 Thu 8am</b>快速对齐 + 任务分配</div>
+      <div class="ib ib-blue"><b>⚡ Weekly Meeting — 每周 Thu 8am</b>快速对齐 + 任务分配 · <a onclick="go('decisions')" style="color:var(--blue);cursor:pointer;text-decoration:underline">⚡ 点击先去投票</a></div>
       <div class="ag-wrap" id="wk-agenda"></div>
     </div>
     <div class="ms-tab" id="ms-minutes">
@@ -1002,11 +1003,33 @@ body{background:var(--cream);color:var(--text);font-family:'Plus Jakarta Sans',s
       </div>
       <div id="mins-list"></div>
     </div>
+    <div class="ms-tab" id="ms-special">
+      <div class="ib ib-red"><b>🔔 特别会议 Special Meeting</b>由 Li Joo 安排的特别会议。资料存在 Sheet，所有人进来都能看到。</div>
+      <div id="special-meeting-list"></div>
+      <div style="background:var(--white);border:1.5px solid var(--border);border-radius:var(--r);padding:14px;margin-top:14px;box-shadow:var(--sh)">
+        <div style="font-size:11.5px;font-weight:700;margin-bottom:10px">➕ 添加特别会议</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end">
+          <div class="ff" style="flex:2;min-width:160px"><div class="fl2">会议主题</div><input class="fi" id="sm-title" placeholder="主题..."></div>
+          <div class="ff"><div class="fl2">日期时间</div><input class="fi" id="sm-dt" type="datetime-local" style="width:175px"></div>
+          <div class="ff" style="flex:1"><div class="fl2">地点/Zoom</div><input class="fi" id="sm-loc" placeholder="Zoom/地点..."></div>
+          <div class="ff" style="flex:2;min-width:200px"><div class="fl2">议程 / 备注</div><input class="fi" id="sm-desc" placeholder="简单说明..."></div>
+          <button class="add-btn" onclick="addSpecialMeeting()">+ 添加</button>
+        </div>
+      </div>
+    </div>
   </div>
 
   <!-- ══ DECISIONS ══ -->
   <div class="page" id="p-decisions">
     <div style="max-width:740px">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;background:var(--amberB);border:1.5px solid rgba(180,120,0,.2);border-radius:10px;padding:10px 14px">
+        <span style="font-size:11.5px;font-weight:700">我是：</span>
+        <select class="fs" id="dec-voter" style="width:120px">
+          <option>Li Joo</option><option>Jasper</option><option>Stella</option><option>Roy</option>
+        </select>
+        <span style="font-size:11px;color:var(--muted)">· 选好身份再投票，系统会记录是谁投的</span>
+        <button class="fb" style="margin-left:auto" onclick="go('decisions')">⚡ 去投票</button>
+      </div>
       <div class="ib ib-red"><b>⚠️ 待拍板事项</b>大家提前投票 &amp; 留言，会议时直接确认</div>
       <div style="background:var(--white);border:1.5px solid var(--border);border-radius:var(--r);padding:14px;margin-bottom:16px;box-shadow:var(--sh)">
         <div style="font-size:12px;font-weight:700;color:var(--text2);margin-bottom:10px">➕ 添加待决策事项</div>
@@ -1065,7 +1088,7 @@ function calcEffDL(dl,done){if(!dl||!done)return null;try{const d=Math.floor((ne
 // ═══════════════════════════════════════
 const SHEETS_API_URL = 'https://script.google.com/macros/s/AKfycbxD9lCg_7WC69Wzq-HBK4tSQPJv4f_cpV-73-GRP8duy2JhwO7-NVetJnam4KPPSUXz/exec';
 
-const SHEET_KEY_MAP = {'tasks':'tasks','mkt_content':'mkt','gdc_tasks':'gdc','logs':'logs'};
+const SHEET_KEY_MAP = {'tasks':'tasks','mkt_content':'mkt','gdc_tasks':'gdc','logs':'logs','decisions':'decisions','special_meetings':'special_meetings'};
 
 let _syncTimer=null;
 function showSyncStatus(success){
@@ -1186,7 +1209,7 @@ let EVENTS=load('events',[
   {id:'e6',name:'Monthly Meeting',date:'2026-04-28',type:'meet',person:'All'},
 ]);
 let ROTATION=[]; // 从 Rotation 轮值 tab 读取，格式：[{date:'2026-04-03',person:'Li Joo'},...]
-let MINUTES=load('minutes',[{id:'m1',date:'2026-03-25',title:'Meeting Minutes 2026 W12',link:'https://docs.google.com/document/d/12v7NoM7aPpbywPvMGa6dSIZa6_dshPfC9Oz1TYC-bc4/edit',note:'分钱机制讨论'}]);
+let MINUTES=load('minutes',[{id:'m1',date:'2026-03-25',title:'Meeting Minutes 2026 W12',link:'https://docs.google.com/document/d/1YxXGVfEcNReIk3JBH4nPDdpkGK5l_q6Y1YtkZJFqjFg/edit',note:'分钱机制讨论'}]);
 let ATTENDANCE=load('attendance',{});
 let SB_RECORDS=load('sb_records',[]);
 let AU_RECORDS=load('au_records',[]);
@@ -1422,7 +1445,7 @@ const DR_CL=['Polling 确认出席者（2-3天前）','开始前5分钟 Start Zo
 const WR_CL=['Polling 确认出席者（2-3天前）','Send Zoom link / 确认地点','准备当周主题 & 内容','准时 2pm 开始','主持整场 1-2小时','拍照 & Post 活动花絮'];
 const BS_CL=['Polling 确认出席者（2-3天前）','Send Zoom link','准备当月书/影选题','准时 2:30pm 开始','主持分享 & 讨论（1.5小时）','Post 精华 Social Media'];
 const MO_AGENDA=[
-  {t:'开场',title:'🙏 调频 & 发愿',desc:'发愿 + 感恩彼此（每人1句） + 读使命',o:'全体'},
+  {t:'开场',title:'🙏 调频 & 发愿',desc:'发愿 + 感恩彼此（每人1句） + 读使命',o:'全体',expand:true},
   {t:'+10m',title:'📊 目标回顾',desc:'上月 KPI 复盘 · 本月目标确认',o:'Li Joo'},
   {t:'+20m',title:'💰 Sales 报告',desc:'成交数字 · 达成率 · 下月 Target',o:'Li Joo'},
   {t:'+20m',title:'📣 Marketing 报告',desc:'内容表现 · 广告数据 · 下月计划',o:'Jasper'},
@@ -1468,7 +1491,7 @@ const DEFAULT_FILES=[
   {cat:'🏢 公司核心资料',items:[
     {n:'Task Tracking Sheet',note:'全团队每天看',link:'https://docs.google.com/spreadsheets/d/1A3g_WPDU-R4zU8gj8gGHu885z5bk4lTBBRnCfDsstDI/edit'},
     {n:'Company Policy Doc',note:'3-6个月更新',link:'https://docs.google.com/document/d/1LFNUcIsbCIA6wrBZbeoQJR2ZmQsvdyun/edit'},
-    {n:'Meeting Record Doc',note:'最新会议记录',link:'https://docs.google.com/document/d/12v7NoM7aPpbywPvMGa6dSIZa6_dshPfC9Oz1TYC-bc4/edit'},
+    {n:'Meeting Record Doc',note:'最新会议记录',link:'https://docs.google.com/document/d/1YxXGVfEcNReIk3JBH4nPDdpkGK5l_q6Y1YtkZJFqjFg/edit'},
     {n:'Google Drive（总文件夹）',note:'',link:'https://drive.google.com/drive/folders/1GtDxOFljZKzGPiRoipJIN8znz37kDQen'},
   ]},
   {cat:'💰 Sales & Marketing',items:[
@@ -2523,10 +2546,75 @@ function renderPolicy(){
 // ═══════════════════════════════════════
 // MEETING
 // ═══════════════════════════════════════
+let SPECIAL_MEETINGS=load('special_meetings',[]);
+function renderSpecialMeeting(){
+  const el=document.getElementById('special-meeting-list');if(!el)return;
+  el.innerHTML=SPECIAL_MEETINGS.length?SPECIAL_MEETINGS.map((m,i)=>`
+    <div style="background:var(--white);border:1.5px solid var(--border);border-radius:12px;padding:14px;margin-bottom:10px;box-shadow:var(--sh)">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between">
+        <div>
+          <div style="font-size:13px;font-weight:800;color:var(--red);margin-bottom:4px">🔔 ${m.title}</div>
+          <div style="font-size:11px;color:var(--muted);margin-bottom:4px">📅 ${m.dt||'待定'} ${m.loc?'· 📍 '+m.loc:''}</div>
+          ${m.desc?`<div style="font-size:11.5px;color:var(--text2)">${m.desc}</div>`:''}
+        </div>
+        <button onclick="delSpecialMeeting('${m.id}')" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:11px;padding:4px">✕</button>
+      </div>
+    </div>`).join(''):'<div style="color:var(--muted);font-size:12px;padding:20px 0">暂无特别会议安排</div>';
+}
+function addSpecialMeeting(){
+  const title=document.getElementById('sm-title')?.value.trim();if(!title)return;
+  const dt=document.getElementById('sm-dt')?.value||'';
+  const loc=document.getElementById('sm-loc')?.value.trim()||'';
+  const desc=document.getElementById('sm-desc')?.value.trim()||'';
+  SPECIAL_MEETINGS.push({id:'sm'+Date.now(),title,dt,loc,desc});
+  document.getElementById('sm-title').value='';
+  if(document.getElementById('sm-dt'))document.getElementById('sm-dt').value='';
+  if(document.getElementById('sm-loc'))document.getElementById('sm-loc').value='';
+  if(document.getElementById('sm-desc'))document.getElementById('sm-desc').value='';
+  save('special_meetings',SPECIAL_MEETINGS);renderSpecialMeeting();
+}
+function delSpecialMeeting(id){SPECIAL_MEETINGS=SPECIAL_MEETINGS.filter(m=>m.id!==id);save('special_meetings',SPECIAL_MEETINGS);renderSpecialMeeting();}
+
+const FAYU_HTML=`<div style="font-size:11.5px;line-height:1.9;color:var(--text2)">
+<div style="font-weight:800;color:var(--gold);margin-bottom:8px;font-size:12px">🙏 Offering the Mandala 供曼达</div>
+<div style="font-family:monospace;font-size:10.5px;color:var(--muted);margin-bottom:10px;line-height:2;background:rgba(0,0,0,.03);padding:10px 12px;border-radius:8px">
+།ས་གཞི་སྤོས་ཀིས་བྱུགས་ཤིང་མེ་ཏྤོག་བཀྲམ།<br>SA GZHI SPOS KYIS BYUGS SHING ME TOG BKRAM<br><i>sashi pukyi jukshing metok tram</i><br><br>
+།རི་རབ་གིང་བཞི་ཉི་ཟླས་བརྒྱན་པ་འདི།<br>RI RAB GLING BZHI NYI ZLAS BRGYAN PA 'DI<br><i>rirab lingshi nyinde gyenpa di</i><br><br>
+།སངས་རྒྱས་ཞིང་དུ་དམིགས་ཏེ་དབུལ་བར་བགི།<br>SANGS RGYAS ZHING DU DMIGS TE DBUL BAR BGYI<br><i>sangye shingdu mikte ulwar gyi</i><br><br>
+།འགྤོ་ཀུན་རྣམ་དག་ཞིང་ལ་སྤོད་པར་ཤྤོག<br>'GRO KUN RNAM DAG ZHING LA SPYOD PAR SHOG<br><i>drokun namdak shingla chupar shok</i><br><br>
+།ཨི་ད་གུ་རུ་རཊྞ་མཎྜ་ལ་ཀཾ་ནིར ྻཱ་ཏ་ཡ་མི།<br>AI DAm GU RU RATNA MAndA LA KAm NIRY'A TA Y'A MI<br><i>Idam guru ratna mandalakam niryatayami</i>
+</div>
+<div style="margin-bottom:12px;font-size:11px;line-height:1.8;color:var(--text2)">Here is the great Earth, Filled with the smell of incense, Covered with a blanket of flowers, The Great Mountain, The Four Continents, Wearing a jewel Of the Sun, and Moon. In my mind I make them The Paradise of a Buddha, And offer it all to You. By this deed May every living being Experience The Pure World. <b>Idam Guru Ratna mandalakam niryatayami.</b></div>
+<div style="font-weight:800;color:var(--gold);margin-bottom:4px;font-size:12px">🎯 愿景 Vision</div>
+<div style="margin-bottom:10px">创造 7,000万 个了解事物真正运作方式的人生设计师，共创富足而美好的人生。</div>
+<div style="font-weight:800;color:var(--gold);margin-bottom:4px;font-size:12px">📋 使命 Mission</div>
+<div style="margin-bottom:10px">协助人们觉察自己正在经历的人生状态与选择，理解事物背后的真正运作方式（种子与因果），并相信自己拥有改变的能力，在真实生活中设计并走出自己的人生，逐步离苦得乐，走向智慧与自由。</div>
+<div style="font-weight:800;color:var(--gold);margin-bottom:4px;font-size:12px">💎 价值观</div>
+<div style="margin-bottom:10px">无限潜能 · 人人平等 · 诚实正直 · 利他在利己 · 有意义的柔和言语 · 健康第一 工作第二 · 乐享当下 心常感恩 · 他人好时我鼓掌 他人难时我帮忙</div>
+<div style="font-weight:800;color:var(--gold);margin-bottom:6px;font-size:12px">🙏 发愿</div>
+<div style="line-height:2.1">
+☀️ 美好的会议与服务从发愿开始！<br>
+❤️ 伟大的智者先哲如何发愿我即如何发愿！<br>
+🌹 为能真正有效地帮助他人，我希望自己能拥有智慧之爱的力量<br>
+💎 我祈愿无限的时间、空间中所有伟大力量的帮助，让我在过去、现在和未来都能拥有生生不息的无所畏惧、永不退转的智慧之爱心！<br>
+💎 无论在什么地方，无论任何生命看到我，听到我的声音，对我生起欢喜心，或者对我生起厌烦心，都祝福他们能远离身心的痛苦烦恼，收获吉祥幸福，拥有终极圆满的智慧，达至最高生命的境界<br>
+💎 愿我能日日夜夜正确的身语意，令善智慧的老师欢欣喜悦<br>
+💎 愿我有能力更广泛地传播善智慧，服务和利益他人永无厌倦之心<br>
+💎 愿我能够做正确的伟大的事业，帮助一切生命成就终极智慧<br>
+💎 愿我今天所做的一切而种下的种子都能帮助所有生命脱离痛苦烦恼<br>
+💎 愿我今天遇到的，见到的，及见到我的生命都能种下脱离痛苦烦恼的种子！<br>
+❤️ 愿我在会议后的每一份行动，都延续此刻的发愿，带着智慧与慈爱走入生活、工作与服务中！
+</div></div>`;
+function toggleFayu(btn){
+  const wrap=btn.closest('.ag-body').querySelector('.fayu-wrap');if(!wrap)return;
+  const open=wrap.style.display!=='none';
+  wrap.style.display=open?'none':'block';
+  btn.textContent=open?'📖 展开':'✕ 收起';
+}
 function renderMeeting(){
-  const mkAg=(data,id)=>{document.getElementById(id).innerHTML=data.map(a=>`<div class="ag-blk"><div class="ag-time">${a.t}</div><div class="ag-line"><div class="ag-dot"></div><div class="ag-conn"></div></div><div class="ag-body"><div class="ag-title">${a.title}</div><div class="ag-desc">${a.desc}</div><div style="margin-top:5px">${ptag(a.o)}</div></div></div>`).join('');};
+  const mkAg=(data,id)=>{document.getElementById(id).innerHTML=data.map(a=>`<div class="ag-blk"><div class="ag-time">${a.t}</div><div class="ag-line"><div class="ag-dot"></div><div class="ag-conn"></div></div><div class="ag-body"><div class="ag-title">${a.title}${a.expand?` <button onclick="toggleFayu(this)" style="font-size:9px;padding:2px 8px;border:1.5px solid var(--gold);background:transparent;border-radius:6px;cursor:pointer;color:var(--gold);font-weight:700">📖 展开</button>`:''}</div><div class="ag-desc">${a.desc}</div>${a.expand?`<div class="fayu-wrap" style="display:none;margin-top:12px;background:var(--amberB);border-radius:10px;padding:14px;max-height:70vh;overflow-y:auto">${FAYU_HTML}</div>`:''}<div style="margin-top:5px">${ptag(a.o)}</div></div></div>`).join('');};
   mkAg(MO_AGENDA,'mo-agenda');mkAg(WK_AGENDA,'wk-agenda');
-  renderMinutes();
+  renderMinutes();renderSpecialMeeting();
 }
 function renderMinutes(){document.getElementById('mins-list').innerHTML=MINUTES.map(m=>m.link?`<a class="fitem" href="${m.link}" target="_blank"><span>📝</span><div style="flex:1"><div class="fi-name">${m.title}</div><div style="font-size:10px;color:var(--muted);margin-top:2px">${m.date}${m.note?' · '+m.note:''}</div></div><span class="fi-arr">↗ 打开</span></a>`:`<div class="fitem"><span>📝</span><div style="flex:1"><div class="fi-name">${m.title}</div><div style="font-size:10px;color:var(--muted);margin-top:2px">${m.date}${m.note?' · '+m.note:''}</div></div><span style="color:var(--dim);font-size:11px">待填链接</span></div>`).join('');}
 function addMinute(){const title=document.getElementById('min-title').value.trim();if(!title)return;MINUTES.unshift({id:'m'+Date.now(),date:document.getElementById('min-date').value,title,link:document.getElementById('min-link').value.trim(),note:document.getElementById('min-note').value.trim()});document.getElementById('min-title').value='';document.getElementById('min-link').value='';document.getElementById('min-note').value='';save('minutes',MINUTES);renderMinutes();}
@@ -2541,7 +2629,12 @@ function renderDecisions(){
     return`<div class="dec"><div class="dec-q">${d.q}</div><div style="font-size:11.5px;color:var(--text2);line-height:2;margin-bottom:10px">${d.opts.map((o,j)=>`${j+1}. ${o}`).join('<br>')}</div><div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px">${d.opts.map(o=>`<button class="vb ${d.votes['你']===o?'sel':''}" onclick="vote(${i},'${o.replace(/'/g,"\\'")}')">${o.slice(0,25)}</button>`).join('')}</div><div style="font-size:11px;color:var(--muted);padding:8px 11px;background:var(--s2);border-radius:7px;margin-bottom:6px">${vr}</div><textarea class="dec-comment" rows="1" placeholder="写下你的想法... (Enter 提交)" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();addCom(${i},this.value);this.value='';}"></textarea>${d.comments.length?`<div style="margin-top:8px">${d.comments.map(c=>`<div style="font-size:11px;padding:5px 9px;background:var(--s2);border-radius:7px;margin-bottom:4px">${c}</div>`).join('')}</div>`:''}<div style="font-size:10px;color:var(--muted);margin-top:8px">${ptag(d.owner)} · ⏰ ${d.dl}</div></div>`;
   }).join('');
 }
-function vote(i,o){DEC[i].votes['你']=o;save('decisions',DEC);renderDecisions();}
+function vote(i,o){
+  const voter=document.getElementById('dec-voter')?.value||'匿名';
+  DEC[i].votes[voter]=o;
+  save('decisions',DEC);
+  renderDecisions();
+}
 function addCom(i,t){if(!t.trim())return;DEC[i].comments.push(t.trim());save('decisions',DEC);renderDecisions();}
 function addDecision(){const q=document.getElementById('dec-q-new').value.trim();const optsStr=document.getElementById('dec-opts-new').value.trim();if(!q||!optsStr)return;const opts=optsStr.split('|').map(o=>o.trim()).filter(Boolean);DEC.push({id:'d'+Date.now(),q,opts,votes:{},comments:[],owner:document.getElementById('dec-owner-new').value,dl:document.getElementById('dec-dl-new').value||'待定'});document.getElementById('dec-q-new').value='';document.getElementById('dec-opts-new').value='';save('decisions',DEC);renderDecisions();updateStats();}
 
@@ -2596,6 +2689,14 @@ function completeMktItem(id){
   m.status='已发布';
   m.doneDate=new Date().toISOString().split('T')[0];
   if(m.dl)m.eff=calcEffDL(m.dl,m.doneDate);
+  // Also complete matching Task Board mirror
+  const mirrorTask = TASKS.find(t=>t.task&&t.task.includes(m.title)&&(t.cat==='Marketing'||t.task.startsWith('📣')));
+  if(mirrorTask && mirrorTask.status!=='已完成'){
+    mirrorTask.status='已完成';
+    mirrorTask.doneDate=m.doneDate;
+    save('tasks',TASKS);
+    renderTasks();
+  }
   save('mkt_content',MKT_CONTENT);
   renderMktCal();
 }
