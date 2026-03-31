@@ -550,7 +550,7 @@ body{background:var(--cream);color:var(--text);font-family:'Plus Jakarta Sans',s
         <button class="fb" id="tf-month" onclick="setTimeFilter('month',this)">本月</button>
         <button class="fb" id="tf-30" onclick="setTimeFilter('30',this)">近30天</button>
       </div>
-      <table class="pt" style="table-layout:fixed;width:100%"><thead><tr><th style="width:28%">Task 内容</th><th style="width:7%">负责人</th><th style="width:9%">类别</th><th style="width:6%">类型</th><th style="width:7%">优先级</th><th style="width:9%">Deadline</th><th style="width:8%">完成日期</th><th style="width:5%">Hours</th><th style="width:6%">效率</th><th style="width:8%">操作</th></tr></thead><tbody id="lb"></tbody></table>
+      <table class="pt" style="table-layout:fixed;width:100%"><thead id="task-thead"><tr><th style="width:28%">Task 内容</th><th style="width:7%">负责人</th><th style="width:9%">类别</th><th style="width:6%">类型</th><th style="width:7%">优先级</th><th style="width:9%">Deadline</th><th style="width:8%">完成日期</th><th style="width:5%">Hours</th><th style="width:6%">效率</th><th style="width:8%">操作</th></tr></thead><tbody id="lb"></tbody></table>
     </div>
   </div>
 
@@ -655,7 +655,7 @@ body{background:var(--cream);color:var(--text);font-family:'Plus Jakarta Sans',s
       <button class="fb" onclick="mktCalNextMonth()">下月 ›</button>
     </div>
     <div id="mkt-cal-view"></div>
-    <div style="overflow-x:auto;margin-bottom:8px"><table class="pt"><thead><tr><th>发布日期</th><th style="min-width:160px">发布内容</th><th>类型</th><th>负责人</th><th>Deadline</th><th>完成日期</th><th>效率</th><th>操作</th></tr></thead><tbody id="mkt-list-body"></tbody></table></div>
+    <div style="overflow-x:auto;margin-bottom:8px"><table class="pt"><thead id="mkt-thead"><tr><th>发布日期</th><th style="min-width:160px">发布内容</th><th>类型</th><th>负责人</th><th>Deadline</th><th>完成日期</th><th>效率</th><th>操作</th></tr></thead><tbody id="mkt-list-body"></tbody></table></div>
 
     <div class="sl" style="margin-top:18px">🔗 直达链接</div>
     <div class="ql-wrap">
@@ -847,6 +847,7 @@ body{background:var(--cream);color:var(--text);font-family:'Plus Jakarta Sans',s
           <label style="font-size:11px;display:flex;align-items:center;gap:4px;cursor:pointer"><input type="checkbox" id="gdc-plt-dcw" value="DCW Page"> DCW Page</label>
           <label style="font-size:11px;display:flex;align-items:center;gap:4px;cursor:pointer"><input type="checkbox" id="gdc-plt-gdc" value="GDC Page"> GDC Page</label>
           <label style="font-size:11px;display:flex;align-items:center;gap:4px;cursor:pointer"><input type="checkbox" id="gdc-plt-jenny" value="Jenny 老师 Page"> Jenny 老师</label>
+          <label style="font-size:11px;display:flex;align-items:center;gap:4px;cursor:pointer"><input type="checkbox" id="gdc-plt-wa" value="WA文案"> WA文案</label>
         </div></div>
         <div class="ff"><div class="fl2">类型</div><select class="fs" id="gdc-cat" style="width:160px">
           <option>GDC 视频文案</option><option>GDC 图文文案</option><option>GDC 金句图文</option>
@@ -872,7 +873,7 @@ body{background:var(--cream);color:var(--text);font-family:'Plus Jakarta Sans',s
       <button class="fb" onclick="gdcCalNextMonth()">下月 ›</button>
     </div>
     <div id="gdc-cal-view"></div>
-    <div style="overflow-x:auto;margin-bottom:14px"><table class="pt"><thead><tr><th>发布日期</th><th style="min-width:180px">发布内容</th><th>平台</th><th>类型</th><th>Deadline</th><th>完成日期</th><th>效率</th><th>GDC 对接</th><th>DLIG负责</th><th>操作</th></tr></thead><tbody id="gdc-list"></tbody></table></div>
+    <div style="overflow-x:auto;margin-bottom:14px"><table class="pt"><thead id="gdc-thead"><tr><th>发布日期</th><th style="min-width:180px">发布内容</th><th>平台</th><th>类型</th><th>Deadline</th><th>完成日期</th><th>效率</th><th>GDC 对接</th><th>DLIG负责</th><th>操作</th></tr></thead><tbody id="gdc-list"></tbody></table></div>
     <div class="sl" style="margin-top:14px">🔗 相关链接</div>
     <div class="ql-wrap">
       <a class="ql" href="https://docs.google.com/spreadsheets/d/1Gc0rO-gx_CBSZ60fFHvmMeTsq7dClsCU4WiSN5ii-2M/edit?usp=sharing" target="_blank">📅 Schedule GDC Marketing Content</a>
@@ -1620,6 +1621,27 @@ function effLabel(e){if(e===1.5)return'×1.5 ⭐ 提前';if(e===1)return'×1.0 �
 function calcContrib(hours,eff){return(parseFloat(hours||0)*eff).toFixed(1);}
 
 let TF='全部',TV='board';
+let TASK_SORT={col:'deadline',dir:1};
+let MKT_SORT={col:'date',dir:1};
+let GDC_SORT={col:'date',dir:1};
+function sortArr(arr,col,dir){
+  const PRANK={'🔴 紧急':0,'🟡 本周':1,'⚡ 本月':2,'⭐ 长期':3};
+  return[...arr].sort((a,b)=>{
+    if(col==='priority'){return dir*((PRANK[a[col]]??9)-(PRANK[b[col]]??9));}
+    if(col==='actual'||col==='est'){return dir*((parseFloat(a[col])||0)-(parseFloat(b[col])||0));}
+    let av=a[col]||'',bv=b[col]||'';
+    if(['date','dl','deadline','doneDate'].includes(col)){av=av||'9999-12-31';bv=bv||'9999-12-31';}
+    return dir*String(av).localeCompare(String(bv));
+  });
+}
+function thS(label,col,sortObj,fn,style){
+  const on=sortObj.col===col;
+  const arr=on?(sortObj.dir===1?'▲':'▼'):'⇅';
+  return`<th onclick="${fn}('${col}')" style="cursor:pointer;user-select:none;white-space:nowrap;${on?'color:var(--gold);':''}"${style?' '+style:''}>${label} <span style="font-size:8px;opacity:0.7">${arr}</span></th>`;
+}
+function setSortTask(col){if(TASK_SORT.col===col)TASK_SORT.dir*=-1;else{TASK_SORT.col=col;TASK_SORT.dir=1;}renderTasks();}
+function setSortMkt(col){if(MKT_SORT.col===col)MKT_SORT.dir*=-1;else{MKT_SORT.col=col;MKT_SORT.dir=1;}renderMktCal();}
+function setSortGDC(col){if(GDC_SORT.col===col)GDC_SORT.dir*=-1;else{GDC_SORT.col=col;GDC_SORT.dir=1;}renderGDC();}
 
 // Complete modal
 function openComplete(id){
@@ -1700,9 +1722,23 @@ function renderTasks(){
   } else {
     document.getElementById('board-view').style.display='none';
     document.getElementById('list-view').style.display='block';
+    // Update thead with sortable headers
+    const th=document.getElementById('task-thead');
+    if(th)th.innerHTML=`<tr>
+      <th style="width:28%">Task 内容</th>
+      ${thS('负责人','person',TASK_SORT,'setSortTask','style="width:7%"')}
+      ${thS('类别','cat',TASK_SORT,'setSortTask','style="width:9%"')}
+      <th style="width:6%">类型</th>
+      ${thS('优先级','priority',TASK_SORT,'setSortTask','style="width:7%"')}
+      ${thS('Deadline','deadline',TASK_SORT,'setSortTask','style="width:9%"')}
+      ${thS('完成日期','doneDate',TASK_SORT,'setSortTask','style="width:8%"')}
+      ${thS('Hours','actual',TASK_SORT,'setSortTask','style="width:5%"')}
+      <th style="width:6%">效率</th>
+      <th style="width:8%">操作</th>
+    </tr>`;
     // Sort: incomplete first, completed at bottom
-    const active=fil.filter(t=>t.status!=='已完成');
-    const done=fil.filter(t=>t.status==='已完成');
+    const active=sortArr(fil.filter(t=>t.status!=='已完成'),TASK_SORT.col,TASK_SORT.dir);
+    const done=sortArr(fil.filter(t=>t.status==='已完成'),TASK_SORT.col,TASK_SORT.dir);
     const sorted=[...active,...done];
     // Time filter
     const now2=new Date();
@@ -1869,8 +1905,18 @@ function renderMktCal(){
   ch+=`</div>`;
   calEl.innerHTML=ch;
 
+  const mktTh=document.getElementById('mkt-thead');
+  if(mktTh)mktTh.innerHTML=`<tr>
+    ${thS('发布日期','date',MKT_SORT,'setSortMkt','')}
+    <th style="min-width:160px">发布内容</th>
+    ${thS('类型','type',MKT_SORT,'setSortMkt','')}
+    ${thS('负责人','person',MKT_SORT,'setSortMkt','')}
+    ${thS('Deadline','dl',MKT_SORT,'setSortMkt','')}
+    ${thS('完成日期','doneDate',MKT_SORT,'setSortMkt','')}
+    <th>效率</th><th>操作</th>
+  </tr>`;
   const listEl=document.getElementById('mkt-list-body');
-  if(listEl)listEl.innerHTML=MKT_CONTENT.sort((a,b)=>a.date.localeCompare(b.date)).map(m=>{
+  if(listEl)listEl.innerHTML=sortArr(MKT_CONTENT,MKT_SORT.col,MKT_SORT.dir).map(m=>{
     const isDone=m.status==='已发布';
     const effVal=isDone&&m.dl&&m.doneDate?calcEffDL(m.dl,m.doneDate):null;
     const effStr=effVal!==null?effLabel(effVal):'—';
@@ -2312,9 +2358,9 @@ function addGDCTask(){
   const date=document.getElementById('gdc-date')?.value||'';
   if(!task)return;
   const dl=document.getElementById('gdc-dl')?.value||'';
-  const _plts=['gdc-plt-dcw','gdc-plt-gdc','gdc-plt-jenny'].map(id=>document.getElementById(id)).filter(el=>el&&el.checked).map(el=>el.value);
+  const _plts=['gdc-plt-dcw','gdc-plt-gdc','gdc-plt-jenny','gdc-plt-wa'].map(id=>document.getElementById(id)).filter(el=>el&&el.checked).map(el=>el.value);
   const platform=_plts.length?_plts.join(', '):'GDC Page';
-  ['gdc-plt-dcw','gdc-plt-gdc','gdc-plt-jenny'].forEach(id=>{const el=document.getElementById(id);if(el)el.checked=false;});
+  ['gdc-plt-dcw','gdc-plt-gdc','gdc-plt-jenny','gdc-plt-wa'].forEach(id=>{const el=document.getElementById(id);if(el)el.checked=false;});
   const cat=document.getElementById('gdc-cat')?.value||'GDC 视频文案';
   const who=document.getElementById('gdc-who')?.value.trim()||'';
   const pic=document.getElementById('gdc-pic')?.value||'Jasper';
@@ -2363,7 +2409,20 @@ function renderGDC(){
     calEl.innerHTML=ch;
   }
 
-  const fil=GDC_F==='全部'?GDC_TASKS:GDC_TASKS.filter(t=>t.status===GDC_F);
+  const gdcTh=document.getElementById('gdc-thead');
+  if(gdcTh)gdcTh.innerHTML=`<tr>
+    ${thS('发布日期','date',GDC_SORT,'setSortGDC','')}
+    <th style="min-width:180px">发布内容</th>
+    ${thS('平台','platform',GDC_SORT,'setSortGDC','')}
+    ${thS('类型','cat',GDC_SORT,'setSortGDC','')}
+    ${thS('Deadline','dl',GDC_SORT,'setSortGDC','')}
+    ${thS('完成日期','doneDate',GDC_SORT,'setSortGDC','')}
+    <th>效率</th>
+    ${thS('GDC对接','who',GDC_SORT,'setSortGDC','')}
+    ${thS('DLIG负责','pic',GDC_SORT,'setSortGDC','')}
+    <th>操作</th>
+  </tr>`;
+  const fil=sortArr(GDC_F==='全部'?GDC_TASKS:GDC_TASKS.filter(t=>t.status===GDC_F),GDC_SORT.col,GDC_SORT.dir);
   const listEl=document.getElementById('gdc-list');
   if(listEl)listEl.innerHTML=fil.length?fil.map((t,i)=>{
     const isDone=t.status==='已完成'||t.status==='已付款';
@@ -2373,7 +2432,7 @@ function renderGDC(){
     return`<tr>
     <td><input type="date" style="border:none;background:transparent;font-family:'DM Sans',sans-serif;font-size:10.5px;font-weight:600;outline:none;cursor:pointer" value="${t.date||''}" onchange="editGDC('${t.id}','date',this.value)"></td>
     <td style="min-width:160px"><input style="border:none;background:transparent;font-family:'Plus Jakarta Sans',sans-serif;font-size:11px;font-weight:600;width:100%;outline:none" value="${(t.task||'').replace(/"/g,'&quot;')}" onchange="editGDC('${t.id}','task',this.value)"></td>
-    <td><select style="border:none;background:transparent;font-size:9px;cursor:pointer;outline:none" onchange="editGDC('${t.id}','platform',this.value)">${['DCW Page','GDC Page','Jenny 老师 Page'].map(opt=>`<option ${t.platform===opt?'selected':''}>${opt}</option>`).join('')}</select></td>
+    <td><select style="border:none;background:transparent;font-size:9px;cursor:pointer;outline:none" onchange="editGDC('${t.id}','platform',this.value)">${['DCW Page','GDC Page','Jenny 老师 Page','WA文案'].map(opt=>`<option ${t.platform===opt?'selected':''}>${opt}</option>`).join('')}</select></td>
     <td><select style="border:none;background:transparent;font-size:9px;cursor:pointer;outline:none;max-width:110px" onchange="editGDC('${t.id}','cat',this.value)">${['GDC 视频文案','GDC 图文文案','GDC 金句图文','GDC 视频拍摄','GDC 视频脚本','GDC 短视频剪辑','GDC DLIG对接','GDC 方案讨论','GDC Project管理'].map(opt=>`<option ${t.cat===opt?'selected':''}>${opt}</option>`).join('')}</select></td>
     <td><input type="date" style="border:none;background:transparent;font-family:'DM Sans',sans-serif;font-size:10.5px;color:var(--amber);outline:none;cursor:pointer" value="${t.dl||''}" onchange="editGDC('${t.id}','dl',this.value)"></td>
     <td style="font-size:10.5px;color:var(--green);font-family:'DM Sans',sans-serif">${fmtD(t.doneDate)||'—'}</td>
