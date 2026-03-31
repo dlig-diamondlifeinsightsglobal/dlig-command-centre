@@ -1057,10 +1057,23 @@ const SHEETS_API_URL = 'https://script.google.com/macros/s/AKfycbxD9lCg_7WC69Wzq
 
 const SHEET_KEY_MAP = {'tasks':'tasks','mkt_content':'mkt','gdc_tasks':'gdc'};
 
+let _syncTimer=null;
+function showSyncStatus(success){
+  const el=document.getElementById('sheets-status');if(!el)return;
+  if(success){
+    el.innerHTML='<span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--green)"></span>&nbsp;✅ 已同步到 Google Sheet';
+    clearTimeout(_syncTimer);_syncTimer=setTimeout(()=>{el.innerHTML='<span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--green)"></span>&nbsp;Google Sheet 已连接';},3000);
+  } else {
+    el.innerHTML='<span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--amber)"></span>&nbsp;同步失败，将在下次操作时重试';
+  }
+}
 function syncToSheets(key,data){
   const type=SHEET_KEY_MAP[key];
   if(!type||!SHEETS_API_URL)return;
-  fetch(SHEETS_API_URL+'?sheet='+type,{method:'POST',body:JSON.stringify(data),headers:{'Content-Type':'text/plain'}}).catch(()=>{});
+  const el=document.getElementById('sheets-status');
+  if(el)el.innerHTML='<span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--amber);animation:pulse 2s infinite"></span>&nbsp;正在同步…';
+  fetch(SHEETS_API_URL+'?sheet='+type,{method:'POST',body:JSON.stringify(data),headers:{'Content-Type':'text/plain'}})
+    .then(()=>showSyncStatus(true)).catch(()=>showSyncStatus(false));
 }
 
 async function loadFromSheets(){
@@ -1389,7 +1402,10 @@ function saveRotationToSheet(){
     rows.push({date:r.date,act:'Office-楼梯口',person:r.stairs||'',theme:''});
     rows.push({date:r.date,act:'Office-补货',person:r.restock||'',theme:''});
   });
-  fetch(SHEETS_API_URL+'?sheet=rotation',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(rows)}).catch(()=>{});
+  const el=document.getElementById('sheets-status');
+  if(el)el.innerHTML='<span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--amber);animation:pulse 2s infinite"></span>&nbsp;正在同步…';
+  fetch(SHEETS_API_URL+'?sheet=rotation',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(rows)})
+    .then(()=>showSyncStatus(true)).catch(()=>showSyncStatus(false));
 }
 const DR_CL=['Polling 确认出席者（2-3天前）','开始前5分钟 Start Zoom','准时 6:10 开始','分享每日主题 / 笔的故事四步骤','主持结束 7:20','记录出席人数'];
 const WR_CL=['Polling 确认出席者（2-3天前）','Send Zoom link / 确认地点','准备当周主题 & 内容','准时 2pm 开始','主持整场 1-2小时','拍照 & Post 活动花絮'];
@@ -1722,10 +1738,11 @@ function renderTasks(){
 function markProg(id){const t=TASKS.find(x=>x.id===id);if(t){t.status='进行中';save('tasks',TASKS);renderTasks();}}
 function addTask(){
   const tx=document.getElementById('nt').value.trim();if(!tx)return;
-  const nid=Math.max(0,...TASKS.map(t=>t.id))+1;
+  const numericIds=TASKS.map(t=>t.id).filter(id=>typeof id==='number'&&!isNaN(id));
+  const nid=numericIds.length>0?Math.max(...numericIds)+1:Date.now();
   const desc=document.getElementById('ndesc')?.value.trim()||'';
-  TASKS.unshift({id:nid,task:tx,person:document.getElementById('np').value,cat:document.getElementById('nc').value,type:document.getElementById('ntype').value,priority:document.getElementById('nk').value,deadline:document.getElementById('ndl').value,status:'待启动',est:parseFloat(document.getElementById('nest').value)||0,actual:'',doneDate:'',desc});
-  document.getElementById('nt').value='';document.getElementById('nest').value='';if(document.getElementById('ndesc'))document.getElementById('ndesc').value='';
+  TASKS.unshift({id:nid,task:tx,person:document.getElementById('np').value,cat:document.getElementById('nc').value,type:document.getElementById('ntype').value,priority:document.getElementById('nk').value,deadline:document.getElementById('ndl').value,status:'待启动',est:parseFloat(document.getElementById('nest')?.value)||0,actual:'',doneDate:'',desc});
+  document.getElementById('nt').value='';if(document.getElementById('nest'))document.getElementById('nest').value='';if(document.getElementById('ndesc'))document.getElementById('ndesc').value='';
   save('tasks',TASKS);renderTasks();renderOverview();
 }
 function addLog(){
