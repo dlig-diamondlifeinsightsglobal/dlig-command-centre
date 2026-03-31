@@ -1815,7 +1815,8 @@ function addMktContent(){
   const newItem={id:'mc'+Date.now(),title,date,dl,platform,type:mtype,person,status:'待发布'};
   MKT_CONTENT.push(newItem);
   // Sync to Task Board
-  const nid=Math.max(0,...TASKS.map(t=>t.id),0)+1;
+  const _mktNumIds=TASKS.map(t=>t.id).filter(id=>typeof id==='number'&&!isNaN(id));
+  const nid=_mktNumIds.length>0?Math.max(..._mktNumIds)+1:Date.now();
   TASKS.push({id:nid,task:`📣 ${platform}: ${title}`,person,cat:'Marketing',type:'fee',priority:'⚡ 本月',deadline:dl||date,status:'待启动',est:1,actual:'',doneDate:''});
   // Sync to Calendar events
   EVENTS.push({id:'ev'+Date.now(),name:'📣 '+title,date,time:'',type:'mkt',person,isEvent:true,fromTask:true});
@@ -2316,7 +2317,8 @@ function addGDCTask(){
   const newT={id:'g'+Date.now(),task,date,dl,platform,cat,who,pic,status:'待开始',doneDate:'',eff:'',pay:''};
   GDC_TASKS.push(newT);
   // 同步到 Task Board
-  const nid=Math.max(0,...TASKS.map(t=>t.id),0)+1;
+  const _gdcNumIds=TASKS.map(t=>t.id).filter(id=>typeof id==='number'&&!isNaN(id));
+  const nid=_gdcNumIds.length>0?Math.max(..._gdcNumIds)+1:Date.now();
   TASKS.push({id:nid,task:`🎨 ${platform}: ${task}`,person:pic,cat:'GDC job',type:'fee',priority:'⚡ 本月',deadline:dl||date,status:'待启动',est:1,actual:'',doneDate:'',desc:''});
   document.getElementById('gdc-task').value='';
   if(document.getElementById('gdc-date'))document.getElementById('gdc-date').value='';
