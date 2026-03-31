@@ -638,12 +638,12 @@ body{background:var(--cream);color:var(--text);font-family:'Plus Jakarta Sans',s
         <div class="ff"><div class="fl2">发布日期</div><input class="fi" id="mc-date" type="date" style="width:145px"></div>
         <div class="ff"><div class="fl2">完成Deadline</div><input class="fi" id="mc-dl" type="date" style="width:145px"></div>
         <div class="ff"><div class="fl2">平台</div><select class="fs" id="mc-platform" style="width:110px"><option>Facebook</option><option>小红书</option><option>Instagram</option><option>TikTok</option><option>YouTube</option><option>WhatsApp</option></select></div>
-        <div class="ff"><div class="fl2">类型</div><select class="fs" id="mc-type" style="width:160px">
-          <option>✍ DLIG 视频文案</option><option>✍ DLIG 信息文案模版</option>
-          <option>📣 DLIG Post 图+文案</option><option>🖼 DLIG 海报（1张）</option>
-          <option>📱 DLIG 视频脚本（1支）</option><option>📱 DLIG 剪辑短视频-一键成片</option>
-          <option>📱 DLIG 剪辑短视频（1min内）</option><option>🎬 DLIG 剪辑YouTube（25min内）</option>
-          <option>🧠 DLIG Landing Page 文案</option><option>🖥 DLIG Landing Page 制作</option>
+        <div class="ff"><div class="fl2">类别</div><select class="fs" id="mc-type" style="width:160px">
+          <option>Operation</option><option>Marketing</option><option>✍ 视频文案/信息文案</option>
+          <option>📣 制作Post图+文案</option><option>🖼 制作海报</option><option>📝 视频脚本</option>
+          <option>📱 剪辑短视频-一键成片</option><option>📱 剪辑短视频</option>
+          <option>🎬 剪辑YouTube</option><option>🧠 Landing Page文案</option><option>🖥 Landing Page制作</option>
+          <option>Sales</option><option>Admin</option><option>System</option><option>GDC job</option>
         </select></div>
         <div class="ff"><div class="fl2">负责人</div><select class="fs" id="mc-person" style="width:100px"><option>Jasper</option><option>Li Joo</option><option>Stella</option><option>Roy</option><option>GDC</option><option>待认领</option></select></div>
         <button class="add-btn" style="background:linear-gradient(135deg,#6a3a96,#9b59b6)" onclick="addMktContent()">+ 添加</button>
@@ -837,7 +837,18 @@ body{background:var(--cream);color:var(--text);font-family:'Plus Jakarta Sans',s
 
   <!-- ══ GDC MARKETING JOB ══ -->
   <div class="page" id="p-gdc">
-    <div class="ib" style="background:var(--purpleB);border:1.5px solid rgba(106,58,150,.25)"><b style="color:var(--purple)">🎨 GDC Marketing Job</b> — 记录外包任务，每月 RM2,500 package。完成后同步到 Task Board。</div>
+    <div class="ib" style="background:var(--purpleB);border:1.5px solid rgba(106,58,150,.25)">
+      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:8px">
+        <b style="color:var(--purple)">🎨 GDC Marketing Job</b>
+        <span style="font-size:10.5px;color:var(--muted)">— 记录外包任务，每月 RM2,500 package。完成后同步到 Task Board。</span>
+      </div>
+      <div id="gdc-links-list" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px"></div>
+      <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
+        <input class="fi" id="gdc-link-label" placeholder="链接名称" style="width:110px;font-size:10.5px;padding:4px 8px">
+        <input class="fi" id="gdc-link-url" placeholder="https://..." style="flex:1;min-width:180px;font-size:10.5px;padding:4px 8px">
+        <button class="fb" onclick="addGDCLink()" style="font-size:10.5px;color:var(--purple);border-color:rgba(106,58,150,.3)">+ 添加链接</button>
+      </div>
+    </div>
     <div style="background:var(--white);border:1.5px solid var(--border);border-radius:var(--r);padding:14px;margin-bottom:14px;box-shadow:var(--sh)">
       <div style="display:flex;gap:8px;align-items:flex-end;flex-wrap:wrap">
         <div class="ff" style="flex:2;min-width:160px"><div class="fl2">内容标题</div><input class="fi" id="gdc-task" placeholder="描述 GDC 内容任务..."></div>
@@ -874,10 +885,6 @@ body{background:var(--cream);color:var(--text);font-family:'Plus Jakarta Sans',s
     </div>
     <div id="gdc-cal-view"></div>
     <div style="overflow-x:auto;margin-bottom:14px"><table class="pt"><thead id="gdc-thead"><tr><th>发布日期</th><th style="min-width:180px">发布内容</th><th>平台</th><th>类型</th><th>Deadline</th><th>完成日期</th><th>效率</th><th>GDC 对接</th><th>DLIG负责</th><th>操作</th></tr></thead><tbody id="gdc-list"></tbody></table></div>
-    <div class="sl" style="margin-top:14px">🔗 相关链接</div>
-    <div class="ql-wrap">
-      <a class="ql" href="https://docs.google.com/spreadsheets/d/1Gc0rO-gx_CBSZ60fFHvmMeTsq7dClsCU4WiSN5ii-2M/edit?usp=sharing" target="_blank">📅 Schedule GDC Marketing Content</a>
-    </div>
   </div>
 
     <!-- ══ COMPANY POLICY ══ -->
@@ -1058,7 +1065,7 @@ function calcEffDL(dl,done){if(!dl||!done)return null;try{const d=Math.floor((ne
 // ═══════════════════════════════════════
 const SHEETS_API_URL = 'https://script.google.com/macros/s/AKfycbxD9lCg_7WC69Wzq-HBK4tSQPJv4f_cpV-73-GRP8duy2JhwO7-NVetJnam4KPPSUXz/exec';
 
-const SHEET_KEY_MAP = {'tasks':'tasks','mkt_content':'mkt','gdc_tasks':'gdc'};
+const SHEET_KEY_MAP = {'tasks':'tasks','mkt_content':'mkt','gdc_tasks':'gdc','logs':'logs'};
 
 let _syncTimer=null;
 function showSyncStatus(success){
@@ -1164,6 +1171,7 @@ let TASKS=load('tasks',[
   {id:7,task:'YLYD 会员 content 发布',person:'Stella',cat:'Operation',type:'contrib',priority:'⚡ 本月',deadline:'2026-04-30',status:'待启动',est:3,actual:''},
 ]);
 let LOGS=load('logs',[]);
+let GDC_LINKS=load('gdc_links',[{label:'GDC Schedule Sheet',url:'https://docs.google.com/spreadsheets/d/1Gc0rO-gx_CBSZ60fFHvmMeTsq7dClsCU4WiSN5ii-2M/edit?usp=sharing'}]);
 let DEC=load('decisions',[
   {id:'d1',q:'心动觉察活动是否继续赠送 YLYD 终身会员资格？',opts:['赠送 → 更新 Checklist','不赠送 → 定购买门槛','Lucky Draw 形式'],votes:{},comments:[],owner:'All',dl:'2026-04-12'},
   {id:'d2',q:'分钱机制最终定案（贡献时间 × 价值系数）',opts:['季度结算，工时50%+任务50%','月度结算'],votes:{},comments:[],owner:'All',dl:'2026-04-05'},
@@ -1855,7 +1863,7 @@ function addMktContent(){
   // Sync to Task Board
   const _mktNumIds=TASKS.map(t=>t.id).filter(id=>typeof id==='number'&&!isNaN(id));
   const nid=_mktNumIds.length>0?Math.max(..._mktNumIds)+1:Date.now();
-  TASKS.push({id:nid,task:`📣 ${platform}: ${title}`,person,cat:'Marketing',type:'fee',priority:'⚡ 本月',deadline:dl||date,status:'待启动',est:1,actual:'',doneDate:''});
+  TASKS.push({id:nid,task:`📣 ${platform}: ${title}`,person,cat:mtype||'Marketing',type:'fee',priority:'⚡ 本月',deadline:dl||date,status:'待启动',est:1,actual:'',doneDate:''});
   // Sync to Calendar events
   EVENTS.push({id:'ev'+Date.now(),name:'📣 '+title,date,time:'',type:'mkt',person,isEvent:true,fromTask:true});
   document.getElementById('mc-title').value='';
@@ -1909,14 +1917,16 @@ function renderMktCal(){
   if(mktTh)mktTh.innerHTML=`<tr>
     ${thS('发布日期','date',MKT_SORT,'setSortMkt','')}
     <th style="min-width:160px">发布内容</th>
-    ${thS('类型','type',MKT_SORT,'setSortMkt','')}
+    ${thS('类别','type',MKT_SORT,'setSortMkt','')}
     ${thS('负责人','person',MKT_SORT,'setSortMkt','')}
     ${thS('Deadline','dl',MKT_SORT,'setSortMkt','')}
     ${thS('完成日期','doneDate',MKT_SORT,'setSortMkt','')}
     <th>效率</th><th>操作</th>
   </tr>`;
   const listEl=document.getElementById('mkt-list-body');
-  if(listEl)listEl.innerHTML=sortArr(MKT_CONTENT,MKT_SORT.col,MKT_SORT.dir).map(m=>{
+  const _mktActive=sortArr(MKT_CONTENT.filter(m=>m.status!=='已发布'),MKT_SORT.col,MKT_SORT.dir);
+  const _mktDone=sortArr(MKT_CONTENT.filter(m=>m.status==='已发布'),MKT_SORT.col,MKT_SORT.dir);
+  if(listEl)listEl.innerHTML=[..._mktActive,..._mktDone].map(m=>{
     const isDone=m.status==='已发布';
     const effVal=isDone&&m.dl&&m.doneDate?calcEffDL(m.dl,m.doneDate):null;
     const effStr=effVal!==null?effLabel(effVal):'—';
@@ -1924,7 +1934,7 @@ function renderMktCal(){
     return`<tr>
     <td><input type="date" style="border:none;background:transparent;font-family:'DM Sans',sans-serif;font-size:10.5px;font-weight:600;outline:none;cursor:pointer" value="${m.date||''}" onchange="editMkt('${m.id}','date',this.value)"></td>
     <td style="min-width:160px"><input style="border:none;background:transparent;font-family:'Plus Jakarta Sans',sans-serif;font-size:11px;font-weight:600;width:100%;outline:none" value="${(m.title||'').replace(/"/g,'&quot;')}" onchange="editMkt('${m.id}','title',this.value)"></td>
-    <td><select style="border:none;background:transparent;font-size:9px;cursor:pointer;outline:none;max-width:130px" onchange="editMkt('${m.id}','type',this.value)">${['✍ DLIG 视频文案','✍ DLIG 信息文案模版','📣 DLIG Post 图+文案','🖼 DLIG 海报（1张）','📱 DLIG 视频脚本（1支）','📱 DLIG 剪辑短视频-一键成片','📱 DLIG 剪辑短视频（1min内）','🎬 DLIG 剪辑YouTube（25min内）','🧠 DLIG Landing Page 文案','🖥 DLIG Landing Page 制作'].map(opt=>`<option ${m.type===opt?'selected':''}>${opt}</option>`).join('')}</select></td>
+    <td><select style="border:none;background:transparent;font-size:9px;cursor:pointer;outline:none;max-width:130px" onchange="editMkt('${m.id}','type',this.value)">${['Operation','Marketing','✍ 视频文案/信息文案','📣 制作Post图+文案','🖼 制作海报','📝 视频脚本','📱 剪辑短视频-一键成片','📱 剪辑短视频','🎬 剪辑YouTube','🧠 Landing Page文案','🖥 Landing Page制作','Sales','Admin','System','GDC job'].map(opt=>`<option ${m.type===opt?'selected':''}>${opt}</option>`).join('')}</select></td>
     <td><select style="border:none;background:transparent;font-size:10px;cursor:pointer;outline:none" onchange="editMkt('${m.id}','person',this.value)">${['Jasper','Li Joo','Stella','Roy','GDC','待认领'].map(opt=>`<option ${m.person===opt?'selected':''}>${opt}</option>`).join('')}</select></td>
     <td><input type="date" style="border:none;background:transparent;font-family:'DM Sans',sans-serif;font-size:10.5px;color:var(--amber);outline:none;cursor:pointer" value="${m.dl||''}" onchange="editMkt('${m.id}','dl',this.value)"></td>
     <td style="font-size:10.5px;color:var(--green);font-family:'DM Sans',sans-serif">${fmtD(m.doneDate)||'—'}</td>
@@ -2382,6 +2392,7 @@ function gdcCalPrevMonth(){if(!GDC_CAL_MONTH)GDC_CAL_MONTH=new Date();GDC_CAL_MO
 function gdcCalNextMonth(){if(!GDC_CAL_MONTH)GDC_CAL_MONTH=new Date();GDC_CAL_MONTH=new Date(GDC_CAL_MONTH.getFullYear(),GDC_CAL_MONTH.getMonth()+1,1);renderGDC();}
 
 function renderGDC(){
+  renderGDCLinks();
   const calEl=document.getElementById('gdc-cal-view');
   if(calEl){
     if(!GDC_CAL_MONTH)GDC_CAL_MONTH=new Date();
@@ -2422,7 +2433,10 @@ function renderGDC(){
     ${thS('DLIG负责','pic',GDC_SORT,'setSortGDC','')}
     <th>操作</th>
   </tr>`;
-  const fil=sortArr(GDC_F==='全部'?GDC_TASKS:GDC_TASKS.filter(t=>t.status===GDC_F),GDC_SORT.col,GDC_SORT.dir);
+  const _gdcBase=GDC_F==='全部'?GDC_TASKS:GDC_TASKS.filter(t=>t.status===GDC_F);
+  const _gdcActive=sortArr(_gdcBase.filter(t=>t.status!=='已完成'&&t.status!=='已付款'),GDC_SORT.col,GDC_SORT.dir);
+  const _gdcDone=sortArr(_gdcBase.filter(t=>t.status==='已完成'||t.status==='已付款'),GDC_SORT.col,GDC_SORT.dir);
+  const fil=[..._gdcActive,..._gdcDone];
   const listEl=document.getElementById('gdc-list');
   if(listEl)listEl.innerHTML=fil.length?fil.map((t,i)=>{
     const isDone=t.status==='已完成'||t.status==='已付款';
@@ -2446,6 +2460,19 @@ function renderGDC(){
   </tr>`;}).join(''):'<tr><td colspan="10" style="text-align:center;color:var(--muted);padding:20px">暂无 GDC 任务</td></tr>';
 
 }
+function renderGDCLinks(){
+  const el=document.getElementById('gdc-links-list');if(!el)return;
+  el.innerHTML=GDC_LINKS.map((l,i)=>`<span style="display:inline-flex;align-items:center;gap:4px;background:rgba(106,58,150,.1);border-radius:6px;padding:3px 8px"><a href="${l.url}" target="_blank" style="font-size:10.5px;color:var(--purple);text-decoration:none;font-weight:600">🔗 ${l.label}</a><button onclick="delGDCLink(${i})" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:9px;padding:0;line-height:1">✕</button></span>`).join('');
+}
+function addGDCLink(){
+  const label=document.getElementById('gdc-link-label')?.value.trim();
+  const url=document.getElementById('gdc-link-url')?.value.trim();
+  if(!label||!url)return;
+  GDC_LINKS.push({label,url});save('gdc_links',GDC_LINKS);
+  document.getElementById('gdc-link-label').value='';document.getElementById('gdc-link-url').value='';
+  renderGDCLinks();
+}
+function delGDCLink(i){GDC_LINKS.splice(i,1);save('gdc_links',GDC_LINKS);renderGDCLinks();}
 function delGDCTask(id){
   GDC_TASKS.splice(GDC_TASKS.findIndex(t=>String(t.id)===String(id)),1);
   save('gdc_tasks',GDC_TASKS);renderGDC();
