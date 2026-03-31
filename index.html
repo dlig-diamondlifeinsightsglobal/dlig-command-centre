@@ -1004,16 +1004,15 @@ body{background:var(--cream);color:var(--text);font-family:'Plus Jakarta Sans',s
       <div id="mins-list"></div>
     </div>
     <div class="ms-tab" id="ms-special">
-      <div class="ib ib-red"><b>🔔 特别会议 Special Meeting</b>由 Li Joo 安排的特别会议。资料存在 Sheet，所有人进来都能看到。</div>
+      <div class="ib ib-red"><b>🔔 特别会议 Special Meeting</b>由 Li Joo 安排。每次开会前更新议程，大家进来就能看到。</div>
       <div id="special-meeting-list"></div>
       <div style="background:var(--white);border:1.5px solid var(--border);border-radius:var(--r);padding:14px;margin-top:14px;box-shadow:var(--sh)">
-        <div style="font-size:11.5px;font-weight:700;margin-bottom:10px">➕ 添加特别会议</div>
+        <div style="font-size:11.5px;font-weight:700;margin-bottom:10px">➕ 新增特别会议</div>
         <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end">
-          <div class="ff" style="flex:2;min-width:160px"><div class="fl2">会议主题</div><input class="fi" id="sm-title" placeholder="主题..."></div>
-          <div class="ff"><div class="fl2">日期时间</div><input class="fi" id="sm-dt" type="datetime-local" style="width:175px"></div>
-          <div class="ff" style="flex:1"><div class="fl2">地点/Zoom</div><input class="fi" id="sm-loc" placeholder="Zoom/地点..."></div>
-          <div class="ff" style="flex:2;min-width:200px"><div class="fl2">议程 / 备注</div><input class="fi" id="sm-desc" placeholder="简单说明..."></div>
-          <button class="add-btn" onclick="addSpecialMeeting()">+ 添加</button>
+          <div class="ff" style="flex:2;min-width:160px"><div class="fl2">会议主题</div><input class="fi" id="sm-title" placeholder="e.g. Quarterly Planning"></div>
+          <div class="ff"><div class="fl2">日期</div><input class="fi" id="sm-date" type="date" style="width:150px"></div>
+          <div class="ff"><div class="fl2">地点/Zoom</div><input class="fi" id="sm-loc" placeholder="DLIG Space / Zoom..."></div>
+          <button class="add-btn" onclick="addSpecialMeeting()">+ 创建会议</button>
         </div>
       </div>
     </div>
@@ -1194,7 +1193,7 @@ let TASKS=load('tasks',[
   {id:7,task:'YLYD 会员 content 发布',person:'Stella',cat:'Operation',type:'contrib',priority:'⚡ 本月',deadline:'2026-04-30',status:'待启动',est:3,actual:''},
 ]);
 let LOGS=load('logs',[]);
-let GDC_LINKS=load('gdc_links',[{label:'GDC Schedule Sheet',url:'https://docs.google.com/spreadsheets/d/1Gc0rO-gx_CBSZ60fFHvmMeTsq7dClsCU4WiSN5ii-2M/edit?usp=sharing'}]);
+let GDC_LINKS=load('gdc_links',[{label:'》GDC Content Bulk Upload',url:'https://docs.google.com/spreadsheets/d/1Gc0rO-gx_CBSZ60fFHvmMeTsq7dClsCU4WiSN5ii-2M/edit?usp=sharing'}]);
 let DEC=load('decisions',[
   {id:'d1',q:'心动觉察活动是否继续赠送 YLYD 终身会员资格？',opts:['赠送 → 更新 Checklist','不赠送 → 定购买门槛','Lucky Draw 形式'],votes:{},comments:[],owner:'All',dl:'2026-04-12'},
   {id:'d2',q:'分钱机制最终定案（贡献时间 × 价值系数）',opts:['季度结算，工时50%+任务50%','月度结算'],votes:{},comments:[],owner:'All',dl:'2026-04-05'},
@@ -1445,7 +1444,7 @@ const DR_CL=['Polling 确认出席者（2-3天前）','开始前5分钟 Start Zo
 const WR_CL=['Polling 确认出席者（2-3天前）','Send Zoom link / 确认地点','准备当周主题 & 内容','准时 2pm 开始','主持整场 1-2小时','拍照 & Post 活动花絮'];
 const BS_CL=['Polling 确认出席者（2-3天前）','Send Zoom link','准备当月书/影选题','准时 2:30pm 开始','主持分享 & 讨论（1.5小时）','Post 精华 Social Media'];
 const MO_AGENDA=[
-  {t:'开场',title:'🙏 调频 & 发愿',desc:'发愿 + 感恩彼此（每人1句） + 读使命',o:'全体',expand:true},
+  {t:'开场',title:'🙏 DLIG 开场定调',desc:'发愿 + 感恩彼此（每人1句） + 读使命',o:'全体',expand:true},
   {t:'+10m',title:'📊 目标回顾',desc:'上月 KPI 复盘 · 本月目标确认',o:'Li Joo'},
   {t:'+20m',title:'💰 Sales 报告',desc:'成交数字 · 达成率 · 下月 Target',o:'Li Joo'},
   {t:'+20m',title:'📣 Marketing 报告',desc:'内容表现 · 广告数据 · 下月计划',o:'Jasper'},
@@ -1456,7 +1455,8 @@ const MO_AGENDA=[
   {t:'+5m',title:'☕ 咖啡庆祝',desc:'好种子分享 · 结束调频',o:'全体'},
 ];
 const WK_AGENDA=[
-  {t:'8:00am',title:'⚡ 快速同步',desc:'各人本周重点 + 阻碍（每人 2 分钟）',o:'全体'},
+  {t:'8:00am',title:'🙏 DLIG 开场定调',desc:'发愿 + 感恩彼此（每人1句）',o:'全体',expand:true},
+  {t:'8:10am',title:'⚡ 快速同步',desc:'各人本周重点 + 阻碍（每人 2 分钟）',o:'全体'},
   {t:'8:10am',title:'💰 Sales 跟进',desc:'本周成交 · 需要支持的客户',o:'Li Joo'},
   {t:'8:20am',title:'📋 任务更新',desc:'上周完成情况 · 本周任务确认',o:'全体'},
   {t:'8:35am',title:'⚡ 快速决策',desc:'本周需要拍板的小事项',o:'全体'},
@@ -2549,30 +2549,69 @@ function renderPolicy(){
 let SPECIAL_MEETINGS=load('special_meetings',[]);
 function renderSpecialMeeting(){
   const el=document.getElementById('special-meeting-list');if(!el)return;
-  el.innerHTML=SPECIAL_MEETINGS.length?SPECIAL_MEETINGS.map((m,i)=>`
-    <div style="background:var(--white);border:1.5px solid var(--border);border-radius:12px;padding:14px;margin-bottom:10px;box-shadow:var(--sh)">
-      <div style="display:flex;align-items:flex-start;justify-content:space-between">
+  if(!SPECIAL_MEETINGS.length){el.innerHTML='<div style="color:var(--muted);font-size:12px;padding:20px 0">暂无特别会议安排</div>';return;}
+  el.innerHTML=SPECIAL_MEETINGS.map(m=>{
+    const ag=m.agenda||[];
+    const agRows=ag.map((a,ai)=>`
+      <div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px dashed var(--border)">
+        <input value="${a.from||''}" onchange="editSMItem('${m.id}',${ai},'from',this.value)" style="border:none;background:transparent;font-family:'DM Sans',monospace;font-size:10.5px;font-weight:700;color:var(--gold);width:65px;outline:none;text-align:right">
+        <span style="color:var(--muted);font-size:10px">→</span>
+        <input value="${a.to||''}" onchange="editSMItem('${m.id}',${ai},'to',this.value)" style="border:none;background:transparent;font-family:'DM Sans',monospace;font-size:10.5px;font-weight:700;color:var(--muted);width:65px;outline:none">
+        <input value="${(a.activity||'').replace(/"/g,'&quot;')}" onchange="editSMItem('${m.id}',${ai},'activity',this.value)" style="border:none;background:transparent;font-size:11.5px;font-weight:600;flex:1;outline:none;color:var(--text)">
+        <button onclick="delSMItem('${m.id}',${ai})" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:10px;padding:0;flex-shrink:0">✕</button>
+      </div>`).join('');
+    return`<div style="background:var(--white);border:1.5px solid var(--border);border-radius:12px;padding:16px;margin-bottom:12px;box-shadow:var(--sh)">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:10px">
         <div>
-          <div style="font-size:13px;font-weight:800;color:var(--red);margin-bottom:4px">🔔 ${m.title}</div>
-          <div style="font-size:11px;color:var(--muted);margin-bottom:4px">📅 ${m.dt||'待定'} ${m.loc?'· 📍 '+m.loc:''}</div>
-          ${m.desc?`<div style="font-size:11.5px;color:var(--text2)">${m.desc}</div>`:''}
+          <div style="font-size:13px;font-weight:800;color:var(--red);margin-bottom:3px">🔔 <input value="${(m.title||'').replace(/"/g,'&quot;')}" onchange="editSMField('${m.id}','title',this.value)" style="border:none;background:transparent;font-size:13px;font-weight:800;color:var(--red);outline:none;width:280px"></div>
+          <div style="font-size:11px;color:var(--muted)">
+            📅 <input type="date" value="${m.date||''}" onchange="editSMField('${m.id}','date',this.value)" style="border:none;background:transparent;font-family:'DM Sans',sans-serif;font-size:11px;color:var(--muted);outline:none">
+            ${m.loc?`· 📍 <input value="${(m.loc||'').replace(/"/g,'&quot;')}" onchange="editSMField('${m.id}','loc',this.value)" style="border:none;background:transparent;font-size:11px;color:var(--muted);outline:none;width:180px">`:''}
+          </div>
         </div>
-        <button onclick="delSpecialMeeting('${m.id}')" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:11px;padding:4px">✕</button>
+        <button onclick="delSpecialMeeting('${m.id}')" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:12px;padding:4px">✕</button>
       </div>
-    </div>`).join(''):'<div style="color:var(--muted);font-size:12px;padding:20px 0">暂无特别会议安排</div>';
+      <div style="border:1.5px solid var(--border);border-radius:8px;padding:8px 12px;margin-bottom:10px;background:var(--bg)">
+        <div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px">议程 Agenda</div>
+        ${agRows||'<div style="color:var(--muted);font-size:11px;padding:4px 0">暂无议程，在下方添加</div>'}
+      </div>
+      <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
+        <input class="fi" id="sm-from-${m.id}" placeholder="开始时间" style="width:80px;font-size:10.5px;padding:4px 8px">
+        <span style="color:var(--muted);font-size:11px">→</span>
+        <input class="fi" id="sm-to-${m.id}" placeholder="结束时间" style="width:80px;font-size:10.5px;padding:4px 8px">
+        <input class="fi" id="sm-act-${m.id}" placeholder="会议环节..." style="flex:1;min-width:160px;font-size:10.5px;padding:4px 8px">
+        <button class="fb" onclick="addSMItem('${m.id}')" style="font-size:10.5px">+ 添加环节</button>
+      </div>
+    </div>`;
+  }).join('');
 }
 function addSpecialMeeting(){
   const title=document.getElementById('sm-title')?.value.trim();if(!title)return;
-  const dt=document.getElementById('sm-dt')?.value||'';
+  const date=document.getElementById('sm-date')?.value||'';
   const loc=document.getElementById('sm-loc')?.value.trim()||'';
-  const desc=document.getElementById('sm-desc')?.value.trim()||'';
-  SPECIAL_MEETINGS.push({id:'sm'+Date.now(),title,dt,loc,desc});
+  const newM={id:'sm'+Date.now(),title,date,loc,agenda:[{from:'开场',to:'10min',activity:'🙏 DLIG 开场定调'}]};
+  SPECIAL_MEETINGS.push(newM);
   document.getElementById('sm-title').value='';
-  if(document.getElementById('sm-dt'))document.getElementById('sm-dt').value='';
+  if(document.getElementById('sm-date'))document.getElementById('sm-date').value='';
   if(document.getElementById('sm-loc'))document.getElementById('sm-loc').value='';
-  if(document.getElementById('sm-desc'))document.getElementById('sm-desc').value='';
   save('special_meetings',SPECIAL_MEETINGS);renderSpecialMeeting();
 }
+function editSMField(id,field,val){const m=SPECIAL_MEETINGS.find(x=>x.id===id);if(m){m[field]=val;save('special_meetings',SPECIAL_MEETINGS);}}
+function editSMItem(id,idx,field,val){const m=SPECIAL_MEETINGS.find(x=>x.id===id);if(m&&m.agenda[idx]){m.agenda[idx][field]=val;save('special_meetings',SPECIAL_MEETINGS);}}
+function addSMItem(id){
+  const m=SPECIAL_MEETINGS.find(x=>x.id===id);if(!m)return;
+  const from=document.getElementById('sm-from-'+id)?.value.trim()||'';
+  const to=document.getElementById('sm-to-'+id)?.value.trim()||'';
+  const activity=document.getElementById('sm-act-'+id)?.value.trim()||'';
+  if(!activity)return;
+  if(!m.agenda)m.agenda=[];
+  m.agenda.push({from,to,activity});
+  document.getElementById('sm-from-'+id).value='';
+  document.getElementById('sm-to-'+id).value='';
+  document.getElementById('sm-act-'+id).value='';
+  save('special_meetings',SPECIAL_MEETINGS);renderSpecialMeeting();
+}
+function delSMItem(id,idx){const m=SPECIAL_MEETINGS.find(x=>x.id===id);if(m){m.agenda.splice(idx,1);save('special_meetings',SPECIAL_MEETINGS);renderSpecialMeeting();}}
 function delSpecialMeeting(id){SPECIAL_MEETINGS=SPECIAL_MEETINGS.filter(m=>m.id!==id);save('special_meetings',SPECIAL_MEETINGS);renderSpecialMeeting();}
 
 const FAYU_HTML=`<div style="font-size:11.5px;line-height:1.9;color:var(--text2)">
@@ -2584,7 +2623,23 @@ const FAYU_HTML=`<div style="font-size:11.5px;line-height:1.9;color:var(--text2)
 །འགྤོ་ཀུན་རྣམ་དག་ཞིང་ལ་སྤོད་པར་ཤྤོག<br>'GRO KUN RNAM DAG ZHING LA SPYOD PAR SHOG<br><i>drokun namdak shingla chupar shok</i><br><br>
 །ཨི་ད་གུ་རུ་རཊྞ་མཎྜ་ལ་ཀཾ་ནིར ྻཱ་ཏ་ཡ་མི།<br>AI DAm GU RU RATNA MAndA LA KAm NIRY'A TA Y'A MI<br><i>Idam guru ratna mandalakam niryatayami</i>
 </div>
-<div style="margin-bottom:12px;font-size:11px;line-height:1.8;color:var(--text2)">Here is the great Earth, Filled with the smell of incense, Covered with a blanket of flowers, The Great Mountain, The Four Continents, Wearing a jewel Of the Sun, and Moon. In my mind I make them The Paradise of a Buddha, And offer it all to You. By this deed May every living being Experience The Pure World. <b>Idam Guru Ratna mandalakam niryatayami.</b></div>
+<div style="margin-bottom:12px;font-size:11px;line-height:2;color:var(--text2)">
+Here is the great Earth,<br>
+Filled with the smell of incense,<br>
+Covered with a blanket of flowers,<br>
+The Great Mountain,<br>
+The Four Continents,<br>
+Wearing a jewel<br>
+Of the Sun, and Moon.<br>
+In my mind I make them<br>
+The Paradise of a Buddha,<br>
+And offer it all to You.<br>
+By this deed<br>
+May every living being<br>
+Experience<br>
+The Pure World.<br>
+<b>Idam Guru Ratna mandalakam niryatayami.</b>
+</div>
 <div style="font-weight:800;color:var(--gold);margin-bottom:4px;font-size:12px">🎯 愿景 Vision</div>
 <div style="margin-bottom:10px">创造 7,000万 个了解事物真正运作方式的人生设计师，共创富足而美好的人生。</div>
 <div style="font-weight:800;color:var(--gold);margin-bottom:4px;font-size:12px">📋 使命 Mission</div>
