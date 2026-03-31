@@ -22,7 +22,9 @@ const GDC_JOB_TAB   = 'Content arrangement';  // GDC spreadsheet 的实际 tab �
 const SALES_TAB     = 'Sales Dashboard';
 const EVENTS_TAB    = 'Events 活动';         // 在 Task Board spreadsheet 里新建这个 tab
 const ROTATION_TAB  = 'Rotation 轮值';       // 在 Task Board spreadsheet 里新建这个 tab
-const LOGS_TAB      = '自发记录';            // 在 Task Board spreadsheet 里新建这个 tab
+const LOGS_TAB          = '自发记录';            // 在 Task Board spreadsheet 里新建这个 tab
+const DECISIONS_TAB     = '待决策';              // 在 Task Board spreadsheet 里
+const SPEC_MEETINGS_TAB = '特别会议';            // 在 Task Board spreadsheet 里
 
 const SALES_HEADERS = ['month','target','actual','xd','ylyd','exp','book','note'];
 
@@ -619,6 +621,82 @@ function writeLogs(rows) {
   return { ok: true, count: rows.length };
 }
 
+// ─── 待决策 读写 ──────────────────────────────────────────────
+
+function readDecisions() {
+  const ss  = SpreadsheetApp.openById(SHEET_IDS.tasks);
+  const tab = ss.getSheetByName(DECISIONS_TAB);
+  if (!tab) return [];
+  const data = tab.getDataRange().getValues();
+  if (data.length < 2) return [];
+  return data.slice(1).filter(r => r[0]).map(r => {
+    let opts=[], votes={}, comments=[];
+    try { opts     = JSON.parse(String(r[2]||'[]')); } catch(e){}
+    try { votes    = JSON.parse(String(r[3]||'{}')); } catch(e){}
+    try { comments = JSON.parse(String(r[4]||'[]')); } catch(e){}
+    return { id:String(r[0]), q:String(r[1]||''), opts, votes, comments,
+             owner:String(r[5]||''), dl:String(r[6]||'待定') };
+  });
+}
+
+function writeDecisions(items) {
+  const ss  = SpreadsheetApp.openById(SHEET_IDS.tasks);
+  let tab   = ss.getSheetByName(DECISIONS_TAB);
+  if (!tab) {
+    tab = ss.insertSheet(DECISIONS_TAB);
+    tab.getRange(1,1,1,7).setValues([['id','question','options','votes','comments','owner','deadline']])
+       .setFontWeight('bold').setBackground('#fff0f5');
+  }
+  const lastRow = tab.getLastRow();
+  if (lastRow > 1) tab.getRange(2,1,lastRow-1,7).clearContent();
+  if (!items.length) return { ok:true, count:0 };
+  const rows = items.map(d => [
+    d.id||'', d.q||'',
+    JSON.stringify(d.opts||[]),
+    JSON.stringify(d.votes||{}),
+    JSON.stringify(d.comments||[]),
+    d.owner||'', d.dl||'待定'
+  ]);
+  tab.getRange(2,1,rows.length,7).setValues(rows);
+  return { ok:true, count:rows.length };
+}
+
+// ─── 特别会议 读写 ────────────────────────────────────────────
+
+function readSpecialMeetings() {
+  const ss  = SpreadsheetApp.openById(SHEET_IDS.tasks);
+  const tab = ss.getSheetByName(SPEC_MEETINGS_TAB);
+  if (!tab) return [];
+  const data = tab.getDataRange().getValues();
+  if (data.length < 2) return [];
+  return data.slice(1).filter(r => r[0]).map(r => {
+    let agenda = [];
+    try { agenda = JSON.parse(String(r[5]||'[]')); } catch(e){}
+    return { id:String(r[0]), title:String(r[1]||''),
+             date:fmtDate(r[2])||String(r[2]||''), time:String(r[3]||''),
+             loc:String(r[4]||''), agenda };
+  });
+}
+
+function writeSpecialMeetings(items) {
+  const ss  = SpreadsheetApp.openById(SHEET_IDS.tasks);
+  let tab   = ss.getSheetByName(SPEC_MEETINGS_TAB);
+  if (!tab) {
+    tab = ss.insertSheet(SPEC_MEETINGS_TAB);
+    tab.getRange(1,1,1,6).setValues([['id','title','date','time','location','agenda']])
+       .setFontWeight('bold').setBackground('#fff5f5');
+  }
+  const lastRow = tab.getLastRow();
+  if (lastRow > 1) tab.getRange(2,1,lastRow-1,6).clearContent();
+  if (!items.length) return { ok:true, count:0 };
+  const rows = items.map(m => [
+    m.id||'', m.title||'', m.date||'', m.time||'', m.loc||'',
+    JSON.stringify(m.agenda||[])
+  ]);
+  tab.getRange(2,1,rows.length,6).setValues(rows);
+  return { ok:true, count:rows.length };
+}
+
 // ─── doGet ───────────────────────────────────────────────────
 
 function doGet(e) {
@@ -631,7 +709,9 @@ function doGet(e) {
     if (type === 'donation') return respond(readDonationTotal());
     if (type === 'events')   return respond(readEventsTab());
     if (type === 'rotation') return respond(readRotationTab());
-    if (type === 'logs')     return respond(readLogs());
+    if (type === 'logs')              return respond(readLogs());
+    if (type === 'decisions')         return respond(readDecisions());
+    if (type === 'special_meetings')  return respond(readSpecialMeetings());
     return respond({ error: 'Unknown sheet: ' + type });
   } catch(err) {
     return respond({ error: err.message });
@@ -648,7 +728,9 @@ function doPost(e) {
     if (type === 'mkt')      return respond(writeMarketingContent(Array.isArray(data) ? data : []));
     if (type === 'gdc')      return respond(writeGDCJobs(Array.isArray(data) ? data : []));
     if (type === 'rotation') return respond(writeRotationTab(Array.isArray(data) ? data : []));
-    if (type === 'logs')     return respond(writeLogs(Array.isArray(data) ? data : []));
+    if (type === 'logs')             return respond(writeLogs(Array.isArray(data) ? data : []));
+    if (type === 'decisions')        return respond(writeDecisions(Array.isArray(data) ? data : []));
+    if (type === 'special_meetings') return respond(writeSpecialMeetings(Array.isArray(data) ? data : []));
     if (type === 'pay') {
       return respond(writePaySheet(data.tasks, data.mkt, data.gdc));
     }

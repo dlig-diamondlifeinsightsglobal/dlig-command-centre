@@ -842,12 +842,7 @@ body{background:var(--cream);color:var(--text);font-family:'Plus Jakarta Sans',s
         <b style="color:var(--purple)">🎨 GDC Marketing Job</b>
         <span style="font-size:10.5px;color:var(--muted)">— 记录外包任务，每月 RM2,500 package。完成后同步到 Task Board。</span>
       </div>
-      <div id="gdc-links-list" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px"></div>
-      <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
-        <input class="fi" id="gdc-link-label" placeholder="链接名称" style="width:110px;font-size:10.5px;padding:4px 8px">
-        <input class="fi" id="gdc-link-url" placeholder="https://..." style="flex:1;min-width:180px;font-size:10.5px;padding:4px 8px">
-        <button class="fb" onclick="addGDCLink()" style="font-size:10.5px;color:var(--purple);border-color:rgba(106,58,150,.3)">+ 添加链接</button>
-      </div>
+      <div id="gdc-links-list" style="display:flex;flex-wrap:wrap;gap:6px"></div>
     </div>
     <div style="background:var(--white);border:1.5px solid var(--border);border-radius:var(--r);padding:14px;margin-bottom:14px;box-shadow:var(--sh)">
       <div style="display:flex;gap:8px;align-items:flex-end;flex-wrap:wrap">
@@ -978,18 +973,30 @@ body{background:var(--cream);color:var(--text);font-family:'Plus Jakarta Sans',s
 
   <!-- ══ MEETING ══ -->
   <div class="page" id="p-meeting">
-    <div class="mtabs">
-      <button class="mt on" onclick="smeet('monthly',this)">📋 Monthly Meeting</button>
-      <button class="mt" onclick="smeet('weekly',this)">⚡ Weekly Meeting</button>
-      <button class="mt" onclick="smeet('minutes',this)">📝 会议记录</button>
-      <button class="mt" onclick="smeet('special',this)">🔔 特别会议</button>
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:4px">
+      <div class="mtabs" style="margin-bottom:0">
+        <button class="mt on" onclick="smeet('monthly',this)">📋 Monthly Meeting</button>
+        <button class="mt" onclick="smeet('weekly',this)">⚡ Weekly Meeting</button>
+        <button class="mt" onclick="smeet('minutes',this)">📝 会议记录</button>
+        <button class="mt" onclick="smeet('special',this)">🔔 特别会议</button>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;background:var(--white);border:1.5px solid var(--border);border-radius:10px;padding:8px 14px;box-shadow:var(--sh)">
+        <span style="font-size:10.5px;color:var(--muted);font-weight:600">⏱</span>
+        <input type="number" id="mt-mins-input" min="1" max="120" value="10" oninput="if(!mtRunning){const m=parseInt(this.value)||10;document.getElementById('mt-display').textContent=m+':00';}" style="width:44px;padding:2px 5px;border:1.5px solid var(--border);border-radius:6px;font-size:11px;text-align:center;outline:none">
+        <span style="font-size:10px;color:var(--muted)">分钟</span>
+        <div id="mt-display" style="font-family:'Space Mono',monospace;font-size:19px;font-weight:800;color:var(--text);min-width:54px;text-align:center;letter-spacing:1px">10:00</div>
+        <button id="mt-start-btn" onclick="mtToggle()" style="padding:4px 12px;border:1.5px solid var(--green);background:var(--greenB);color:var(--green);border-radius:7px;cursor:pointer;font-size:11px;font-weight:700">▶ 开始</button>
+        <button onclick="mtReset()" style="padding:4px 10px;border:1.5px solid var(--border);background:transparent;border-radius:7px;cursor:pointer;font-size:11px;color:var(--muted)">↺</button>
+      </div>
     </div>
     <div class="ms-tab on" id="ms-monthly">
-      <div class="ib ib-gold"><b>📅 Monthly Meeting — 每月最后拜二</b>全员参与 · 每人准备部门报告 · <a onclick="go('decisions')" style="color:var(--gold);cursor:pointer;text-decoration:underline">⚡ 点击先去投票</a></div>
+      <div class="ib ib-gold"><b>📅 Monthly Meeting — 每月最后拜二</b>全员参与 · 每人准备部门报告 · <a onclick="go('decisions')" style="color:var(--gold);cursor:pointer;text-decoration:underline">⚡ 点击先去投票</a> · <button onclick="toggleFayuBanner('mo-fayu')" style="font-size:10px;padding:2px 8px;border:1.5px solid var(--gold);background:transparent;border-radius:6px;cursor:pointer;color:var(--gold);font-weight:700">📖 发愿</button></div>
+      <div id="mo-fayu" style="display:none;background:var(--amberB);border-radius:10px;padding:14px;margin-bottom:12px;max-height:70vh;overflow-y:auto"></div>
       <div class="ag-wrap" id="mo-agenda"></div>
     </div>
     <div class="ms-tab" id="ms-weekly">
-      <div class="ib ib-blue"><b>⚡ Weekly Meeting — 每周 Thu 8am</b>快速对齐 + 任务分配 · <a onclick="go('decisions')" style="color:var(--blue);cursor:pointer;text-decoration:underline">⚡ 点击先去投票</a></div>
+      <div class="ib ib-blue"><b>⚡ Weekly Meeting — 每周 Thu 8am</b>快速对齐 + 任务分配 · <a onclick="go('decisions')" style="color:var(--blue);cursor:pointer;text-decoration:underline">⚡ 点击先去投票</a> · <button onclick="toggleFayuBanner('wk-fayu')" style="font-size:10px;padding:2px 8px;border:1.5px solid var(--blue);background:transparent;border-radius:6px;cursor:pointer;color:var(--blue);font-weight:700">📖 发愿</button></div>
+      <div id="wk-fayu" style="display:none;background:rgba(37,99,235,.05);border-radius:10px;padding:14px;margin-bottom:12px;max-height:70vh;overflow-y:auto"></div>
       <div class="ag-wrap" id="wk-agenda"></div>
     </div>
     <div class="ms-tab" id="ms-minutes">
@@ -1010,7 +1017,8 @@ body{background:var(--cream);color:var(--text);font-family:'Plus Jakarta Sans',s
         <div style="font-size:11.5px;font-weight:700;margin-bottom:10px">➕ 新增特别会议</div>
         <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end">
           <div class="ff" style="flex:2;min-width:160px"><div class="fl2">会议主题</div><input class="fi" id="sm-title" placeholder="e.g. Quarterly Planning"></div>
-          <div class="ff"><div class="fl2">日期</div><input class="fi" id="sm-date" type="date" style="width:150px"></div>
+          <div class="ff"><div class="fl2">日期</div><input class="fi" id="sm-date" type="date" style="width:145px"></div>
+          <div class="ff"><div class="fl2">时间</div><input class="fi" id="sm-time" type="time" style="width:115px"></div>
           <div class="ff"><div class="fl2">地点/Zoom</div><input class="fi" id="sm-loc" placeholder="DLIG Space / Zoom..."></div>
           <button class="add-btn" onclick="addSpecialMeeting()">+ 创建会议</button>
         </div>
@@ -2524,6 +2532,9 @@ function confirmGDCComplete(id){
   if(t.dl)t.eff=calcEffDL(t.dl,t.doneDate);
   document.getElementById('gdc-complete-modal')?.remove();
   save('gdc_tasks',GDC_TASKS);renderGDC();
+  // 同步到 Task Board 镜像 task
+  const mirror=TASKS.find(x=>x.task&&x.task.includes(t.task)&&(x.cat==='GDC job'||x.cat==='GDC'||x.task.includes('🎨')));
+  if(mirror&&mirror.status!=='已完成'){mirror.status='已完成';mirror.doneDate=t.doneDate;save('tasks',TASKS);renderTasks();}
 }
 function cycleGDCStatus(id){
   const t=GDC_TASKS.find(x=>String(x.id)===String(id));if(!t)return;
@@ -2552,20 +2563,23 @@ function renderSpecialMeeting(){
   if(!SPECIAL_MEETINGS.length){el.innerHTML='<div style="color:var(--muted);font-size:12px;padding:20px 0">暂无特别会议安排</div>';return;}
   el.innerHTML=SPECIAL_MEETINGS.map(m=>{
     const ag=m.agenda||[];
-    const agRows=ag.map((a,ai)=>`
-      <div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px dashed var(--border)">
-        <input value="${a.from||''}" onchange="editSMItem('${m.id}',${ai},'from',this.value)" style="border:none;background:transparent;font-family:'DM Sans',monospace;font-size:10.5px;font-weight:700;color:var(--gold);width:65px;outline:none;text-align:right">
+    const agRows=ag.map((a,ai)=>{
+      const dur=calcSMDur(a.from,a.to);
+      return`<div style="display:flex;align-items:center;gap:6px;padding:6px 0;border-bottom:1px dashed var(--border)">
+        <input value="${a.from||''}" onchange="editSMItem('${m.id}',${ai},'from',this.value)" placeholder="开始" style="border:none;background:transparent;font-family:'Space Mono',monospace;font-size:10.5px;font-weight:700;color:var(--gold);width:58px;outline:none;text-align:center">
         <span style="color:var(--muted);font-size:10px">→</span>
-        <input value="${a.to||''}" onchange="editSMItem('${m.id}',${ai},'to',this.value)" style="border:none;background:transparent;font-family:'DM Sans',monospace;font-size:10.5px;font-weight:700;color:var(--muted);width:65px;outline:none">
-        <input value="${(a.activity||'').replace(/"/g,'&quot;')}" onchange="editSMItem('${m.id}',${ai},'activity',this.value)" style="border:none;background:transparent;font-size:11.5px;font-weight:600;flex:1;outline:none;color:var(--text)">
+        <input value="${a.to||''}" onchange="editSMItem('${m.id}',${ai},'to',this.value)" placeholder="结束" style="border:none;background:transparent;font-family:'Space Mono',monospace;font-size:10.5px;font-weight:700;color:var(--text2);width:58px;outline:none;text-align:center">
+        <span style="font-size:10px;color:var(--muted);min-width:42px;text-align:center;background:var(--s2);border-radius:4px;padding:1px 5px">${dur}</span>
+        <input value="${(a.activity||'').replace(/"/g,'&quot;')}" onchange="editSMItem('${m.id}',${ai},'activity',this.value)" placeholder="会议环节..." style="border:none;background:transparent;font-size:11.5px;font-weight:600;flex:1;outline:none;color:var(--text)">
         <button onclick="delSMItem('${m.id}',${ai})" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:10px;padding:0;flex-shrink:0">✕</button>
-      </div>`).join('');
+      </div>`;}).join('');
     return`<div style="background:var(--white);border:1.5px solid var(--border);border-radius:12px;padding:16px;margin-bottom:12px;box-shadow:var(--sh)">
       <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:10px">
         <div>
           <div style="font-size:13px;font-weight:800;color:var(--red);margin-bottom:3px">🔔 <input value="${(m.title||'').replace(/"/g,'&quot;')}" onchange="editSMField('${m.id}','title',this.value)" style="border:none;background:transparent;font-size:13px;font-weight:800;color:var(--red);outline:none;width:280px"></div>
           <div style="font-size:11px;color:var(--muted)">
             📅 <input type="date" value="${m.date||''}" onchange="editSMField('${m.id}','date',this.value)" style="border:none;background:transparent;font-family:'DM Sans',sans-serif;font-size:11px;color:var(--muted);outline:none">
+            ${m.time?`⏰ <input type="time" value="${m.time||''}" onchange="editSMField('${m.id}','time',this.value)" style="border:none;background:transparent;font-family:'DM Sans',sans-serif;font-size:11px;color:var(--muted);outline:none">`:` <button onclick="this.replaceWith(document.createElement('span'))" style="font-size:9px;border:1px dashed var(--muted);background:transparent;border-radius:4px;padding:1px 5px;color:var(--muted);cursor:pointer">+ 时间</button>`}
             ${m.loc?`· 📍 <input value="${(m.loc||'').replace(/"/g,'&quot;')}" onchange="editSMField('${m.id}','loc',this.value)" style="border:none;background:transparent;font-size:11px;color:var(--muted);outline:none;width:180px">`:''}
           </div>
         </div>
@@ -2576,11 +2590,11 @@ function renderSpecialMeeting(){
         ${agRows||'<div style="color:var(--muted);font-size:11px;padding:4px 0">暂无议程，在下方添加</div>'}
       </div>
       <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
-        <input class="fi" id="sm-from-${m.id}" placeholder="开始时间" style="width:80px;font-size:10.5px;padding:4px 8px">
+        <input class="fi" id="sm-from-${m.id}" placeholder="09:00" style="width:72px;font-size:10.5px;padding:4px 8px;text-align:center">
         <span style="color:var(--muted);font-size:11px">→</span>
-        <input class="fi" id="sm-to-${m.id}" placeholder="结束时间" style="width:80px;font-size:10.5px;padding:4px 8px">
+        <input class="fi" id="sm-to-${m.id}" placeholder="09:30" style="width:72px;font-size:10.5px;padding:4px 8px;text-align:center">
         <input class="fi" id="sm-act-${m.id}" placeholder="会议环节..." style="flex:1;min-width:160px;font-size:10.5px;padding:4px 8px">
-        <button class="fb" onclick="addSMItem('${m.id}')" style="font-size:10.5px">+ 添加环节</button>
+        <button class="fb" onclick="addSMItem('${m.id}')" style="font-size:10.5px">+ 添加</button>
       </div>
     </div>`;
   }).join('');
@@ -2588,13 +2602,22 @@ function renderSpecialMeeting(){
 function addSpecialMeeting(){
   const title=document.getElementById('sm-title')?.value.trim();if(!title)return;
   const date=document.getElementById('sm-date')?.value||'';
+  const time=document.getElementById('sm-time')?.value||'';
   const loc=document.getElementById('sm-loc')?.value.trim()||'';
-  const newM={id:'sm'+Date.now(),title,date,loc,agenda:[{from:'开场',to:'10min',activity:'🙏 DLIG 开场定调'}]};
+  const newM={id:'sm'+Date.now(),title,date,time,loc,agenda:[{from:'09:00',to:'09:10',activity:'🙏 DLIG 开场定调'}]};
   SPECIAL_MEETINGS.push(newM);
   document.getElementById('sm-title').value='';
   if(document.getElementById('sm-date'))document.getElementById('sm-date').value='';
+  if(document.getElementById('sm-time'))document.getElementById('sm-time').value='';
   if(document.getElementById('sm-loc'))document.getElementById('sm-loc').value='';
   save('special_meetings',SPECIAL_MEETINGS);renderSpecialMeeting();
+}
+function calcSMDur(from,to){
+  const p=t=>{const m=(t||'').match(/^(\d{1,2}):(\d{2})$/);return m?parseInt(m[1])*60+parseInt(m[2]):null;};
+  const s=p(from),e=p(to);if(s===null||e===null)return'—';
+  const d=e-s;if(d<=0)return'—';
+  const h=Math.floor(d/60),mn=d%60;
+  return h>0?(mn>0?`${h}h${mn}m`:`${h}h`):`${mn}m`;
 }
 function editSMField(id,field,val){const m=SPECIAL_MEETINGS.find(x=>x.id===id);if(m){m[field]=val;save('special_meetings',SPECIAL_MEETINGS);}}
 function editSMItem(id,idx,field,val){const m=SPECIAL_MEETINGS.find(x=>x.id===id);if(m&&m.agenda[idx]){m.agenda[idx][field]=val;save('special_meetings',SPECIAL_MEETINGS);}}
@@ -2666,9 +2689,48 @@ function toggleFayu(btn){
   wrap.style.display=open?'none':'block';
   btn.textContent=open?'📖 展开':'✕ 收起';
 }
+function toggleFayuBanner(id){
+  const el=document.getElementById(id);if(!el)return;
+  const open=el.style.display!=='none';
+  el.style.display=open?'none':'block';
+}
+// ─── 倒计时 Timer ─────────────────────────────────────────────
+let mtTimer=null,mtRemaining=0,mtRunning=false;
+function mtToggle(){
+  if(mtRunning){
+    clearInterval(mtTimer);mtRunning=false;
+    document.getElementById('mt-start-btn').textContent='▶ 继续';
+  } else {
+    if(!mtRemaining){const m=parseInt(document.getElementById('mt-mins-input')?.value)||10;mtRemaining=m*60;}
+    mtRunning=true;
+    document.getElementById('mt-start-btn').textContent='⏸ 暂停';
+    mtTimer=setInterval(()=>{
+      if(mtRemaining<=0){
+        clearInterval(mtTimer);mtRunning=false;
+        document.getElementById('mt-start-btn').textContent='▶ 开始';
+        document.getElementById('mt-display').textContent='0:00';
+        document.getElementById('mt-display').style.color='var(--red)';
+        return;
+      }
+      mtRemaining--;
+      const m2=Math.floor(mtRemaining/60),s=mtRemaining%60;
+      document.getElementById('mt-display').textContent=m2+':'+(s<10?'0'+s:s);
+      document.getElementById('mt-display').style.color=mtRemaining<=60?'var(--red)':mtRemaining<=180?'var(--amber)':'var(--text)';
+    },1000);
+  }
+}
+function mtReset(){
+  clearInterval(mtTimer);mtRunning=false;mtRemaining=0;
+  const m=parseInt(document.getElementById('mt-mins-input')?.value)||10;
+  document.getElementById('mt-display').textContent=m+':00';
+  document.getElementById('mt-display').style.color='var(--text)';
+  document.getElementById('mt-start-btn').textContent='▶ 开始';
+}
 function renderMeeting(){
   const mkAg=(data,id)=>{document.getElementById(id).innerHTML=data.map(a=>`<div class="ag-blk"><div class="ag-time">${a.t}</div><div class="ag-line"><div class="ag-dot"></div><div class="ag-conn"></div></div><div class="ag-body"><div class="ag-title">${a.title}${a.expand?` <button onclick="toggleFayu(this)" style="font-size:9px;padding:2px 8px;border:1.5px solid var(--gold);background:transparent;border-radius:6px;cursor:pointer;color:var(--gold);font-weight:700">📖 展开</button>`:''}</div><div class="ag-desc">${a.desc}</div>${a.expand?`<div class="fayu-wrap" style="display:none;margin-top:12px;background:var(--amberB);border-radius:10px;padding:14px;max-height:70vh;overflow-y:auto">${FAYU_HTML}</div>`:''}<div style="margin-top:5px">${ptag(a.o)}</div></div></div>`).join('');};
   mkAg(MO_AGENDA,'mo-agenda');mkAg(WK_AGENDA,'wk-agenda');
+  const moF=document.getElementById('mo-fayu');if(moF)moF.innerHTML=FAYU_HTML;
+  const wkF=document.getElementById('wk-fayu');if(wkF)wkF.innerHTML=FAYU_HTML;
   renderMinutes();renderSpecialMeeting();
 }
 function renderMinutes(){document.getElementById('mins-list').innerHTML=MINUTES.map(m=>m.link?`<a class="fitem" href="${m.link}" target="_blank"><span>📝</span><div style="flex:1"><div class="fi-name">${m.title}</div><div style="font-size:10px;color:var(--muted);margin-top:2px">${m.date}${m.note?' · '+m.note:''}</div></div><span class="fi-arr">↗ 打开</span></a>`:`<div class="fitem"><span>📝</span><div style="flex:1"><div class="fi-name">${m.title}</div><div style="font-size:10px;color:var(--muted);margin-top:2px">${m.date}${m.note?' · '+m.note:''}</div></div><span style="color:var(--dim);font-size:11px">待填链接</span></div>`).join('');}
@@ -2681,7 +2743,24 @@ function renderDecisions(){
   document.getElementById('dec-blocks').innerHTML=DEC.map((d,i)=>{
     const vC={};Object.values(d.votes).forEach(v=>{vC[v]=(vC[v]||0)+1;});
     const vr=Object.keys(d.votes).length>0?Object.entries(vC).map(([o,n])=>`<span style="margin-right:10px"><b>${o.slice(0,30)}</b> <span style="color:var(--gold);font-weight:700">${n}票</span></span>`).join(''):'<span style="color:var(--muted)">还没有人投票 · 点选你的答案</span>';
-    return`<div class="dec"><div class="dec-q">${d.q}</div><div style="font-size:11.5px;color:var(--text2);line-height:2;margin-bottom:10px">${d.opts.map((o,j)=>`${j+1}. ${o}`).join('<br>')}</div><div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px">${d.opts.map(o=>`<button class="vb ${d.votes['你']===o?'sel':''}" onclick="vote(${i},'${o.replace(/'/g,"\\'")}')">${o.slice(0,25)}</button>`).join('')}</div><div style="font-size:11px;color:var(--muted);padding:8px 11px;background:var(--s2);border-radius:7px;margin-bottom:6px">${vr}</div><textarea class="dec-comment" rows="1" placeholder="写下你的想法... (Enter 提交)" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();addCom(${i},this.value);this.value='';}"></textarea>${d.comments.length?`<div style="margin-top:8px">${d.comments.map(c=>`<div style="font-size:11px;padding:5px 9px;background:var(--s2);border-radius:7px;margin-bottom:4px">${c}</div>`).join('')}</div>`:''}<div style="font-size:10px;color:var(--muted);margin-top:8px">${ptag(d.owner)} · ⏰ ${d.dl}</div></div>`;
+    const optsEsc=(d.opts||[]).join(' | ').replace(/"/g,'&quot;');
+    return`<div class="dec">
+      <div style="display:flex;align-items:flex-start;gap:6px;margin-bottom:6px">
+        <div class="dec-q" contenteditable="true" onblur="editDec('${d.id}','q',this.innerText.trim())" style="flex:1;outline:none;cursor:text">${d.q}</div>
+        <button onclick="delDecision('${d.id}')" title="删除此决策" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:13px;padding:0 2px;flex-shrink:0;line-height:1">✕</button>
+      </div>
+      <div style="font-size:10.5px;color:var(--muted);margin-bottom:3px">选项（用 | 分隔，失焦保存）：</div>
+      <input value="${optsEsc}" onblur="editDecOpts('${d.id}',this.value)" style="width:100%;box-sizing:border-box;border:1.5px solid var(--border);border-radius:6px;padding:4px 8px;font-size:11px;margin-bottom:8px;outline:none;font-family:'DM Sans',sans-serif">
+      <div style="font-size:11.5px;color:var(--text2);line-height:2;margin-bottom:10px">${(d.opts||[]).map((o,j)=>`${j+1}. ${o}`).join('<br>')}</div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px">${(d.opts||[]).map(o=>`<button class="vb" onclick="vote(${i},'${o.replace(/'/g,"\\'")}')">${o.slice(0,25)}</button>`).join('')}</div>
+      <div style="font-size:11px;color:var(--muted);padding:8px 11px;background:var(--s2);border-radius:7px;margin-bottom:6px">${vr}</div>
+      <textarea class="dec-comment" rows="1" placeholder="写下你的想法... (Enter 提交)" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();addCom(${i},this.value);this.value='';}"></textarea>
+      ${d.comments.length?`<div style="margin-top:8px">${d.comments.map(c=>`<div style="font-size:11px;padding:5px 9px;background:var(--s2);border-radius:7px;margin-bottom:4px">${c}</div>`).join('')}</div>`:''}
+      <div style="font-size:10px;color:var(--muted);margin-top:8px;display:flex;align-items:center;gap:6px;flex-wrap:wrap">
+        <select onchange="editDec('${d.id}','owner',this.value)" style="font-size:10px;padding:2px 4px;border:1px solid var(--border);border-radius:4px;background:transparent">${['All','Li Joo','Jasper','Stella','Roy'].map(p=>`<option ${d.owner===p?'selected':''}>${p}</option>`).join('')}</select>
+        · ⏰ <input type="date" value="${d.dl&&d.dl!=='待定'?d.dl:''}" onchange="editDec('${d.id}','dl',this.value||'待定')" style="border:none;background:transparent;font-size:10px;color:var(--muted);outline:none;cursor:pointer">
+      </div>
+    </div>`;
   }).join('');
 }
 function vote(i,o){
@@ -2691,6 +2770,9 @@ function vote(i,o){
   renderDecisions();
 }
 function addCom(i,t){if(!t.trim())return;DEC[i].comments.push(t.trim());save('decisions',DEC);renderDecisions();}
+function editDec(id,field,val){const d=DEC.find(x=>x.id===id);if(d){d[field]=val;save('decisions',DEC);}}
+function editDecOpts(id,val){const d=DEC.find(x=>x.id===id);if(!d)return;const opts=val.split('|').map(o=>o.trim()).filter(Boolean);if(!opts.length)return;d.opts=opts;save('decisions',DEC);renderDecisions();}
+function delDecision(id){DEC=DEC.filter(d=>d.id!==id);save('decisions',DEC);renderDecisions();}
 function addDecision(){const q=document.getElementById('dec-q-new').value.trim();const optsStr=document.getElementById('dec-opts-new').value.trim();if(!q||!optsStr)return;const opts=optsStr.split('|').map(o=>o.trim()).filter(Boolean);DEC.push({id:'d'+Date.now(),q,opts,votes:{},comments:[],owner:document.getElementById('dec-owner-new').value,dl:document.getElementById('dec-dl-new').value||'待定'});document.getElementById('dec-q-new').value='';document.getElementById('dec-opts-new').value='';save('decisions',DEC);renderDecisions();updateStats();}
 
 // ═══════════════════════════════════════
