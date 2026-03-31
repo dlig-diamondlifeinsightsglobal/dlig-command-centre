@@ -440,7 +440,7 @@ body{background:var(--cream);color:var(--text);font-family:'Plus Jakarta Sans',s
     </div>
     <div class="tb-pills" id="tb-pills" style="display:none"></div>
     <div id="sheets-status" style="font-size:10px;color:var(--muted);display:flex;align-items:center;gap:5px;">
-      <div style="width:6px;height:6px;border-radius:50%;background:var(--amber);animation:pulse 2s infinite"></div>正在连接 Google Sheets…
+      <div style="width:6px;height:6px;border-radius:50%;background:var(--amber);animation:pulse 2s infinite;flex-shrink:0" id="sheets-dot"></div><span id="sheets-text">正在连接 Google Sheets…</span>
     </div>
   </div>
   <style>@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}</style>
@@ -1011,7 +1011,7 @@ body{background:var(--cream);color:var(--text);font-family:'Plus Jakarta Sans',s
       <div id="mins-list"></div>
     </div>
     <div class="ms-tab" id="ms-special">
-      <div class="ib ib-red"><b>🔔 特别会议 Special Meeting</b>由 Li Joo 安排。每次开会前更新议程，大家进来就能看到。</div>
+      <div class="ib ib-red"><b>🔔 特别会议 Special Meeting</b>由 Li Joo 安排。每次开会前更新议程，大家可以看议程提前准备好自己、准备好内容和想法。<span style="margin-left:8px">→ <a href="#" onclick="go('decisions');return false;" style="color:var(--red);font-weight:700;text-decoration:underline">⚡ 前往 待决策 投票</a></span></div>
       <div id="special-meeting-list"></div>
       <div style="background:var(--white);border:1.5px solid var(--border);border-radius:var(--r);padding:14px;margin-top:14px;box-shadow:var(--sh)">
         <div style="font-size:11.5px;font-weight:700;margin-bottom:10px">➕ 新增特别会议</div>
@@ -1101,8 +1101,8 @@ let _syncTimer=null;
 function showSyncStatus(success){
   const el=document.getElementById('sheets-status');if(!el)return;
   if(success){
-    el.innerHTML='<span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--green)"></span>&nbsp;✅ 已同步到 Google Sheet';
-    clearTimeout(_syncTimer);_syncTimer=setTimeout(()=>{el.innerHTML='<span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--green)"></span>&nbsp;Google Sheet 已连接';},3000);
+    el.innerHTML='<span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--green);flex-shrink:0"></span>&nbsp;✅ 已连接 · 同步于 <b>'+_ts+'</b>';
+    clearTimeout(_syncTimer);_syncTimer=setTimeout(()=>{el.innerHTML='<span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--green)"></span>&nbsp;Google Sheet 已连接 · 上次同步 <b>'+_ts+'</b>';},4000);
   } else {
     el.innerHTML='<span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--amber)"></span>&nbsp;同步失败，将在下次操作时重试';
   }
