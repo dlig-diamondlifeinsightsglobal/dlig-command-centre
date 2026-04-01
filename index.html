@@ -649,6 +649,19 @@ body{background:var(--cream);color:var(--text);font-family:'Plus Jakarta Sans',s
         <button class="add-btn" style="background:linear-gradient(135deg,#6a3a96,#9b59b6)" onclick="addMktContent()">+ 添加</button>
       </div>
     </div>
+    <div class="fbar">
+      <span class="fl">负责人：</span>
+      <button class="fb mkt-pf on" onclick="setMktPF('全部',this)">全部</button>
+      <button class="fb mkt-pf" onclick="setMktPF('Li Joo',this)" style="color:#c84010">Li Joo</button>
+      <button class="fb mkt-pf" onclick="setMktPF('Jasper',this)" style="color:var(--jp)">Jasper</button>
+      <button class="fb mkt-pf" onclick="setMktPF('Stella',this)" style="color:var(--st)">Stella</button>
+      <button class="fb mkt-pf" onclick="setMktPF('Roy',this)" style="color:var(--ry)">Roy</button>
+      <button class="fb mkt-pf" onclick="setMktPF('GDC',this)" style="color:var(--purple)">GDC</button>
+      <div class="sep"></div>
+      <button class="fb mkt-tf on" onclick="setMktTF('all',this)">全部期限</button>
+      <button class="fb mkt-tf" onclick="setMktTF('month',this)">本月</button>
+      <button class="fb mkt-tf" onclick="setMktTF('30',this)">近30天</button>
+    </div>
     <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px">
       <button class="fb" onclick="mktCalPrevMonth()">‹ 上月</button>
       <div id="mkt-cur-month" style="font-size:12px;font-weight:700;color:var(--text);min-width:100px;text-align:center"></div>
@@ -872,6 +885,18 @@ body{background:var(--cream);color:var(--text);font-family:'Plus Jakarta Sans',s
       <button class="fb" onclick="filterGDC('待开始',this)">待开始</button>
       <button class="fb" onclick="filterGDC('已完成',this)">已完成</button>
       <button class="fb" onclick="filterGDC('已付款',this)">已付款</button>
+    </div>
+    <div class="fbar">
+      <span class="fl">负责人：</span>
+      <button class="fb gdc-pf on" onclick="setGDCPF('全部',this)">全部</button>
+      <button class="fb gdc-pf" onclick="setGDCPF('Li Joo',this)" style="color:#c84010">Li Joo</button>
+      <button class="fb gdc-pf" onclick="setGDCPF('Jasper',this)" style="color:var(--jp)">Jasper</button>
+      <button class="fb gdc-pf" onclick="setGDCPF('Stella',this)" style="color:var(--st)">Stella</button>
+      <button class="fb gdc-pf" onclick="setGDCPF('Roy',this)" style="color:var(--ry)">Roy</button>
+      <div class="sep"></div>
+      <button class="fb gdc-tf on" onclick="setGDCTF('all',this)">全部期限</button>
+      <button class="fb gdc-tf" onclick="setGDCTF('month',this)">本月</button>
+      <button class="fb gdc-tf" onclick="setGDCTF('30',this)">近30天</button>
     </div>
     <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px">
       <button class="fb" onclick="gdcCalPrevMonth()">‹ 上月</button>
@@ -1132,9 +1157,12 @@ async function loadFromSheets(){
       if(Array.isArray(rows)&&rows.length>0){
         // 直接写 localStorage，不触发 syncToSheets（避免循环回写）
         try{localStorage.setItem('dlig7_'+lsKey,JSON.stringify(rows));}catch(e){}
-        if(lsKey==='tasks')       TASKS=rows;
-        if(lsKey==='mkt_content') MKT_CONTENT=rows;
-        if(lsKey==='gdc_tasks')   GDC_TASKS=rows;
+        if(lsKey==='tasks')            TASKS=rows;
+        if(lsKey==='mkt_content')      MKT_CONTENT=rows;
+        if(lsKey==='gdc_tasks')        GDC_TASKS=rows;
+        if(lsKey==='decisions')        DEC=rows;
+        if(lsKey==='special_meetings') SPECIAL_MEETINGS=rows;
+        if(lsKey==='logs')             LOGS=rows;
       }
     }catch(e){ok=false;}
   }
@@ -1180,7 +1208,7 @@ async function loadFromSheets(){
     if(el)el.innerHTML='<span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--red)"></span>&nbsp;连接失败，使用本地数据';
   }
   // 注意：TASKS/MKT_CONTENT/GDC_TASKS 已经在上面从 Sheet 直接赋值，不再从 localStorage 加载（避免硬编码数据覆盖）
-  renderTasks();renderMktCal();renderGDC();renderOverview();renderSales();updateStats();renderRotation();renderYLYD();
+  renderTasks();renderMktCal();renderGDC();renderOverview();renderSales();updateStats();renderRotation();renderYLYD();renderDecisions();renderSpecialMeeting();
 }
 const COEF={'Sales':3,'Marketing':2,'System':2,'GDC':2,'Operation':1,'Admin':1};
 const PAY_SM_DATA=[{t:'✍ 视频文案（2篇）',v:'RM5'},{t:'✍ 信息文案模版（2篇）',v:'RM5'},{t:'📣 制作 Post 图+文案',v:'RM15'},{t:'🖼 制作海报（1张）',v:'RM15'},{t:'📝 视频脚本（1支）',v:'RM5'},{t:'📱 剪辑短视频-一键成片（1min内）',v:'RM20'},{t:'📱 剪辑短视频（1min内）',v:'RM50'},{t:'🎬 剪辑YouTube（25min内）',v:'RM100'},{t:'🧠 Landing Page 文案',v:'RM50'},{t:'🖥 Landing Page 制作',v:'RM150'}];
@@ -1663,6 +1691,20 @@ let TF='全部',TV='board';
 let TASK_SORT={col:'deadline',dir:1};
 let MKT_SORT={col:'date',dir:1};
 let GDC_SORT={col:'date',dir:1};
+let MKT_PF='全部',MKT_TF='all';
+let GDC_PF='全部',GDC_TF='all';
+function setMktPF(p,btn){MKT_PF=p;document.querySelectorAll('.mkt-pf').forEach(b=>b.classList.remove('on'));btn.classList.add('on');renderMktCal();}
+function setMktTF(t,btn){MKT_TF=t;document.querySelectorAll('.mkt-tf').forEach(b=>b.classList.remove('on'));btn.classList.add('on');renderMktCal();}
+function setGDCPF(p,btn){GDC_PF=p;document.querySelectorAll('.gdc-pf').forEach(b=>b.classList.remove('on'));btn.classList.add('on');renderGDC();}
+function setGDCTF(t,btn){GDC_TF=t;document.querySelectorAll('.gdc-tf').forEach(b=>b.classList.remove('on'));btn.classList.add('on');renderGDC();}
+function passDLFilter(dl,date,tf){
+  if(tf==='all')return true;
+  const d=new Date(dl||date);if(isNaN(d))return tf==='all';
+  const now=new Date();
+  if(tf==='month')return d.getFullYear()===now.getFullYear()&&d.getMonth()===now.getMonth();
+  if(tf==='30'){const diff=(d-now)/86400000;return diff<=30;}
+  return true;
+}
 function sortArr(arr,col,dir){
   const PRANK={'🔴 紧急':0,'🟡 本周':1,'⚡ 本月':2,'⭐ 长期':3};
   return[...arr].sort((a,b)=>{
@@ -1955,14 +1997,18 @@ function renderMktCal(){
     <th>效率</th><th>操作</th>
   </tr>`;
   const listEl=document.getElementById('mkt-list-body');
-  const _mktActive=sortArr(MKT_CONTENT.filter(m=>m.status!=='已发布'),MKT_SORT.col,MKT_SORT.dir);
-  const _mktDone=sortArr(MKT_CONTENT.filter(m=>m.status==='已发布'),MKT_SORT.col,MKT_SORT.dir);
+  let mktFil=MKT_CONTENT;
+  if(MKT_PF!=='全部')mktFil=mktFil.filter(m=>m.person===MKT_PF);
+  if(MKT_TF!=='all')mktFil=mktFil.filter(m=>passDLFilter(m.dl,m.date,MKT_TF));
+  const _mktActive=sortArr(mktFil.filter(m=>m.status!=='已发布'),MKT_SORT.col,MKT_SORT.dir);
+  const _mktDone=sortArr(mktFil.filter(m=>m.status==='已发布'),MKT_SORT.col,MKT_SORT.dir);
   if(listEl)listEl.innerHTML=[..._mktActive,..._mktDone].map(m=>{
     const isDone=m.status==='已发布';
     const effVal=isDone&&m.dl&&m.doneDate?calcEffDL(m.dl,m.doneDate):null;
     const effStr=effVal!==null?effLabel(effVal):'—';
     const effColor=effVal>=1?'var(--green)':effVal>=0.5?'var(--amber)':effVal===0?'var(--red)':'var(--muted)';
-    return`<tr>
+    const rowBg=isDone?'background:rgba(34,197,94,0.06);opacity:0.8;':'';
+    return`<tr style="${rowBg}">
     <td><input type="date" style="border:none;background:transparent;font-family:'DM Sans',sans-serif;font-size:10.5px;font-weight:600;outline:none;cursor:pointer" value="${m.date||''}" onchange="editMkt('${m.id}','date',this.value)"></td>
     <td style="min-width:160px"><input style="border:none;background:transparent;font-family:'Plus Jakarta Sans',sans-serif;font-size:11px;font-weight:600;width:100%;outline:none" value="${(m.title||'').replace(/"/g,'&quot;')}" onchange="editMkt('${m.id}','title',this.value)"></td>
     <td><select style="border:none;background:transparent;font-size:9px;cursor:pointer;outline:none;max-width:130px" onchange="editMkt('${m.id}','type',this.value)">${['Operation','Marketing','✍ 视频文案/信息文案','📣 制作Post图+文案','🖼 制作海报','📝 视频脚本','📱 剪辑短视频-一键成片','📱 剪辑短视频','🎬 剪辑YouTube','🧠 Landing Page文案','🖥 Landing Page制作','Sales','Admin','System','GDC job'].map(opt=>`<option ${m.type===opt?'selected':''}>${opt}</option>`).join('')}</select></td>
@@ -1971,7 +2017,7 @@ function renderMktCal(){
     <td style="font-size:10.5px;color:var(--green);font-family:'DM Sans',sans-serif">${fmtD(m.doneDate)||'—'}</td>
     <td style="font-size:10px;font-weight:600;color:${effColor}">${effStr}</td>
     <td>
-      ${!isDone?`<button class="tc-btn" onclick="completeMktItem('${m.id}')" style="background:var(--greenB);border-color:var(--green);color:var(--green);font-size:10px">✓ 完成</button>`:`<span style="color:var(--green);font-size:10px">✅</span>`}
+      ${!isDone?`<button class="tc-btn" onclick="completeMktItem('${m.id}')" style="background:var(--greenB);border-color:var(--green);color:var(--green);font-size:10px">✓ 完成</button>`:`<button class="tc-btn" onclick="undoneMktItem('${m.id}')" style="background:rgba(34,197,94,0.1);border-color:var(--green);color:var(--green);font-size:10px">✅ 撤回</button>`}
       <button class="tc-btn" onclick="deleteMktItem('${m.id}')" style="color:var(--red);font-size:10px;margin-left:4px">删</button>
     </td>
   </tr>`;}).join('');
@@ -2464,7 +2510,9 @@ function renderGDC(){
     ${thS('DLIG负责','pic',GDC_SORT,'setSortGDC','')}
     <th>操作</th>
   </tr>`;
-  const _gdcBase=GDC_F==='全部'?GDC_TASKS:GDC_TASKS.filter(t=>t.status===GDC_F);
+  let _gdcBase=GDC_F==='全部'?GDC_TASKS:GDC_TASKS.filter(t=>t.status===GDC_F);
+  if(GDC_PF!=='全部')_gdcBase=_gdcBase.filter(t=>t.pic===GDC_PF||t.who===GDC_PF);
+  if(GDC_TF!=='all')_gdcBase=_gdcBase.filter(t=>passDLFilter(t.dl,t.date,GDC_TF));
   const _gdcActive=sortArr(_gdcBase.filter(t=>t.status!=='已完成'&&t.status!=='已付款'),GDC_SORT.col,GDC_SORT.dir);
   const _gdcDone=sortArr(_gdcBase.filter(t=>t.status==='已完成'||t.status==='已付款'),GDC_SORT.col,GDC_SORT.dir);
   const fil=[..._gdcActive,..._gdcDone];
@@ -2474,7 +2522,8 @@ function renderGDC(){
     const effVal=isDone&&t.dl&&t.doneDate?calcEffDL(t.dl,t.doneDate):null;
     const effStr=effVal!==null?effLabel(effVal):'—';
     const effColor=effVal>=1?'var(--green)':effVal>=0.5?'var(--amber)':effVal===0?'var(--red)':'var(--muted)';
-    return`<tr>
+    const rowBg=isDone?'background:rgba(34,197,94,0.06);opacity:0.8;':'';
+    return`<tr style="${rowBg}">
     <td><input type="date" style="border:none;background:transparent;font-family:'DM Sans',sans-serif;font-size:10.5px;font-weight:600;outline:none;cursor:pointer" value="${t.date||''}" onchange="editGDC('${t.id}','date',this.value)"></td>
     <td style="min-width:160px"><input style="border:none;background:transparent;font-family:'Plus Jakarta Sans',sans-serif;font-size:11px;font-weight:600;width:100%;outline:none" value="${(t.task||'').replace(/"/g,'&quot;')}" onchange="editGDC('${t.id}','task',this.value)"></td>
     <td><select style="border:none;background:transparent;font-size:9px;cursor:pointer;outline:none" onchange="editGDC('${t.id}','platform',this.value)">${['DCW Page','GDC Page','Jenny 老师 Page','WA文案'].map(opt=>`<option ${t.platform===opt?'selected':''}>${opt}</option>`).join('')}</select></td>
@@ -2532,9 +2581,9 @@ function confirmGDCComplete(id){
   if(t.dl)t.eff=calcEffDL(t.dl,t.doneDate);
   document.getElementById('gdc-complete-modal')?.remove();
   save('gdc_tasks',GDC_TASKS);renderGDC();
-  // 同步到 Task Board 镜像 task
+  // 同步到 Task Board 镜像 task（设 actual='1' 让 Apps Script 认为已完成）
   const mirror=TASKS.find(x=>x.task&&x.task.includes(t.task)&&(x.cat==='GDC job'||x.cat==='GDC'||x.task.includes('🎨')));
-  if(mirror&&mirror.status!=='已完成'){mirror.status='已完成';mirror.doneDate=t.doneDate;save('tasks',TASKS);renderTasks();}
+  if(mirror&&mirror.status!=='已完成'){mirror.status='已完成';mirror.doneDate=t.doneDate;if(!mirror.actual||mirror.actual==='')mirror.actual='1';save('tasks',TASKS);renderTasks();}
 }
 function cycleGDCStatus(id){
   const t=GDC_TASKS.find(x=>String(x.id)===String(id));if(!t)return;
@@ -2740,6 +2789,12 @@ function addMinute(){const title=document.getElementById('min-title').value.trim
 // DECISIONS
 // ═══════════════════════════════════════
 function renderDecisions(){
+  // 修复：如果 opts 是单元素且含 | 或 ｜，自动拆分
+  DEC.forEach(d=>{
+    if(d.opts&&d.opts.length===1&&/[|｜]/.test(d.opts[0])){
+      d.opts=d.opts[0].split(/\s*[|｜]\s*/).map(o=>o.trim()).filter(Boolean);
+    }
+  });
   document.getElementById('dec-blocks').innerHTML=DEC.map((d,i)=>{
     const vC={};Object.values(d.votes).forEach(v=>{vC[v]=(vC[v]||0)+1;});
     const vr=Object.keys(d.votes).length>0?Object.entries(vC).map(([o,n])=>`<span style="margin-right:10px"><b>${o.slice(0,30)}</b> <span style="color:var(--gold);font-weight:700">${n}票</span></span>`).join(''):'<span style="color:var(--muted)">还没有人投票 · 点选你的答案</span>';
@@ -2793,9 +2848,9 @@ function addOtherOpinion(i){
   renderDecisions();
 }
 function editDec(id,field,val){const d=DEC.find(x=>x.id===id);if(d){d[field]=val;save('decisions',DEC);}}
-function editDecOpts(id,val){const d=DEC.find(x=>x.id===id);if(!d)return;const opts=val.split('|').map(o=>o.trim()).filter(Boolean);if(!opts.length)return;d.opts=opts;save('decisions',DEC);renderDecisions();}
+function editDecOpts(id,val){const d=DEC.find(x=>x.id===id);if(!d)return;const opts=val.split(/[|｜]/).map(o=>o.trim()).filter(Boolean);if(!opts.length)return;d.opts=opts;save('decisions',DEC);renderDecisions();}
 function delDecision(id){DEC=DEC.filter(d=>d.id!==id);save('decisions',DEC);renderDecisions();}
-function addDecision(){const q=document.getElementById('dec-q-new').value.trim();const optsStr=document.getElementById('dec-opts-new').value.trim();if(!q||!optsStr)return;const opts=optsStr.split('|').map(o=>o.trim()).filter(Boolean);DEC.push({id:'d'+Date.now(),q,opts,votes:{},comments:[],owner:document.getElementById('dec-owner-new').value,dl:document.getElementById('dec-dl-new').value||'待定'});document.getElementById('dec-q-new').value='';document.getElementById('dec-opts-new').value='';save('decisions',DEC);renderDecisions();updateStats();}
+function addDecision(){const q=document.getElementById('dec-q-new').value.trim();const optsStr=document.getElementById('dec-opts-new').value.trim();if(!q||!optsStr)return;const opts=optsStr.split(/[|｜]/).map(o=>o.trim()).filter(Boolean);DEC.push({id:'d'+Date.now(),q,opts,votes:{},comments:[],owner:document.getElementById('dec-owner-new').value,dl:document.getElementById('dec-dl-new').value||'待定'});document.getElementById('dec-q-new').value='';document.getElementById('dec-opts-new').value='';save('decisions',DEC);renderDecisions();updateStats();}
 
 // ═══════════════════════════════════════
 // FILES
@@ -2843,21 +2898,23 @@ function sProj(prefix,sec,btn){const pg=btn.closest('.page');pg.querySelectorAll
 function editMkt(id,field,val){const m=MKT_CONTENT.find(x=>x.id===id);if(m){m[field]=val;save('mkt_content',MKT_CONTENT);renderMktCal();}}
 function editGDC(id,field,val){const t=GDC_TASKS.find(x=>x.id===id);if(t){t[field]=val;save('gdc_tasks',GDC_TASKS);renderGDC();}}
 function completeMktItem(id){
-  const m=MKT_CONTENT.find(x=>x.id===id);
-  if(!m)return;
+  const m=MKT_CONTENT.find(x=>x.id===id);if(!m)return;
   m.status='已发布';
   m.doneDate=new Date().toISOString().split('T')[0];
   if(m.dl)m.eff=calcEffDL(m.dl,m.doneDate);
-  // Also complete matching Task Board mirror
-  const mirrorTask = TASKS.find(t=>t.task&&t.task.includes(m.title)&&(t.cat==='Marketing'||t.task.startsWith('📣')));
-  if(mirrorTask && mirrorTask.status!=='已完成'){
-    mirrorTask.status='已完成';
-    mirrorTask.doneDate=m.doneDate;
-    save('tasks',TASKS);
-    renderTasks();
+  // 同步到 Task Board 镜像 task（设 actual='1' 让 Apps Script 认为已完成）
+  const mirror=TASKS.find(t=>t.task&&t.task.includes(m.title)&&(t.cat==='Marketing'||t.task.startsWith('📣')));
+  if(mirror&&mirror.status!=='已完成'){
+    mirror.status='已完成';mirror.doneDate=m.doneDate;
+    if(!mirror.actual||mirror.actual==='')mirror.actual='1';
+    save('tasks',TASKS);renderTasks();
   }
-  save('mkt_content',MKT_CONTENT);
-  renderMktCal();
+  save('mkt_content',MKT_CONTENT);renderMktCal();
+}
+function undoneMktItem(id){
+  const m=MKT_CONTENT.find(x=>x.id===id);if(!m)return;
+  m.status='进行中';m.doneDate='';
+  save('mkt_content',MKT_CONTENT);renderMktCal();
 }
 function deleteMktItem(id){
   const idx=MKT_CONTENT.findIndex(x=>x.id===id);
