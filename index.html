@@ -879,14 +879,6 @@ body{background:var(--cream);color:var(--text);font-family:'Plus Jakarta Sans',s
       </div>
     </div>
     <div class="fbar">
-      <span class="fl">状态：</span>
-      <button class="fb on" onclick="filterGDC('全部',this)">全部</button>
-      <button class="fb" onclick="filterGDC('进行中',this)">进行中</button>
-      <button class="fb" onclick="filterGDC('待开始',this)">待开始</button>
-      <button class="fb" onclick="filterGDC('已完成',this)">已完成</button>
-      <button class="fb" onclick="filterGDC('已付款',this)">已付款</button>
-    </div>
-    <div class="fbar">
       <span class="fl">负责人：</span>
       <button class="fb gdc-pf on" onclick="setGDCPF('全部',this)">全部</button>
       <button class="fb gdc-pf" onclick="setGDCPF('Li Joo',this)" style="color:#c84010">Li Joo</button>
@@ -2488,8 +2480,10 @@ function renderGDC(){
       const ds=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
       const items=(map[ds]||[]);
       ch+=`<div class="mkt-cell${iT?' today':''}"><div class="mkt-date">${day}</div>`;
+      const gdcStatC={已完成:{bg:'var(--greenB)',c:'var(--green)'},已付款:{bg:'rgba(37,99,235,.12)',c:'var(--blue)'},进行中:{bg:'var(--amberB)',c:'var(--amber)'},待开始:{bg:'#6a3a96',c:'#fff'}};
       items.forEach(t=>{
-        ch+=`<div style="background:#0d3060;color:#fff;padding:3px 5px;border-radius:4px;font-size:8px;font-weight:700;margin-bottom:2px;overflow:hidden;cursor:pointer;line-height:1.4"><div style="white-space:nowrap;text-overflow:ellipsis;overflow:hidden">${t.task.slice(0,14)}</div>${t.pic?`<div style="font-size:7px;opacity:.75;white-space:nowrap;overflow:hidden">${t.pic}</div>`:''}</div>`;
+        const sc=gdcStatC[t.status]||gdcStatC['待开始'];
+        ch+=`<div style="background:${sc.bg};color:${sc.c};padding:3px 5px;border-radius:4px;font-size:8px;font-weight:700;margin-bottom:2px;overflow:hidden;cursor:pointer;line-height:1.4" onclick="cycleGDCStatus('${t.id}')"><div style="white-space:nowrap;text-overflow:ellipsis;overflow:hidden">${(t.task||'').slice(0,14)}</div>${t.who?`<div style="font-size:7px;opacity:.8;white-space:nowrap;text-overflow:ellipsis;overflow:hidden">GDC: ${t.who}</div>`:t.pic?`<div style="font-size:7px;opacity:.75;white-space:nowrap;overflow:hidden">${t.pic}</div>`:''}</div>`;
       });
       ch+=`</div>`;
     }
