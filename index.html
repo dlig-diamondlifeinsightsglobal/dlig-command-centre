@@ -1150,8 +1150,8 @@ async function loadFromSheets(){
         // 直接写 localStorage，不触发 syncToSheets（避免循环回写）
         try{localStorage.setItem('dlig7_'+lsKey,JSON.stringify(rows));}catch(e){}
         if(lsKey==='tasks')            TASKS=rows;
-        if(lsKey==='mkt_content')      MKT_CONTENT=rows;
-        if(lsKey==='gdc_tasks')        GDC_TASKS=rows;
+        if(lsKey==='mkt_content')      {if(rows.filter(r=>r.title&&String(r.title).trim()).length>0)MKT_CONTENT=rows;}
+        if(lsKey==='gdc_tasks')        {if(rows.filter(r=>r.task&&String(r.task).trim()).length>0)GDC_TASKS=rows;}
         if(lsKey==='decisions')        DEC=rows;
         if(lsKey==='special_meetings') SPECIAL_MEETINGS=rows;
         if(lsKey==='logs')             LOGS=rows;
