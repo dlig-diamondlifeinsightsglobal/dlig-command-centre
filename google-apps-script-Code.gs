@@ -316,7 +316,7 @@ function readGDCJobs() {
   const fd = (row, c) => c >= 0 ? fmtDate(row[c]) : '';
 
   return data.slice(1)
-    .filter(r => g(r, col.task))
+    .filter(r => r.some(c => String(c || '').trim() !== ''))
     .map((row, idx) => ({
       id:     g(row, col.id) || ('gdc' + (idx + 100)),
       task:   g(row, col.task),
