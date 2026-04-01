@@ -2751,8 +2751,21 @@ function renderDecisions(){
       </div>
       <div style="font-size:10.5px;color:var(--muted);margin-bottom:3px">选项（用 | 分隔，失焦保存）：</div>
       <input value="${optsEsc}" onblur="editDecOpts('${d.id}',this.value)" style="width:100%;box-sizing:border-box;border:1.5px solid var(--border);border-radius:6px;padding:4px 8px;font-size:11px;margin-bottom:8px;outline:none;font-family:'DM Sans',sans-serif">
-      <div style="font-size:11.5px;color:var(--text2);line-height:2;margin-bottom:10px">${(d.opts||[]).map((o,j)=>`${j+1}. ${o}`).join('<br>')}</div>
-      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px">${(d.opts||[]).map(o=>`<button class="vb" onclick="vote(${i},'${o.replace(/'/g,"\\'")}')">${o.slice(0,25)}</button>`).join('')}</div>
+      <div style="font-size:11.5px;color:var(--text2);line-height:2;margin-bottom:10px">${(d.opts||[]).map((o,j)=>`${String.fromCharCode(65+j)}. ${o}`).join('<br>')}</div>
+      <div style="display:grid;gap:8px;margin-bottom:10px">
+  ${(d.opts||[]).map((o,j)=>`
+    <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+      <div style="min-width:28px;font-weight:700;color:var(--text2)">${String.fromCharCode(65+j)}.</div>
+      <div style="flex:1;min-width:160px;font-size:12px;color:var(--text2)">${o}</div>
+      <button class="vb" onclick="vote(${i},'${o.replace(/'/g,"\\'")}')">选择 ${String.fromCharCode(65+j)}</button>
+    </div>
+  `).join('')}
+</div>
+
+<div style="display:flex;gap:8px;align-items:flex-start;flex-wrap:wrap;margin-bottom:8px">
+  <textarea id="other-op-${i}" rows="1" placeholder="写下你的想法..." style="flex:1;border:1.5px solid var(--border);border-radius:8px;padding:8px 10px;font-size:11px;outline:none;font-family:'DM Sans',sans-serif"></textarea>
+  <button class="vb" onclick="addOtherOpinion(${i})">提交想法</button>
+</div>
       <div style="font-size:11px;color:var(--muted);padding:8px 11px;background:var(--s2);border-radius:7px;margin-bottom:6px">${vr}</div>
       <textarea class="dec-comment" rows="1" placeholder="写下你的想法... (Enter 提交)" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();addCom(${i},this.value);this.value='';}"></textarea>
       ${d.comments.length?`<div style="margin-top:8px">${d.comments.map(c=>`<div style="font-size:11px;padding:5px 9px;background:var(--s2);border-radius:7px;margin-bottom:4px">${c}</div>`).join('')}</div>`:''}
@@ -2770,6 +2783,15 @@ function vote(i,o){
   renderDecisions();
 }
 function addCom(i,t){if(!t.trim())return;DEC[i].comments.push(t.trim());save('decisions',DEC);renderDecisions();}
+function addOtherOpinion(i){
+  const el=document.getElementById(`other-op-${i}`);
+  if(!el)return;
+  const txt=el.value.trim();
+  if(!txt)return;
+  DEC[i].comments.push('💬 ' + txt);
+  save('decisions',DEC);
+  renderDecisions();
+}
 function editDec(id,field,val){const d=DEC.find(x=>x.id===id);if(d){d[field]=val;save('decisions',DEC);}}
 function editDecOpts(id,val){const d=DEC.find(x=>x.id===id);if(!d)return;const opts=val.split('|').map(o=>o.trim()).filter(Boolean);if(!opts.length)return;d.opts=opts;save('decisions',DEC);renderDecisions();}
 function delDecision(id){DEC=DEC.filter(d=>d.id!==id);save('decisions',DEC);renderDecisions();}
