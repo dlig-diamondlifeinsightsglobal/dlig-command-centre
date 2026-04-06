@@ -727,31 +727,45 @@ body{background:var(--cream);color:var(--text);font-family:'Plus Jakarta Sans',s
 
     <!-- CHECKLIST -->
     <div class="ps on" id="xd-cl">
-      <div style="display:flex;gap:8px;margin-bottom:14px;align-items:center;flex-wrap:wrap">
-        <select class="fs" id="cl-region" style="width:160px" onchange="renderChecklist()"><option value="bukit">Bukit Impian</option><option value="outstation">Outstation</option></select>
+      <div style="display:flex;gap:8px;margin-bottom:10px;align-items:center;flex-wrap:wrap">
+        <button class="env-tab on" id="cl-p1-btn" onclick="setClPart(1,this)">Part 1</button>
+        <button class="env-tab" id="cl-p2-btn" onclick="setClPart(2,this)">Part 2</button>
+        <div style="flex:1"></div>
         <button class="fb" onclick="resetChecklist()">🔄 重置（下一期）</button>
-        <button class="fb on" onclick="saveChecklist()">💾 保存进度</button>
-        <span style="font-size:10px;color:var(--muted)">· Tick 后自动记录，刷新不消失</span>
+        <span style="font-size:10px;color:var(--muted)">· Tick 后自动记录</span>
       </div>
       <div id="cl-sections"></div>
+      <div style="margin-top:12px;padding-top:10px;border-top:1px dashed var(--border)">
+        <button class="add-btn" onclick="addClSection()" style="font-size:10px">+ 添加分类</button>
+      </div>
     </div>
 
     <!-- FLOW -->
     <div class="ps" id="xd-flow">
       <div class="env-tabs">
-        <button class="env-tab on" onclick="switchDay('day1',this)">Day 1</button>
-        <button class="env-tab" onclick="switchDay('day2',this)">Day 2</button>
+        <button class="env-tab on" onclick="switchFlowPart('p1',this)">Part 1</button>
+        <button class="env-tab" onclick="switchFlowPart('p2',this)">Part 2</button>
       </div>
-      <div class="env-sec on" id="flow-day1"></div>
-      <div class="env-sec" id="flow-day2"></div>
+      <div style="margin-bottom:8px"><button class="add-btn" onclick="addFlowItem()" style="font-size:10px">+ 添加流程</button></div>
+      <div id="flow-body"></div>
     </div>
 
     <!-- ROLES -->
     <div class="ps" id="xd-roles">
-      <div class="ib ib-blue"><b>👤 岗位 &amp; 职责</b>Crew 人数：6人以下 Day1至少4 / Day2至少3 · 7人以上 Day1至少6 / Day2至少4</div>
+      <div class="ib ib-blue">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:8px">
+          <div>
+            <b>👤 岗位 &amp; 职责</b><br>
+            <span style="font-size:11px">Crew 人数：</span><br>
+            <span style="font-size:11px">6人以下 &nbsp;Part 1 至少 4 crew ｜ Part 2 至少 3 crew</span><br>
+            <span style="font-size:11px">7人以上 &nbsp;Part 1 至少 6 crew ｜ Part 2 至少 4 crew</span>
+          </div>
+          <button class="fb" onclick="resetRoles()" style="font-size:10px;color:var(--amber);border-color:var(--amber)">🔄 重置下一期</button>
+        </div>
+      </div>
       <div class="env-tabs">
-        <button class="env-tab on" onclick="switchRoleDay('r1',this)">Day 1 岗位</button>
-        <button class="env-tab" onclick="switchRoleDay('r2',this)">Day 2 岗位</button>
+        <button class="env-tab on" onclick="switchRoleDay('r1',this)">Part 1 岗位</button>
+        <button class="env-tab" onclick="switchRoleDay('r2',this)">Part 2 岗位</button>
       </div>
       <div class="env-sec on" id="r1"><div class="card" style="overflow-x:auto;padding:14px"><table class="pt"><thead><tr><th>岗位</th><th>细节职责</th><th>当期负责人</th></tr></thead><tbody id="role-d1"></tbody></table></div></div>
       <div class="env-sec" id="r2"><div class="card" style="overflow-x:auto;padding:14px"><table class="pt"><thead><tr><th>岗位</th><th>细节职责</th><th>当期负责人</th></tr></thead><tbody id="role-d2"></tbody></table></div></div>
@@ -759,6 +773,7 @@ body{background:var(--cream);color:var(--text);font-family:'Plus Jakarta Sans',s
 
     <!-- ATTENDANCE -->
     <div class="ps" id="xd-att">
+      <div style="margin-bottom:10px"><a href="https://docs.google.com/spreadsheets/d/1PtdOQKzX8MH7yDlJsafMlwoSOy2Vha1wsE_JbyGtbdM/edit" target="_blank" style="font-size:10px;color:var(--muted);text-decoration:none;display:inline-flex;align-items:center;gap:4px;padding:4px 9px;border:1px solid var(--border);border-radius:6px;background:var(--white)">📊 出席者名单 Google Sheet</a></div>
       <div style="display:flex;gap:8px;align-items:flex-end;margin-bottom:14px;flex-wrap:wrap">
         <div class="ff"><div class="fl2">场次</div><select class="fs" id="att-date" style="width:200px" onchange="renderAttendance()"><option>28-29 Mar 2026</option><option>11-12 Apr 2026</option><option>17-18 May 2026</option><option>21-22 Jun 2026</option></select></div>
         <div class="ff"><div class="fl2">姓名</div><input class="fi" id="att-name" placeholder="参与者姓名" style="width:130px"></div>
@@ -1117,7 +1132,7 @@ function calcEffDL(dl,done){if(!dl||!done)return null;try{const d=Math.floor((ne
 // ═══════════════════════════════════════
 const SHEETS_API_URL = 'https://script.google.com/macros/s/AKfycbxD9lCg_7WC69Wzq-HBK4tSQPJv4f_cpV-73-GRP8duy2JhwO7-NVetJnam4KPPSUXz/exec';
 
-const SHEET_KEY_MAP = {'tasks':'tasks','mkt_content':'mkt','gdc_tasks':'gdc','logs':'logs','decisions':'decisions','special_meetings':'special_meetings','attendance':'attendance','sb_records':'sb_records','au_records':'au_records','xd_roles':'xd_roles'};
+const SHEET_KEY_MAP = {'tasks':'tasks','mkt_content':'mkt','gdc_tasks':'gdc','logs':'logs','decisions':'decisions','special_meetings':'special_meetings','attendance':'attendance','sb_records':'sb_records','au_records':'au_records','xd_roles':'xd_roles','xd_flow':'xd_flow','xd_cl_data':'xd_cl_data'};
 
 let _syncTimer=null;
 function showSyncStatus(success){
@@ -1254,38 +1269,91 @@ let GDC_TASKS=load('gdc_tasks',[]);
 let FILE_ITEMS=load('file_items',[]);
 
 // Checklists from SOP PDF
-const CL_SECTIONS=[
-  {sec:'活动前几天',icon:'📅',zones:[
+const _XD_CL_DEFAULT=[
+  {part:1,sec:'活动前几天',icon:'📅',zones:[
     {zone:'Message Reminder',items:[
-      '确认「沙盘报表」、「心动观测报告」& YLYD 1month 数量足够',
-      '准备好下一期的 Unit Number & PPT 要换好（Unit Number）',
-      'Check 下一期信息',
-      'Day 1 活动 5天前：发 Automation reminder (确认关系状态 & 出席)',
-      'Day 1 活动 1天前：发提醒时间、地点、没有正餐',
+      {text:'确认「沙盘报表」、「心动观测报告」& YLYD 1month 数量足够',who:''},
+      {text:'准备好下一期的 Unit Number & PPT 要换好（Unit Number）',who:''},
+      {text:'Check 下一期信息',who:''},
+      {text:'Part 1 活动 5天前：发 Automation reminder (确认关系状态 & 出席)',who:''},
+      {text:'Part 1 活动 1天前：发提醒时间、地点、没有正餐',who:''},
     ]}
   ]},
-  {sec:'DAY 1 活动前',icon:'🌅',zones:[
-    {zone:'服务官定调',items:['3m 轻瑜伽拉伸','3m 发愿','3m 迷你四步骤','3m 定调 调整动机','20m 过流程（各个环节的负责人清晰自己的岗位）','3m Team Cheers & 准备开始服务','35m 活动前准备']},
-    {zone:'IT 区（📍大门进来右边）',items:['Set Projector/TV（Extension + 电脑 + pointer + PPT + mic）','测试 Speaker（music vol: 5, mic vol: 3）','调灯光','Day 1 PPT: 心动觉察 - 沙盘 - PART 1 & 2']},
-    {zone:'迎宾桌（📍大门进来右边）',items:['心动观测报告 + Pink 笔','桌上分区摆放 name badge holder（背后放 Jalan Emptiness / Seed / Diamond）','桌上分区摆放特质卡：一枝独秀区 | 神雕侠侣区 | 名花有主区','电脑开参与者名单']},
-    {zone:'能量补给站（📍大门进来右边）',items:['矿泉水（每个位子也有一个）','健康零嘴','Tissue','Marker Pen（给参与者写名在 bottle）','Deco']},
-    {zone:'ID 制作区（📍大门进来左边）',items:['分组道具：手环、分组抽卡牌、弹簧小花花+木token、彩色笔','ID 制作 guideline laminate card + team up card 倒反放在下面']},
-    {zone:'沙盘试炼区（📍大门进来右边）',items:['沙盘 + 骰子 + 卡牌 + 个人公仔 & 指南针','参与者位置：个人报表 + 计算机 + 密码','村长位置：空白报表 + 可擦笔 + 爱心骰子 + 双人密码 + Jalan xx']},
+  {part:1,sec:'PART 1 活动前',icon:'🌅',zones:[
+    {zone:'服务官定调',items:[
+      {text:'3m 轻瑜伽拉伸',who:''},{text:'3m 发愿',who:''},{text:'3m 迷你四步骤',who:''},
+      {text:'3m 定调 调整动机',who:''},{text:'20m 过流程（各个环节的负责人清晰自己的岗位）',who:''},
+      {text:'3m Team Cheers & 准备开始服务',who:''},{text:'35m 活动前准备',who:''},
+    ]},
+    {zone:'IT 区（📍大门进来右边）',items:[
+      {text:'Set Projector/TV（Extension + 电脑 + pointer + PPT + mic）',who:''},
+      {text:'测试 Speaker（music vol: 5, mic vol: 3）',who:''},
+      {text:'调灯光',who:''},{text:'Part 1 PPT: 心动觉察 - 沙盘 - PART 1 & 2',who:''},
+    ]},
+    {zone:'迎宾桌（📍大门进来右边）',items:[
+      {text:'心动观测报告 + Pink 笔',who:''},
+      {text:'桌上分区摆放 name badge holder（背后放 Jalan Emptiness / Seed / Diamond）',who:''},
+      {text:'桌上分区摆放特质卡：一枝独秀区 | 神雕侠侣区 | 名花有主区',who:''},
+      {text:'电脑开参与者名单',who:''},
+    ]},
+    {zone:'能量补给站（📍大门进来右边）',items:[
+      {text:'矿泉水（每个位子也有一个）',who:''},{text:'健康零嘴',who:''},
+      {text:'Tissue',who:''},{text:'Marker Pen（给参与者写名在 bottle）',who:''},{text:'Deco',who:''},
+    ]},
+    {zone:'ID 制作区（📍大门进来左边）',items:[
+      {text:'分组道具：手环、分组抽卡牌、弹簧小花花+木token、彩色笔',who:''},
+      {text:'ID 制作 guideline laminate card + team up card 倒反放在下面',who:''},
+    ]},
+    {zone:'沙盘试炼区（📍大门进来右边）',items:[
+      {text:'沙盘 + 骰子 + 卡牌 + 个人公仔 & 指南针',who:''},
+      {text:'参与者位置：个人报表 + 计算机 + 密码',who:''},
+      {text:'村长位置：空白报表 + 可擦笔 + 爱心骰子 + 双人密码 + Jalan xx',who:''},
+    ]},
   ]},
-  {sec:'DAY 1 活动后',icon:'🌆',zones:[
-    {zone:'活动后',items:['Start Automation reminder 给 DAY 2 出席者','电脑后台更改：Team Up 选屋子、Team Up 各组目标']},
-    {zone:'迎宾区（📍门口）',items:['心动试炼锦囊：锦囊透明袋 + 心动试炼锦囊sticker','心动拍卖单（100gsm 可写的纸张）','金句卡','心动币']},
-    {zone:'游戏区（📍迎宾桌 + bar台）',items:['游戏1 - Ping Pong：Ping Pong 在box、绳子绑棍、杯子黏在迎宾桌边缘、游戏介绍 A4卡','游戏2 - 拉拉 Game：把道具绑在bar台、游戏介绍 A4卡','游戏3 - 剑游戏：粉色盒子里4支不同颜色小剑、桌上4支小剑、游戏介绍 A4卡']},
+  {part:1,sec:'PART 1 活动后',icon:'🌆',zones:[
+    {zone:'活动后',items:[
+      {text:'Start Automation reminder 给 PART 2 出席者',who:''},
+      {text:'电脑后台更改：Team Up 选屋子、Team Up 各组目标',who:''},
+    ]},
+    {zone:'迎宾区（📍门口）',items:[
+      {text:'心动试炼锦囊：锦囊透明袋 + 心动试炼锦囊sticker',who:''},
+      {text:'心动拍卖单（100gsm 可写的纸张）',who:''},{text:'金句卡',who:''},{text:'心动币',who:''},
+    ]},
+    {zone:'游戏区（📍迎宾桌 + bar台）',items:[
+      {text:'游戏1 - Ping Pong：Ping Pong 在box、绳子绑棍、杯子黏在迎宾桌边缘、游戏介绍 A4卡',who:''},
+      {text:'游戏2 - 拉拉 Game：把道具绑在bar台、游戏介绍 A4卡',who:''},
+      {text:'游戏3 - 剑游戏：粉色盒子里4支不同颜色小剑、桌上4支小剑、游戏介绍 A4卡',who:''},
+    ]},
   ]},
-  {sec:'DAY 2 活动前',icon:'🌄',zones:[
-    {zone:'IT 区（📍大门进来）',items:['Set Projector/TV（Extension + 电脑 + pointer + PPT）','测试 Speaker','调灯光','Day 2 PPT: 心动觉察 - 拍卖 - PART 1 & 2']},
-    {zone:'拍卖神桌（📍TV console）',items:['米白布 + 纱布 + 锤子','锦囊 sample','心动币']},
-    {zone:'Just Go Bar',items:['买/准备冰块','set up 饮料材料：冰块、Rebena、Sunkist、气泡水、荔枝、龙眼、竹签','洗杯']},
+  {part:2,sec:'PART 2 活动前',icon:'🌄',zones:[
+    {zone:'IT 区（📍大门进来）',items:[
+      {text:'Set Projector/TV（Extension + 电脑 + pointer + PPT）',who:''},
+      {text:'测试 Speaker',who:''},{text:'调灯光',who:''},
+      {text:'Part 2 PPT: 心动觉察 - 拍卖 - PART 1 & 2',who:''},
+    ]},
+    {zone:'拍卖神桌（📍TV console）',items:[
+      {text:'米白布 + 纱布 + 锤子',who:''},{text:'锦囊 sample',who:''},{text:'心动币',who:''},
+    ]},
+    {zone:'Just Go Bar',items:[
+      {text:'买/准备冰块',who:''},
+      {text:'set up 饮料材料：冰块、Rebena、Sunkist、气泡水、荔枝、龙眼、竹签',who:''},
+      {text:'洗杯',who:''},
+    ]},
   ]},
-  {sec:'DAY 2 活动后',icon:'🌙',zones:[
-    {zone:'复盘',items:['复盘：好的 & 可提升的','优化项目流程','安排人员晚上专注看电话，回复信息（upsell standby）','更改下一期 automation 信息','电脑后台更改：拍卖成交价','准备给 YLYD 手册']},
+  {part:2,sec:'PART 2 活动后',icon:'🌙',zones:[
+    {zone:'复盘',items:[
+      {text:'复盘：好的 & 可提升的',who:''},{text:'优化项目流程',who:''},
+      {text:'安排人员晚上专注看电话，回复信息（upsell standby）',who:''},
+      {text:'更改下一期 automation 信息',who:''},{text:'电脑后台更改：拍卖成交价',who:''},
+      {text:'准备给 YLYD 手册',who:''},
+    ]},
   ]},
 ];
+function _deepCloneCL(arr){return JSON.parse(JSON.stringify(arr));}
+let XD_CL_DATA=load('xd_cl_data',null)||_deepCloneCL(_XD_CL_DEFAULT);
+// migrate old string items to objects
+XD_CL_DATA.forEach(s=>{if(!s.part)s.part=1;s.zones.forEach(z=>{z.items=z.items.map(it=>typeof it==='string'?{text:it,who:''}:it);});});
+let XD_CL_PART=1;
 let CL_DONE=load('cl_done7',{});
 
 const AUTO_SCRIPTS=[
@@ -1316,27 +1384,30 @@ const _ROLES_D2_DEF=[
 const _savedRoles=load('xd_roles',null);
 let ROLES_D1=_savedRoles?.d1||_ROLES_D1_DEF.map(r=>({...r}));
 let ROLES_D2=_savedRoles?.d2||_ROLES_D2_DEF.map(r=>({...r}));
-const XD_FLOW_D1=[
-  {title:'🎤 迎宾 & 签到（活动前30min）',desc:'系统提醒 1.5h前发 · 特质卡选取 · ID制作 · Briefing',script:'你好！欢迎来到心动觉察，请问怎么称呼你呢？我们这里有分三个区域——一枝独秀 / 神雕侠侣 / 名花有主...'},
-  {title:'💬 开场 + 破冰（25min）',desc:'Video → 欢迎 → Calibrating Heart Frequency → 自我介绍',script:'Hello everybuddy！欢迎来到心动觉察！欢迎来到心动村！这两天，我们不是来学什么是对的，而是来看清楚我平常是怎么在活着的。我们只做三件事：看见 · 记录 · 选择。'},
-  {title:'🧊 装备规则（15min）',desc:'心动星拯救计划 → 沙盘规则 → 目标 & 梦想选择',script:'这个沙盘，是二十岁到六十岁的人生缩影。它不是游戏，它是放大器。沙盘里没有对错，但每个选择都会指向一个未来。'},
-  {title:'🎮 个人沙盘（35min）',desc:'20–35岁 · 用真实决策模式来玩 · 村长在场引导观察',script:'你现在现实中会怎么选？你在怕什么？精力不能买——钱买不了命！'},
-  {title:'✍️ 个人觉察（10min）',desc:'写下模式关键词 · 不分析不评价',script:'接下来10分钟，只做记录。不分析，不修正，不评价自己。写下你看见的模式/习惯。'},
-  {title:'🔁 组队仪式（30min）',desc:'找搭档 → 购屋仪式 → 入伙仪式 → 合并报表',script:'从现在开始，请把你的搭档，当成真实的ta。不要演，不要客气，用你现实中的样子。'},
-  {title:'🎮 家庭沙盘（60min）',desc:'35–60岁 · 观察进入关系后的变化',script:'主要觉察：一个人 vs 进入两人时有没有不一样，两人配合做决定的过程。'},
-  {title:'💬 觉察分享（20min）',desc:'每组分享 · 村长总结盲点',script:'我想邀请大家，不是分享「我学到了什么」，而是分享「我看见了什么」。不用很完整，只需要真实。'},
-  {title:'🌱 任务下达（10min）',desc:'观测报告任务 · DAY 2 见',script:'看见，不等于改变。但不看见，一定重复。今天我们只做了两件事：看见和记录。明天，我们会做第三件事——选择。'},
-];
-const XD_FLOW_D2=[
-  {title:'🎮 入场 & 赚心动币（活动前30min）',desc:'提早+10000币 · 交报告+5token · 选锦囊',script:'游戏结束，看视频的时候，把 game 收去 counter 桌子下。'},
-  {title:'💬 开场（10min）',desc:'回顾 Day 1 + 分享收获',script:'欢迎回来！昨天我们做了一件很多人很少去做的事：我们停下来了。'},
-  {title:'🔴 拍卖试炼 Round 1–4（70min）',desc:'各类特质竞拍 · 觉察深化',script:'今天的第二道试炼，叫做——心动拍卖会。我们拍的，不只是「灵魂伴侣」，而是你想过的生活方式。'},
-  {title:'📝 觉察整合（10min）',desc:'整理拍卖觉察 & 整合两天觉察',script:'请你看一下你的拍卖成交单。这就是你现在的优先顺序。'},
-  {title:'🖊️ 笔的故事（20min）',desc:'种子 + 空性 → 人生可以被重新设计',script:'很多人问，看见了又怎样？笔的故事，给我们四个很重要的步骤……'},
-  {title:'📝 行动计划（10min）',desc:'制定 Redesign Plan',script:'写一个你愿意开始的新选择。不要完美，要真实。'},
-  {title:'💭 未来视觉化（10min）',desc:'闭眼 visualize 一年后',script:'想象一年后，你每周有 reset，每天有设计，关系更稳，金钱更清晰。那个画面，你想要吗？'},
-  {title:'🚀 YLYD 呈现 + 报名（20min）',desc:'呈现结构 · 平静的朋友语气，不是销售员',script:'这两天，你做了三件事：看见。排序。选择。但如果没有结构，这些觉察，会慢慢消失。所以我们设计了 YLYD……升级开放到今晚 11:59pm哦。'},
-];
+const _XD_FLOW_DEFAULT={
+  p1:[
+    {title:'🎤 迎宾 & 签到（活动前30min）',desc:'系统提醒 1.5h前发 · 特质卡选取 · ID制作 · Briefing',script:'你好！欢迎来到心动觉察，请问怎么称呼你呢？我们这里有分三个区域——一枝独秀 / 神雕侠侣 / 名花有主...'},
+    {title:'💬 开场 + 破冰（25min）',desc:'Video → 欢迎 → Calibrating Heart Frequency → 自我介绍',script:'Hello everybuddy！欢迎来到心动觉察！欢迎来到心动村！这两天，我们不是来学什么是对的，而是来看清楚我平常是怎么在活着的。我们只做三件事：看见 · 记录 · 选择。'},
+    {title:'🧊 装备规则（15min）',desc:'心动星拯救计划 → 沙盘规则 → 目标 & 梦想选择',script:'这个沙盘，是二十岁到六十岁的人生缩影。它不是游戏，它是放大器。沙盘里没有对错，但每个选择都会指向一个未来。'},
+    {title:'🎮 个人沙盘（35min）',desc:'20–35岁 · 用真实决策模式来玩 · 村长在场引导观察',script:'你现在现实中会怎么选？你在怕什么？精力不能买——钱买不了命！'},
+    {title:'✍️ 个人觉察（10min）',desc:'写下模式关键词 · 不分析不评价',script:'接下来10分钟，只做记录。不分析，不修正，不评价自己。写下你看见的模式/习惯。'},
+    {title:'🔁 组队仪式（30min）',desc:'找搭档 → 购屋仪式 → 入伙仪式 → 合并报表',script:'从现在开始，请把你的搭档，当成真实的ta。不要演，不要客气，用你现实中的样子。'},
+    {title:'🎮 家庭沙盘（60min）',desc:'35–60岁 · 观察进入关系后的变化',script:'主要觉察：一个人 vs 进入两人时有没有不一样，两人配合做决定的过程。'},
+    {title:'💬 觉察分享（20min）',desc:'每组分享 · 村长总结盲点',script:'我想邀请大家，不是分享「我学到了什么」，而是分享「我看见了什么」。不用很完整，只需要真实。'},
+    {title:'🌱 任务下达（10min）',desc:'观测报告任务 · PART 2 见',script:'看见，不等于改变。但不看见，一定重复。今天我们只做了两件事：看见和记录。明天，我们会做第三件事——选择。'},
+  ],
+  p2:[
+    {title:'🎮 入场 & 赚心动币（活动前30min）',desc:'提早+10000币 · 交报告+5token · 选锦囊',script:'游戏结束，看视频的时候，把 game 收去 counter 桌子下。'},
+    {title:'💬 开场（10min）',desc:'回顾 Part 1 + 分享收获',script:'欢迎回来！昨天我们做了一件很多人很少去做的事：我们停下来了。'},
+    {title:'🔴 拍卖试炼 Round 1–4（70min）',desc:'各类特质竞拍 · 觉察深化',script:'今天的第二道试炼，叫做——心动拍卖会。我们拍的，不只是「灵魂伴侣」，而是你想过的生活方式。'},
+    {title:'📝 觉察整合（10min）',desc:'整理拍卖觉察 & 整合两天觉察',script:'请你看一下你的拍卖成交单。这就是你现在的优先顺序。'},
+    {title:'🖊️ 笔的故事（20min）',desc:'种子 + 空性 → 人生可以被重新设计',script:'很多人问，看见了又怎样？笔的故事，给我们四个很重要的步骤……'},
+    {title:'📝 行动计划（10min）',desc:'制定 Redesign Plan',script:'写一个你愿意开始的新选择。不要完美，要真实。'},
+    {title:'💭 未来视觉化（10min）',desc:'闭眼 visualize 一年后',script:'想象一年后，你每周有 reset，每天有设计，关系更稳，金钱更清晰。那个画面，你想要吗？'},
+    {title:'🚀 YLYD 呈现 + 报名（20min）',desc:'呈现结构 · 平静的朋友语气，不是销售员',script:'这两天，你做了三件事：看见。排序。选择。但如果没有结构，这些觉察，会慢慢消失。所以我们设计了 YLYD……升级开放到今晚 11:59pm哦。'},
+  ]
+};
+let XD_FLOW=load('xd_flow',null)||JSON.parse(JSON.stringify(_XD_FLOW_DEFAULT));
 
 let DONATION_TOTAL=0; // 从 再投资捐款 tab 读取
 let SALES=[
@@ -2234,40 +2305,60 @@ function renderAdmin(){
 // ═══════════════════════════════════════
 // 心动觉察
 // ═══════════════════════════════════════
+function setClPart(p,btn){XD_CL_PART=p;document.querySelectorAll('#xd-cl .env-tab').forEach(b=>b.classList.remove('on'));btn.classList.add('on');renderChecklist();}
 function renderChecklist(){
-  const secDiv=document.getElementById('cl-sections');
-  secDiv.innerHTML=CL_SECTIONS.map(sec=>{
-    const secKey=sec.sec.replace(/\s/g,'_');
-    return`<div class="cl-section">
-      <div class="cl-sec-head">${sec.icon} ${sec.sec}</div>
-      ${sec.zones.map(zone=>{
-        const zKey=secKey+'_'+zone.zone.replace(/[\s📍（）]/g,'_').replace(/[^a-zA-Z0-9_\u4e00-\u9fff]/g,'');
-        return`<div class="cl-zone">
-          <div class="cl-zone-head" onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='none'?'block':'none'">
-            📍 ${zone.zone} <span style="margin-left:auto;font-size:11px;color:var(--dim)">▼</span>
+  const secDiv=document.getElementById('cl-sections');if(!secDiv)return;
+  const secs=XD_CL_DATA.filter(s=>s.part===XD_CL_PART);
+  secDiv.innerHTML=secs.map((sec,si)=>{
+    const sIdx=XD_CL_DATA.indexOf(sec);
+    return`<div class="cl-section" style="margin-bottom:14px">
+      <div class="cl-sec-head" style="display:flex;align-items:center;gap:6px">
+        <span style="flex:1">${sec.icon} ${sec.sec}</span>
+        <input style="border:none;background:transparent;font-size:11px;color:var(--gold);outline:none;width:120px" value="${sec.sec}" onchange="XD_CL_DATA[${sIdx}].sec=this.value;save('xd_cl_data',XD_CL_DATA)" placeholder="分类名称">
+        <button onclick="addClZone(${sIdx})" style="background:none;border:none;font-size:10px;color:var(--blue);cursor:pointer">+ 小组</button>
+        <button onclick="XD_CL_DATA.splice(${sIdx},1);save('xd_cl_data',XD_CL_DATA);renderChecklist()" style="background:none;border:none;font-size:10px;color:var(--red);cursor:pointer">✕</button>
+      </div>
+      ${sec.zones.map((zone,zi)=>{
+        const zKey=`${sIdx}_${zi}`;
+        return`<div class="cl-zone" style="margin-bottom:8px">
+          <div class="cl-zone-head" style="display:flex;align-items:center;gap:6px" onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='none'?'block':'none'">
+            <span style="flex:1">📍 ${zone.zone}</span>
+            <input style="border:none;background:transparent;font-size:10px;outline:none;width:120px" value="${zone.zone}" onchange="XD_CL_DATA[${sIdx}].zones[${zi}].zone=this.value;save('xd_cl_data',XD_CL_DATA)" onclick="event.stopPropagation()" placeholder="小组名">
+            <button onclick="event.stopPropagation();XD_CL_DATA[${sIdx}].zones.splice(${zi},1);save('xd_cl_data',XD_CL_DATA);renderChecklist()" style="background:none;border:none;font-size:9px;color:var(--red);cursor:pointer">✕</button>
+            <span style="font-size:11px;color:var(--dim)">▼</span>
           </div>
           <div class="cl-zone-body">
-            ${zone.items.map((item,idx)=>{
-              const key=zKey+'_'+idx;
-              const done=(CL_DONE[key]||false);
-              return`<div class="cli"><input type="checkbox" ${done?'checked':''} onchange="toggleCli('${key}',this.checked)"><span class="cli-text" style="${done?'text-decoration:line-through;color:var(--muted)':''}">${item}</span></div>`;
+            ${zone.items.map((item,ii)=>{
+              const key=`cl_${sIdx}_${zi}_${ii}`;
+              const done=CL_DONE[key]||false;
+              return`<div class="cli" style="display:flex;align-items:center;gap:6px">
+                <input type="checkbox" ${done?'checked':''} onchange="toggleCli('${key}',this.checked)" style="flex-shrink:0">
+                <span class="cli-text" style="flex:1;${done?'text-decoration:line-through;color:var(--muted)':''}">${item.text}</span>
+                <input style="border:1px solid var(--border);border-radius:4px;font-size:9px;padding:2px 5px;width:70px;color:var(--muted);outline:none" value="${item.who||''}" placeholder="负责人" onchange="XD_CL_DATA[${sIdx}].zones[${zi}].items[${ii}].who=this.value;save('xd_cl_data',XD_CL_DATA)">
+                <button onclick="XD_CL_DATA[${sIdx}].zones[${zi}].items.splice(${ii},1);save('xd_cl_data',XD_CL_DATA);renderChecklist()" style="background:none;border:none;font-size:9px;color:var(--red);cursor:pointer;padding:0">✕</button>
+              </div>`;
             }).join('')}
+            <div style="display:flex;gap:4px;margin-top:6px">
+              <input id="cl-new-${sIdx}-${zi}" class="fi" placeholder="新增项目..." style="font-size:10px;flex:1;padding:3px 7px">
+              <button class="fb" onclick="addClItem(${sIdx},${zi})" style="font-size:10px;padding:3px 8px">+ 添加</button>
+            </div>
           </div>
         </div>`;
       }).join('')}
     </div>`;
   }).join('');
 }
+function addClItem(si,zi){const inp=document.getElementById(`cl-new-${si}-${zi}`);const v=inp.value.trim();if(!v)return;XD_CL_DATA[si].zones[zi].items.push({text:v,who:''});inp.value='';save('xd_cl_data',XD_CL_DATA);renderChecklist();}
+function addClZone(si){XD_CL_DATA[si].zones.push({zone:'新小组',items:[]});save('xd_cl_data',XD_CL_DATA);renderChecklist();}
+function addClSection(){XD_CL_DATA.push({part:XD_CL_PART,sec:'新分类',icon:'📋',zones:[{zone:'新小组',items:[]}]});save('xd_cl_data',XD_CL_DATA);renderChecklist();}
 function toggleCli(key,v){CL_DONE[key]=v;save('cl_done7',CL_DONE);}
-function resetChecklist(){if(!confirm('确定重置所有 Checklist？（为下一期使用）'))return;CL_DONE={};save('cl_done7',CL_DONE);renderChecklist();}
-function saveChecklist(){save('cl_done7',CL_DONE);alert('✅ Checklist 进度已保存！');}
-function addCli(k){const inp=document.getElementById('cl-'+k+'-new');const v=inp.value.trim();if(!v)return;CL_SECTIONS[0].zones[0].items.push(v);inp.value='';renderChecklist();}
+function resetChecklist(){if(!confirm('确定重置所有 Checklist 进度？（为下一期使用）'))return;CL_DONE={};save('cl_done7',CL_DONE);renderChecklist();}
+function saveChecklist(){save('cl_done7',CL_DONE);}
 
 function renderXindong(){
   renderChecklist();
   // Flow
-  document.getElementById('flow-day1').innerHTML=XD_FLOW_D1.map(f=>`<div class="acc-item"><div class="acc-head" onclick="this.parentElement.classList.toggle('open')"><span>${f.title}</span><span class="acc-arrow">▼</span></div><div class="acc-body"><div style="font-size:11.5px;color:var(--muted);margin-bottom:9px">${f.desc}</div><div style="background:var(--s2);border-radius:8px;padding:11px;font-size:11.5px;line-height:1.7;color:var(--text2)"><b style="font-size:9.5px;color:var(--gold);text-transform:uppercase;letter-spacing:.8px;display:block;margin-bottom:5px">Script 参考</b>${f.script}</div></div></div>`).join('');
-  document.getElementById('flow-day2').innerHTML=XD_FLOW_D2.map(f=>`<div class="acc-item"><div class="acc-head" onclick="this.parentElement.classList.toggle('open')"><span>${f.title}</span><span class="acc-arrow">▼</span></div><div class="acc-body"><div style="font-size:11.5px;color:var(--muted);margin-bottom:9px">${f.desc}</div><div style="background:var(--s2);border-radius:8px;padding:11px;font-size:11.5px;line-height:1.7;color:var(--text2)"><b style="font-size:9.5px;color:var(--gold);text-transform:uppercase;letter-spacing:.8px;display:block;margin-bottom:5px">Script 参考</b>${f.script}</div></div></div>`).join('');
+  renderFlow();
   // Roles
   document.getElementById('role-d1').innerHTML=ROLES_D1.map((r,i)=>`<tr><td style="font-weight:600">${r.role}</td><td style="font-size:11px;line-height:1.65">${r.detail}</td><td><input class="fi" style="width:120px" value="${r.person}" onchange="ROLES_D1[${i}].person=this.value;save('xd_roles',{d1:ROLES_D1,d2:ROLES_D2})" placeholder="填写负责人"></td></tr>`).join('');
   document.getElementById('role-d2').innerHTML=ROLES_D2.map((r,i)=>`<tr><td style="font-weight:600">${r.role}</td><td style="font-size:11px;line-height:1.65">${r.detail}</td><td><input class="fi" style="width:120px" value="${r.person}" onchange="ROLES_D2[${i}].person=this.value;save('xd_roles',{d1:ROLES_D1,d2:ROLES_D2})" placeholder="填写负责人"></td></tr>`).join('');
@@ -2281,6 +2372,34 @@ function renderXindong(){
 function switchDay(k,btn){document.querySelectorAll('#xd-flow .env-sec').forEach(x=>x.classList.remove('on'));document.querySelectorAll('#xd-flow .env-tab').forEach(b=>b.classList.remove('on'));document.getElementById('flow-'+k).classList.add('on');btn.classList.add('on');}
 function switchRoleDay(k,btn){document.querySelectorAll('#xd-roles .env-sec').forEach(x=>x.classList.remove('on'));document.querySelectorAll('#xd-roles .env-tab').forEach(b=>b.classList.remove('on'));document.getElementById(k).classList.add('on');btn.classList.add('on');}
 function switchTrial(k,btn){document.querySelectorAll('#xd-trial .env-sec').forEach(x=>x.classList.remove('on'));document.querySelectorAll('#xd-trial .env-tab').forEach(b=>b.classList.remove('on'));document.getElementById(k).classList.add('on');btn.classList.add('on');}
+let XD_FLOW_PART='p1';
+function switchFlowPart(p,btn){XD_FLOW_PART=p;document.querySelectorAll('#xd-flow .env-tab').forEach(b=>b.classList.remove('on'));btn.classList.add('on');renderFlow();}
+function renderFlow(){
+  const el=document.getElementById('flow-body');if(!el)return;
+  const items=XD_FLOW[XD_FLOW_PART]||[];
+  el.innerHTML=items.map((f,i)=>`<div class="acc-item" style="margin-bottom:8px">
+    <div class="acc-head" onclick="this.nextElementSibling.classList.toggle('open');this.nextElementSibling.style.display=this.nextElementSibling.style.display==='none'||!this.nextElementSibling.style.display?'block':'none'">
+      <span style="flex:1">${f.title}</span>
+      <span class="acc-arrow">▼</span>
+    </div>
+    <div style="display:none;padding:12px;background:var(--s2);border-radius:0 0 8px 8px">
+      <div style="margin-bottom:8px">
+        <div style="font-size:9px;color:var(--gold);font-weight:700;text-transform:uppercase;margin-bottom:3px">标题</div>
+        <input class="fi" style="width:100%" value="${(f.title||'').replace(/"/g,'&quot;')}" onchange="XD_FLOW['${XD_FLOW_PART}'][${i}].title=this.value;save('xd_flow',XD_FLOW)">
+      </div>
+      <div style="margin-bottom:8px">
+        <div style="font-size:9px;color:var(--gold);font-weight:700;text-transform:uppercase;margin-bottom:3px">流程说明</div>
+        <input class="fi" style="width:100%" value="${(f.desc||'').replace(/"/g,'&quot;')}" onchange="XD_FLOW['${XD_FLOW_PART}'][${i}].desc=this.value;save('xd_flow',XD_FLOW)">
+      </div>
+      <div style="margin-bottom:8px">
+        <div style="font-size:9px;color:var(--gold);font-weight:700;text-transform:uppercase;margin-bottom:3px">Script 参考</div>
+        <textarea class="fi" rows="3" style="width:100%;resize:vertical" onchange="XD_FLOW['${XD_FLOW_PART}'][${i}].script=this.value;save('xd_flow',XD_FLOW)">${f.script||''}</textarea>
+      </div>
+      <button class="tc-btn" onclick="XD_FLOW['${XD_FLOW_PART}'].splice(${i},1);save('xd_flow',XD_FLOW);renderFlow()" style="color:var(--red);font-size:10px">删除此流程</button>
+    </div>
+  </div>`).join('');
+}
+function addFlowItem(){XD_FLOW[XD_FLOW_PART].push({title:'新流程',desc:'',script:''});save('xd_flow',XD_FLOW);renderFlow();}
 
 function renderAttendance(){
   const date=document.getElementById('att-date').value;
@@ -2628,6 +2747,7 @@ function restoreGDCData(){
   save('gdc_tasks',GDC_TASKS);renderGDC();
   alert('已恢复 '+toAdd.length+' 条数据！');
 }
+function resetRoles(){if(!confirm('确定重置所有岗位负责人？'))return;ROLES_D1.forEach(r=>r.person='');ROLES_D2.forEach(r=>r.person='');save('xd_roles',{d1:ROLES_D1,d2:ROLES_D2});renderXindong();}
 function undoneGDCTask(id){
   const t=GDC_TASKS.find(x=>String(x.id)===String(id));if(!t)return;
   t.status='进行中';t.doneDate='';
