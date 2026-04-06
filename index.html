@@ -469,6 +469,9 @@ body{background:var(--cream);color:var(--text);font-family:'Plus Jakarta Sans',s
 
   <!-- ══ TASK BOARD ══ -->
   <div class="page" id="p-tasks">
+    <div style="display:flex;justify-content:flex-end;margin-bottom:6px">
+      <a href="https://docs.google.com/spreadsheets/d/1A3g_WPDU-R4zU8gj8gGHu885z5bk4lTBBRnCfDsstDI/edit" target="_blank" style="font-size:10px;color:var(--muted);text-decoration:none;display:flex;align-items:center;gap:4px;padding:4px 9px;border:1px solid var(--border);border-radius:6px;background:var(--white)">📊 Google Sheet</a>
+    </div>
     <div class="eff-box">
       <div class="eff-title">⚡ 效率系数说明</div>
       <div class="eff-row">
@@ -541,6 +544,7 @@ body{background:var(--cream);color:var(--text);font-family:'Plus Jakarta Sans',s
       <button class="fb" onclick="fp('marketing',this)" style="color:var(--purple)">📣 Marketing</button>
       <button class="fb" onclick="catFilter('GDC job',this)" style="color:var(--purple)">🎨 GDC job</button>
       <button class="fb" onclick="fp('fee',this)" style="color:var(--purple)">💰 Task Fee</button>
+      <button class="fb" onclick="fp('contrib',this)" style="color:var(--blue)">⏱ 贡献时间</button>
     </div>
     <div class="board" id="board-view"></div>
     <div style="display:none;overflow-x:auto" id="list-view">
@@ -1775,6 +1779,7 @@ function renderTasks(){
   if(TF==='全部')fil=TASKS;
   else if(TF==='marketing')fil=TASKS.filter(t=>t.cat==='Marketing');
   else if(TF==='fee')fil=TASKS.filter(t=>t.type==='fee');
+  else if(TF==='contrib')fil=TASKS.filter(t=>t.type!=='fee');
   else if(TF==='GDC job')fil=TASKS.filter(t=>t.cat==='GDC job');
   else fil=TASKS.filter(t=>t.person===TF||t.person==='All'||t.person==='全员');
 
