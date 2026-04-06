@@ -896,6 +896,7 @@ body{background:var(--cream);color:var(--text);font-family:'Plus Jakarta Sans',s
       <button class="fb" onclick="gdcCalNextMonth()">下月 ›</button>
     </div>
     <div id="gdc-cal-view"></div>
+    <div style="margin-bottom:8px"><button class="fb" onclick="restoreGDCData()" style="font-size:10px;color:var(--purple);border-color:var(--purple)">🔄 恢复丢失的GDC数据</button></div>
     <div style="overflow-x:auto;margin-bottom:14px"><table class="pt"><thead id="gdc-thead"><tr><th>发布日期</th><th style="min-width:180px">发布内容</th><th>平台</th><th>类型</th><th>Deadline</th><th>完成日期</th><th>效率</th><th>GDC 对接</th><th>DLIG负责</th><th>操作</th></tr></thead><tbody id="gdc-list"></tbody></table></div>
   </div>
 
@@ -1752,6 +1753,18 @@ function confirmComplete(id){
   if(hoursEl)t.actual=parseFloat(hoursEl.value)||0;
   document.getElementById('complete-modal')?.remove();
   save('tasks',TASKS);renderTasks();renderOverview();
+  // 同步到 GDC Marketing
+  if(t.cat==='GDC job'||t.task.startsWith('🎨')){
+    const name=t.task.replace(/^🎨\s*/,'').replace(/^[^:]+:\s*/,'');
+    const gm=GDC_TASKS.find(x=>x.task&&x.task.includes(name)&&x.status!=='已完成'&&x.status!=='已付款');
+    if(gm){gm.status='已完成';gm.doneDate=doneDate;save('gdc_tasks',GDC_TASKS);renderGDC();}
+  }
+  // 同步到 Sales & Marketing Calendar
+  if(t.cat==='Marketing'||t.task.startsWith('📣')){
+    const name=t.task.replace(/^📣\s*/,'').replace(/^[^:]+:\s*/,'');
+    const mm=MKT_CONTENT.find(x=>x.title&&x.title.includes(name)&&x.status!=='已发布');
+    if(mm){mm.status='已发布';mm.doneDate=doneDate;save('mkt_content',MKT_CONTENT);renderMktCal();}
+  }
 }
 
 function renderTasks(){
@@ -2578,6 +2591,33 @@ function confirmGDCComplete(id){
   // 同步到 Task Board 镜像 task（设 actual='1' 让 Apps Script 认为已完成）
   const mirror=TASKS.find(x=>x.task&&x.task.includes(t.task)&&(x.cat==='GDC job'||x.cat==='GDC'||x.task.includes('🎨')));
   if(mirror&&mirror.status!=='已完成'){mirror.status='已完成';mirror.doneDate=t.doneDate;if(!mirror.actual||mirror.actual==='')mirror.actual='1';save('tasks',TASKS);renderTasks();}
+}
+function restoreGDCData(){
+  const existing=GDC_TASKS.filter(t=>t.task&&String(t.task).trim());
+  if(existing.length>0&&!confirm('现在已有'+existing.length+'条GDC数据，确定要追加恢复丢失的数据吗？'))return;
+  const restore=[
+    {id:'g_r1',task:'Jenny 老师 各区教授图片',status:'进行中',pic:'Li Joo',who:'',date:'2026-04-01',dl:'2026-04-01',platform:'GDC Page',cat:'GDC 图文文案',doneDate:'',eff:'',pay:''},
+    {id:'g_r2',task:'格西老师 7阶 短视频',status:'进行中',pic:'Roy',who:'',date:'2026-04-01',dl:'2026-04-05',platform:'GDC Page',cat:'GDC 短视频剪辑',doneDate:'',eff:'',pay:''},
+    {id:'g_r3',task:'JB 清障碍 活动花絮',status:'进行中',pic:'待认领',who:'',date:'2026-04-01',dl:'2026-04-05',platform:'GDC Page',cat:'GDC 视频文案',doneDate:'',eff:'',pay:''},
+    {id:'g_r4',task:'金句合集',status:'进行中',pic:'待认领',who:'',date:'2026-04-01',dl:'2026-04-05',platform:'GDC Page',cat:'GDC 图文文案',doneDate:'',eff:'',pay:''},
+    {id:'g_r5',task:'痛点post (4月第1批)',status:'进行中',pic:'待认领',who:'',date:'2026-04-01',dl:'2026-04-05',platform:'GDC Page',cat:'GDC 图文文案',doneDate:'',eff:'',pay:''},
+    {id:'g_r6',task:'Jenny老师 短视频 (4月第1批)',status:'进行中',pic:'待认领',who:'',date:'2026-04-01',dl:'2026-04-05',platform:'GDC Page',cat:'GDC 短视频剪辑',doneDate:'',eff:'',pay:''},
+    {id:'g_r7',task:'痛点post (4月第2批)',status:'进行中',pic:'待认领',who:'',date:'2026-04-01',dl:'2026-04-05',platform:'GDC Page',cat:'GDC 图文文案',doneDate:'',eff:'',pay:''},
+    {id:'g_r8',task:'Jenny老师 短视频 (4月中)',status:'进行中',pic:'Li Joo',who:'',date:'2026-04-01',dl:'2026-04-15',platform:'GDC Page',cat:'GDC 短视频剪辑',doneDate:'',eff:'',pay:''},
+    {id:'g_r9',task:'格西老师 短视频 (4月中-Jasper)',status:'进行中',pic:'Jasper',who:'',date:'2026-04-01',dl:'2026-04-15',platform:'GDC Page',cat:'GDC 短视频剪辑',doneDate:'',eff:'',pay:''},
+    {id:'g_r10',task:'Jenny老师 短视频 (4月中-LiJoo)',status:'进行中',pic:'Li Joo',who:'',date:'2026-04-01',dl:'2026-04-15',platform:'GDC Page',cat:'GDC 短视频剪辑',doneDate:'',eff:'',pay:''},
+    {id:'g_r11',task:'格西老师 短视频 (4月中-Jasper2)',status:'进行中',pic:'Jasper',who:'',date:'2026-04-01',dl:'2026-04-15',platform:'GDC Page',cat:'GDC 短视频剪辑',doneDate:'',eff:'',pay:''},
+    {id:'g_r12',task:'学员故事post/卖训练营',status:'已完成',pic:'Roy',who:'',date:'2026-03-01',dl:'2026-03-31',platform:'GDC Page',cat:'GDC 图文文案',doneDate:'2026-03-31',eff:'',pay:''},
+    {id:'g_r13',task:'痛点post-明明很努力...',status:'已完成',pic:'Li Joo',who:'',date:'2026-03-01',dl:'2026-03-31',platform:'GDC Page',cat:'GDC 图文文案',doneDate:'2026-03-31',eff:'',pay:''},
+    {id:'g_r14',task:'Jenny老师 短视频-landing page视频',status:'已完成',pic:'Li Joo',who:'',date:'2026-03-01',dl:'2026-03-31',platform:'GDC Page',cat:'GDC 短视频剪辑',doneDate:'2026-03-31',eff:'',pay:''},
+    {id:'g_r15',task:'训练营倒数-今晚见',status:'已完成',pic:'待认领',who:'',date:'2026-03-01',dl:'2026-03-31',platform:'GDC Page',cat:'GDC 视频文案',doneDate:'2026-03-31',eff:'',pay:''}
+  ];
+  // 只追加不重复的（按task名字判断）
+  const existNames=new Set(existing.map(t=>t.task));
+  const toAdd=restore.filter(r=>!existNames.has(r.task));
+  GDC_TASKS.push(...toAdd);
+  save('gdc_tasks',GDC_TASKS);renderGDC();
+  alert('已恢复 '+toAdd.length+' 条数据！');
 }
 function undoneGDCTask(id){
   const t=GDC_TASKS.find(x=>String(x.id)===String(id));if(!t)return;
