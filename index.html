@@ -2520,15 +2520,15 @@ function renderGDC(){
     return`<tr style="${rowBg}">
     <td><input type="date" style="border:none;background:transparent;font-family:'DM Sans',sans-serif;font-size:10.5px;font-weight:600;outline:none;cursor:pointer" value="${t.date||''}" onchange="editGDC('${t.id}','date',this.value)"></td>
     <td style="min-width:160px"><input style="border:none;background:transparent;font-family:'Plus Jakarta Sans',sans-serif;font-size:11px;font-weight:600;width:100%;outline:none" value="${(t.task||'').replace(/"/g,'&quot;')}" onchange="editGDC('${t.id}','task',this.value)"></td>
-    <td><select style="border:none;background:transparent;font-size:9px;cursor:pointer;outline:none" onchange="editGDC('${t.id}','platform',this.value)">${['DCW Page','GDC Page','Jenny 老师 Page','WA文案'].map(opt=>`<option ${t.platform===opt?'selected':''}>${opt}</option>`).join('')}</select></td>
+    <td><input style="border:none;background:transparent;font-size:9px;outline:none;width:100%;min-width:90px" value="${(t.platform||'').replace(/"/g,'&quot;')}" onchange="editGDC('${t.id}','platform',this.value)" placeholder="平台(可多填)"></td>
     <td><select style="border:none;background:transparent;font-size:9px;cursor:pointer;outline:none;max-width:110px" onchange="editGDC('${t.id}','cat',this.value)">${['GDC 视频文案','GDC 图文文案','GDC 金句图文','GDC 视频拍摄','GDC 视频脚本','GDC 短视频剪辑','GDC DLIG对接','GDC 方案讨论','GDC Project管理'].map(opt=>`<option ${t.cat===opt?'selected':''}>${opt}</option>`).join('')}</select></td>
     <td><input type="date" style="border:none;background:transparent;font-family:'DM Sans',sans-serif;font-size:10.5px;color:var(--amber);outline:none;cursor:pointer" value="${t.dl||''}" onchange="editGDC('${t.id}','dl',this.value)"></td>
-    <td style="font-size:10.5px;color:var(--green);font-family:'DM Sans',sans-serif">${fmtD(t.doneDate)||'—'}</td>
+    <td><input type="date" style="border:none;background:transparent;font-family:'DM Sans',sans-serif;font-size:10.5px;color:var(--green);outline:none;cursor:pointer" value="${t.doneDate||''}" onchange="editGDC('${t.id}','doneDate',this.value)"></td>
     <td style="font-size:10px;font-weight:600;color:${effColor}">${effStr}</td>
-    <td style="font-size:10.5px">${t.who||'—'}</td>
-    <td>${ptag(t.pic)}</td>
+    <td><input style="border:none;background:transparent;font-size:10.5px;outline:none;width:80px" value="${(t.who||'').replace(/"/g,'&quot;')}" onchange="editGDC('${t.id}','who',this.value)" placeholder="—"></td>
+    <td><input style="border:none;background:transparent;font-size:10.5px;outline:none;width:70px" value="${(t.pic||'').replace(/"/g,'&quot;')}" onchange="editGDC('${t.id}','pic',this.value)" placeholder="—"></td>
     <td>
-      ${!isDone?`<button class="tc-btn" onclick="openGDCComplete('${t.id}')" style="background:var(--greenB);border-color:var(--green);color:var(--green);font-size:10px">✓ 完成</button>`:`<span style="font-size:10px;color:var(--green)">✅</span>`}
+      ${!isDone?`<button class="tc-btn" onclick="openGDCComplete('${t.id}')" style="background:var(--greenB);border-color:var(--green);color:var(--green);font-size:10px">✓ 完成</button>`:`<button class="tc-btn" onclick="undoneGDCTask('${t.id}')" style="background:var(--greenB);border-color:var(--green);color:var(--green);font-size:10px">✅ 撤回</button>`}
       <button class="tc-btn" onclick="delGDCTask('${t.id}')" style="color:var(--red);font-size:10px;margin-left:4px">删</button>
     </td>
   </tr>`;}).join(''):'<tr><td colspan="10" style="text-align:center;color:var(--muted);padding:20px">暂无 GDC 任务</td></tr>';
@@ -2578,6 +2578,11 @@ function confirmGDCComplete(id){
   // 同步到 Task Board 镜像 task（设 actual='1' 让 Apps Script 认为已完成）
   const mirror=TASKS.find(x=>x.task&&x.task.includes(t.task)&&(x.cat==='GDC job'||x.cat==='GDC'||x.task.includes('🎨')));
   if(mirror&&mirror.status!=='已完成'){mirror.status='已完成';mirror.doneDate=t.doneDate;if(!mirror.actual||mirror.actual==='')mirror.actual='1';save('tasks',TASKS);renderTasks();}
+}
+function undoneGDCTask(id){
+  const t=GDC_TASKS.find(x=>String(x.id)===String(id));if(!t)return;
+  t.status='进行中';t.doneDate='';
+  save('gdc_tasks',GDC_TASKS);renderGDC();
 }
 function cycleGDCStatus(id){
   const t=GDC_TASKS.find(x=>String(x.id)===String(id));if(!t)return;
