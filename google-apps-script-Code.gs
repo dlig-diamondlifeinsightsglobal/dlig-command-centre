@@ -697,6 +697,140 @@ function writeSpecialMeetings(items) {
   return { ok:true, count:rows.length };
 }
 
+// ─── 心动觉察 出席者名单 ──────────────────────────────────────
+
+function readAttendance() {
+  const ss  = SpreadsheetApp.openById(SHEET_IDS.tasks);
+  const tab = ss.getSheetByName('出席者名单');
+  if (!tab) return {};
+  const data = tab.getDataRange().getValues();
+  if (data.length < 2) return {};
+  const result = {};
+  data.slice(1).filter(r => r[0]).forEach(r => {
+    const session = String(r[0]);
+    if (!result[session]) result[session] = [];
+    result[session].push({
+      name:  String(r[1]||''),
+      phone: String(r[2]||''),
+      rel:   String(r[3]||''),
+      zone:  String(r[4]||''),
+      d1:    r[5]===true||r[5]==='TRUE'||r[5]==='true',
+      d2:    r[6]===true||r[6]==='TRUE'||r[6]==='true'
+    });
+  });
+  return result;
+}
+
+function writeAttendance(obj) {
+  const ss  = SpreadsheetApp.openById(SHEET_IDS.tasks);
+  let tab   = ss.getSheetByName('出席者名单');
+  if (!tab) {
+    tab = ss.insertSheet('出席者名单');
+    tab.getRange(1,1,1,7).setValues([['场次','姓名','电话','关系状态','迎宾分组','Day1','Day2']])
+       .setFontWeight('bold').setBackground('#f0fdf4');
+  }
+  const lastRow = tab.getLastRow();
+  if (lastRow > 1) tab.getRange(2,1,lastRow-1,7).clearContent();
+  const rows = [];
+  Object.entries(obj||{}).forEach(([session, list]) => {
+    (list||[]).forEach(a => rows.push([session, a.name||'', a.phone||'', a.rel||'', a.zone||'', a.d1?'TRUE':'FALSE', a.d2?'TRUE':'FALSE']));
+  });
+  if (rows.length > 0) tab.getRange(2,1,rows.length,7).setValues(rows);
+  return { ok:true, count:rows.length };
+}
+
+// ─── 试炼记录：沙盘 & 拍卖 ────────────────────────────────────
+
+function readSbRecords() {
+  const ss  = SpreadsheetApp.openById(SHEET_IDS.tasks);
+  const tab = ss.getSheetByName('沙盘试炼记录');
+  if (!tab) return [];
+  const data = tab.getDataRange().getValues();
+  if (data.length < 2) return [];
+  return data.slice(1).filter(r => r[0]).map(r => ({
+    unit:  String(r[0]||''), p1:String(r[1]||''), p2:String(r[2]||''),
+    dream: String(r[3]||''), goal:String(r[4]||''), note:String(r[5]||'')
+  }));
+}
+
+function writeSbRecords(items) {
+  const ss  = SpreadsheetApp.openById(SHEET_IDS.tasks);
+  let tab   = ss.getSheetByName('沙盘试炼记录');
+  if (!tab) {
+    tab = ss.insertSheet('沙盘试炼记录');
+    tab.getRange(1,1,1,6).setValues([['Unit','Player1','Player2','梦想目标','人生目标','觉察备注']])
+       .setFontWeight('bold').setBackground('#fffbeb');
+  }
+  const lastRow = tab.getLastRow();
+  if (lastRow > 1) tab.getRange(2,1,lastRow-1,6).clearContent();
+  if (!items.length) return { ok:true, count:0 };
+  const rows = items.map(r => [r.unit||'', r.p1||'', r.p2||'', r.dream||'', r.goal||'', r.note||'']);
+  tab.getRange(2,1,rows.length,6).setValues(rows);
+  return { ok:true, count:rows.length };
+}
+
+function readAuRecords() {
+  const ss  = SpreadsheetApp.openById(SHEET_IDS.tasks);
+  const tab = ss.getSheetByName('拍卖试炼记录');
+  if (!tab) return [];
+  const data = tab.getDataRange().getValues();
+  if (data.length < 2) return [];
+  return data.slice(1).filter(r => r[0]).map(r => ({
+    trait:  String(r[0]||''), price:String(r[1]||''), buyer:String(r[2]||''),
+    seller: String(r[3]||''), benef:String(r[4]||''), note:String(r[5]||'')
+  }));
+}
+
+function writeAuRecords(items) {
+  const ss  = SpreadsheetApp.openById(SHEET_IDS.tasks);
+  let tab   = ss.getSheetByName('拍卖试炼记录');
+  if (!tab) {
+    tab = ss.insertSheet('拍卖试炼记录');
+    tab.getRange(1,1,1,6).setValues([['特质','成交价','拍到者','给予者','受益者','备注']])
+       .setFontWeight('bold').setBackground('#fffbeb');
+  }
+  const lastRow = tab.getLastRow();
+  if (lastRow > 1) tab.getRange(2,1,lastRow-1,6).clearContent();
+  if (!items.length) return { ok:true, count:0 };
+  const rows = items.map(r => [r.trait||'', r.price||'', r.buyer||'', r.seller||'', r.benef||'', r.note||'']);
+  tab.getRange(2,1,rows.length,6).setValues(rows);
+  return { ok:true, count:rows.length };
+}
+
+// ─── 岗位负责人 读写 ──────────────────────────────────────────
+
+function readXdRoles() {
+  const ss  = SpreadsheetApp.openById(SHEET_IDS.tasks);
+  const tab = ss.getSheetByName('岗位负责人');
+  if (!tab) return null;
+  const data = tab.getDataRange().getValues();
+  if (data.length < 2) return null;
+  const d1 = [], d2 = [];
+  data.slice(1).filter(r => r[0]).forEach(r => {
+    const day = String(r[0]);
+    const obj = { role:String(r[1]||''), detail:String(r[2]||''), person:String(r[3]||'') };
+    if (day === 'D1') d1.push(obj); else d2.push(obj);
+  });
+  return { d1, d2 };
+}
+
+function writeXdRoles(obj) {
+  const ss  = SpreadsheetApp.openById(SHEET_IDS.tasks);
+  let tab   = ss.getSheetByName('岗位负责人');
+  if (!tab) {
+    tab = ss.insertSheet('岗位负责人');
+    tab.getRange(1,1,1,4).setValues([['Day','岗位','职责','负责人']])
+       .setFontWeight('bold').setBackground('#eff6ff');
+  }
+  const lastRow = tab.getLastRow();
+  if (lastRow > 1) tab.getRange(2,1,lastRow-1,4).clearContent();
+  const rows = [];
+  (obj.d1||[]).forEach(r => rows.push(['D1', r.role||'', r.detail||'', r.person||'']));
+  (obj.d2||[]).forEach(r => rows.push(['D2', r.role||'', r.detail||'', r.person||'']));
+  if (rows.length > 0) tab.getRange(2,1,rows.length,4).setValues(rows);
+  return { ok:true, count:rows.length };
+}
+
 // ─── doGet ───────────────────────────────────────────────────
 
 function doGet(e) {
@@ -712,6 +846,10 @@ function doGet(e) {
     if (type === 'logs')              return respond(readLogs());
     if (type === 'decisions')         return respond(readDecisions());
     if (type === 'special_meetings')  return respond(readSpecialMeetings());
+    if (type === 'attendance')        return respond(readAttendance());
+    if (type === 'sb_records')        return respond(readSbRecords());
+    if (type === 'au_records')        return respond(readAuRecords());
+    if (type === 'xd_roles')          return respond(readXdRoles());
     return respond({ error: 'Unknown sheet: ' + type });
   } catch(err) {
     return respond({ error: err.message });
@@ -731,6 +869,10 @@ function doPost(e) {
     if (type === 'logs')             return respond(writeLogs(Array.isArray(data) ? data : []));
     if (type === 'decisions')        return respond(writeDecisions(Array.isArray(data) ? data : []));
     if (type === 'special_meetings') return respond(writeSpecialMeetings(Array.isArray(data) ? data : []));
+    if (type === 'attendance')       return respond(writeAttendance(data));
+    if (type === 'sb_records')       return respond(writeSbRecords(Array.isArray(data) ? data : []));
+    if (type === 'au_records')       return respond(writeAuRecords(Array.isArray(data) ? data : []));
+    if (type === 'xd_roles')         return respond(writeXdRoles(data||{}));
     if (type === 'pay') {
       return respond(writePaySheet(data.tasks, data.mkt, data.gdc));
     }

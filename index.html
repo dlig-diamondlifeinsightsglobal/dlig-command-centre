@@ -1117,7 +1117,7 @@ function calcEffDL(dl,done){if(!dl||!done)return null;try{const d=Math.floor((ne
 // ═══════════════════════════════════════
 const SHEETS_API_URL = 'https://script.google.com/macros/s/AKfycbxD9lCg_7WC69Wzq-HBK4tSQPJv4f_cpV-73-GRP8duy2JhwO7-NVetJnam4KPPSUXz/exec';
 
-const SHEET_KEY_MAP = {'tasks':'tasks','mkt_content':'mkt','gdc_tasks':'gdc','logs':'logs','decisions':'decisions','special_meetings':'special_meetings'};
+const SHEET_KEY_MAP = {'tasks':'tasks','mkt_content':'mkt','gdc_tasks':'gdc','logs':'logs','decisions':'decisions','special_meetings':'special_meetings','attendance':'attendance','sb_records':'sb_records','au_records':'au_records','xd_roles':'xd_roles'};
 
 let _syncTimer=null;
 function showSyncStatus(success){
@@ -1297,14 +1297,14 @@ const AUTO_SCRIPTS=[
   {title:'文案6：感谢 + Upsell',content:'你好 {{contact.first_name}} 😊\n很开心这两个早上可以跟你一起完成《心动觉察》！但改变，其实不止于觉察，真正关键的是——接下来你怎么继续走下去 💛\n觉察如果没有一个环境承载，很容易慢慢被生活带回原点。所以想问你一个很重要的问题：🧐 你希望用什么方式，继续往前？'},
 ];
 
-const ROLES_D1=[
+const _ROLES_D1_DEF=[
   {role:'💛 村长（Facilitator）',detail:'开场 · 破冰 · 沙盘引导（20-35岁个人段 & 35-60岁家庭段）· 觉察分享总结',person:''},
   {role:'🔵 副村长',detail:'协助主持 · 引导分享 · 观察玩家模式 · 协助定调',person:''},
   {role:'🟢 PA官 & 迎宾台',detail:'迎宾 · 特质卡发放 · ID制作引导 · 电脑开参与者名单',person:''},
   {role:'📸 摄影官',detail:'活动全程拍照 · 重要觉察时刻抓拍',person:''},
   {role:'🎮 小天使（IT & 后台）',detail:'电脑后台更改：Team Up 选屋子 / Team Up 各组目标',person:''},
 ];
-const ROLES_D2=[
+const _ROLES_D2_DEF=[
   {role:'🔴 心动拍卖神',detail:'拍卖主持 · 笔的故事 · YLYD 呈现 · 收结两天觉察',person:''},
   {role:'🔵 副村长',detail:'协助拍卖 · 觉察深化引导 · 报名区协助',person:''},
   {role:'🟢 PA官 & 报名区',detail:'报名区 · 参与者引导 · 收集拍卖单',person:''},
@@ -1313,6 +1313,9 @@ const ROLES_D2=[
   {role:'📸 摄影官',detail:'活动全程拍照 · 拍卖精彩时刻',person:''},
   {role:'🎮 小天使（IT & 后台）',detail:'电脑后台：拍卖成交价 · 拍卖结束准备 YLYD 手册',person:''},
 ];
+const _savedRoles=load('xd_roles',null);
+let ROLES_D1=_savedRoles?.d1||_ROLES_D1_DEF.map(r=>({...r}));
+let ROLES_D2=_savedRoles?.d2||_ROLES_D2_DEF.map(r=>({...r}));
 const XD_FLOW_D1=[
   {title:'🎤 迎宾 & 签到（活动前30min）',desc:'系统提醒 1.5h前发 · 特质卡选取 · ID制作 · Briefing',script:'你好！欢迎来到心动觉察，请问怎么称呼你呢？我们这里有分三个区域——一枝独秀 / 神雕侠侣 / 名花有主...'},
   {title:'💬 开场 + 破冰（25min）',desc:'Video → 欢迎 → Calibrating Heart Frequency → 自我介绍',script:'Hello everybuddy！欢迎来到心动觉察！欢迎来到心动村！这两天，我们不是来学什么是对的，而是来看清楚我平常是怎么在活着的。我们只做三件事：看见 · 记录 · 选择。'},
@@ -2266,8 +2269,8 @@ function renderXindong(){
   document.getElementById('flow-day1').innerHTML=XD_FLOW_D1.map(f=>`<div class="acc-item"><div class="acc-head" onclick="this.parentElement.classList.toggle('open')"><span>${f.title}</span><span class="acc-arrow">▼</span></div><div class="acc-body"><div style="font-size:11.5px;color:var(--muted);margin-bottom:9px">${f.desc}</div><div style="background:var(--s2);border-radius:8px;padding:11px;font-size:11.5px;line-height:1.7;color:var(--text2)"><b style="font-size:9.5px;color:var(--gold);text-transform:uppercase;letter-spacing:.8px;display:block;margin-bottom:5px">Script 参考</b>${f.script}</div></div></div>`).join('');
   document.getElementById('flow-day2').innerHTML=XD_FLOW_D2.map(f=>`<div class="acc-item"><div class="acc-head" onclick="this.parentElement.classList.toggle('open')"><span>${f.title}</span><span class="acc-arrow">▼</span></div><div class="acc-body"><div style="font-size:11.5px;color:var(--muted);margin-bottom:9px">${f.desc}</div><div style="background:var(--s2);border-radius:8px;padding:11px;font-size:11.5px;line-height:1.7;color:var(--text2)"><b style="font-size:9.5px;color:var(--gold);text-transform:uppercase;letter-spacing:.8px;display:block;margin-bottom:5px">Script 参考</b>${f.script}</div></div></div>`).join('');
   // Roles
-  document.getElementById('role-d1').innerHTML=ROLES_D1.map((r,i)=>`<tr><td style="font-weight:600">${r.role}</td><td style="font-size:11px;line-height:1.65">${r.detail}</td><td><input class="fi" style="width:120px" value="${r.person}" onchange="ROLES_D1[${i}].person=this.value" placeholder="填写负责人"></td></tr>`).join('');
-  document.getElementById('role-d2').innerHTML=ROLES_D2.map((r,i)=>`<tr><td style="font-weight:600">${r.role}</td><td style="font-size:11px;line-height:1.65">${r.detail}</td><td><input class="fi" style="width:120px" value="${r.person}" onchange="ROLES_D2[${i}].person=this.value" placeholder="填写负责人"></td></tr>`).join('');
+  document.getElementById('role-d1').innerHTML=ROLES_D1.map((r,i)=>`<tr><td style="font-weight:600">${r.role}</td><td style="font-size:11px;line-height:1.65">${r.detail}</td><td><input class="fi" style="width:120px" value="${r.person}" onchange="ROLES_D1[${i}].person=this.value;save('xd_roles',{d1:ROLES_D1,d2:ROLES_D2})" placeholder="填写负责人"></td></tr>`).join('');
+  document.getElementById('role-d2').innerHTML=ROLES_D2.map((r,i)=>`<tr><td style="font-weight:600">${r.role}</td><td style="font-size:11px;line-height:1.65">${r.detail}</td><td><input class="fi" style="width:120px" value="${r.person}" onchange="ROLES_D2[${i}].person=this.value;save('xd_roles',{d1:ROLES_D1,d2:ROLES_D2})" placeholder="填写负责人"></td></tr>`).join('');
   // Attendance
   renderAttendance();
   // Auto scripts
