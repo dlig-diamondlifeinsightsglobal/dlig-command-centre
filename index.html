@@ -407,6 +407,16 @@ body{background:var(--cream);color:var(--text);font-family:'Plus Jakarta Sans',s
     <div style="font-size:9.5px;color:var(--muted);font-style:italic">Your Life You Design ✦</div>
     <div style="font-size:9px;color:var(--dim);margin-top:4px;font-family:'DM Sans',sans-serif" id="bdate"></div>
   </div>
+  <div style="padding:8px 14px 10px;border-bottom:1.5px solid var(--border)">
+    <div style="display:flex;align-items:center;gap:5px">
+      <span style="font-size:9px;font-weight:700;color:var(--muted)">⏱</span>
+      <input type="number" id="mt-mins-input" min="1" max="120" value="10" oninput="if(!mtRunning){const m=parseInt(this.value)||10;document.getElementById('mt-display').textContent=m+':00';}" style="width:32px;padding:1px 3px;border:1.5px solid var(--border);border-radius:5px;font-size:10px;text-align:center;outline:none;background:var(--s2)">
+      <span style="font-size:9px;color:var(--muted)">min</span>
+      <div id="mt-display" style="font-family:'Space Mono',monospace;font-size:15px;font-weight:800;color:var(--text);min-width:40px;text-align:center;letter-spacing:1px">10:00</div>
+      <button id="mt-start-btn" onclick="mtToggle()" style="padding:2px 9px;border:1.5px solid var(--green);background:var(--greenB);color:var(--green);border-radius:5px;cursor:pointer;font-size:10px;font-weight:700">▶</button>
+      <button onclick="mtReset()" style="padding:2px 6px;border:1.5px solid var(--border);background:transparent;border-radius:5px;cursor:pointer;font-size:10px;color:var(--muted)">↺</button>
+    </div>
+  </div>
   <div class="nav">
     <div class="ns">Overview</div>
     <div class="ni on" onclick="go('overview')"><span class="ni-icon">🏠</span>公司总览</div>
@@ -429,16 +439,6 @@ body{background:var(--cream);color:var(--text);font-family:'Plus Jakarta Sans',s
     <div class="ni" onclick="go('decisions')"><span class="ni-icon">⚡</span>待决策<span class="nbadge" id="nb-d">0</span></div>
     <div class="ni" onclick="go('files')"><span class="ni-icon">📁</span>文件索引</div>
   </div>
-  <div style="padding:12px 14px;border-top:1.5px solid var(--border);background:var(--white)">
-    <div style="font-size:9px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px">⏱ Timer</div>
-    <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
-      <input type="number" id="mt-mins-input" min="1" max="120" value="10" oninput="if(!mtRunning){const m=parseInt(this.value)||10;document.getElementById('mt-display').textContent=m+':00';}" style="width:38px;padding:2px 4px;border:1.5px solid var(--border);border-radius:6px;font-size:11px;text-align:center;outline:none;background:var(--s2)">
-      <span style="font-size:9px;color:var(--muted)">min</span>
-      <div id="mt-display" style="font-family:'Space Mono',monospace;font-size:17px;font-weight:800;color:var(--text);min-width:46px;text-align:center;letter-spacing:1px">10:00</div>
-      <button id="mt-start-btn" onclick="mtToggle()" style="padding:3px 10px;border:1.5px solid var(--green);background:var(--greenB);color:var(--green);border-radius:6px;cursor:pointer;font-size:10px;font-weight:700">▶</button>
-      <button onclick="mtReset()" style="padding:3px 8px;border:1.5px solid var(--border);background:transparent;border-radius:6px;cursor:pointer;font-size:10px;color:var(--muted)">↺</button>
-    </div>
-  </div>
 </div>
 
 <!-- ═══ MAIN ═══ -->
@@ -458,6 +458,27 @@ body{background:var(--cream);color:var(--text);font-family:'Plus Jakarta Sans',s
   <!-- ══ OVERVIEW ══ -->
   <div class="page on" id="p-overview">
     <div class="ov-rows" id="ov-rows"></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:18px;">
+      <div style="background:var(--white);border:1.5px solid var(--border);border-radius:var(--r);padding:14px 16px;box-shadow:var(--sh)">
+        <div style="font-size:10px;font-weight:800;color:var(--gold);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px">📅 DLIG 固定会议</div>
+        <div style="display:flex;flex-direction:column;gap:7px">
+          <div>
+            <div style="font-size:11px;font-weight:700;color:var(--text)">Monthly Meeting</div>
+            <div style="font-size:10.5px;color:var(--muted)">每月最后一个拜二 · 8:30am – 10:30am</div>
+          </div>
+          <div style="border-top:1px dashed var(--border);padding-top:7px">
+            <div style="font-size:11px;font-weight:700;color:var(--text)">Weekly Meeting</div>
+            <div style="font-size:10.5px;color:var(--muted)">每周拜四 · 8:00am – 9:00am</div>
+          </div>
+          <div style="font-size:10px;color:var(--dim);margin-top:2px">只要 3 人出席即可进行会议</div>
+        </div>
+      </div>
+      <div style="background:var(--white);border:1.5px solid var(--border);border-radius:var(--r);padding:14px 16px;box-shadow:var(--sh)">
+        <div style="font-size:10px;font-weight:800;color:var(--blue);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px">🌍 DLIG 服务世界时间</div>
+        <div style="font-size:11px;font-weight:700;color:var(--text);margin-bottom:5px">每周拜四上半天</div>
+        <div style="font-size:10.5px;color:var(--muted);line-height:1.6">大家一起在线服务世界<br>其余任务各自安排时间完成</div>
+      </div>
+    </div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:22px;">
       <div>
         <div class="sl">📊 H1 2026 Sales Progress</div>
