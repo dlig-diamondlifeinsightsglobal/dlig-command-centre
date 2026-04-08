@@ -429,6 +429,16 @@ body{background:var(--cream);color:var(--text);font-family:'Plus Jakarta Sans',s
     <div class="ni" onclick="go('decisions')"><span class="ni-icon">⚡</span>待决策<span class="nbadge" id="nb-d">0</span></div>
     <div class="ni" onclick="go('files')"><span class="ni-icon">📁</span>文件索引</div>
   </div>
+  <div style="padding:12px 14px;border-top:1.5px solid var(--border);background:var(--white)">
+    <div style="font-size:9px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px">⏱ Timer</div>
+    <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
+      <input type="number" id="mt-mins-input" min="1" max="120" value="10" oninput="if(!mtRunning){const m=parseInt(this.value)||10;document.getElementById('mt-display').textContent=m+':00';}" style="width:38px;padding:2px 4px;border:1.5px solid var(--border);border-radius:6px;font-size:11px;text-align:center;outline:none;background:var(--s2)">
+      <span style="font-size:9px;color:var(--muted)">min</span>
+      <div id="mt-display" style="font-family:'Space Mono',monospace;font-size:17px;font-weight:800;color:var(--text);min-width:46px;text-align:center;letter-spacing:1px">10:00</div>
+      <button id="mt-start-btn" onclick="mtToggle()" style="padding:3px 10px;border:1.5px solid var(--green);background:var(--greenB);color:var(--green);border-radius:6px;cursor:pointer;font-size:10px;font-weight:700">▶</button>
+      <button onclick="mtReset()" style="padding:3px 8px;border:1.5px solid var(--border);background:transparent;border-radius:6px;cursor:pointer;font-size:10px;color:var(--muted)">↺</button>
+    </div>
+  </div>
 </div>
 
 <!-- ═══ MAIN ═══ -->
@@ -1017,15 +1027,7 @@ body{background:var(--cream);color:var(--text);font-family:'Plus Jakarta Sans',s
         <button class="mt" onclick="smeet('minutes',this)">📝 会议记录</button>
         <button class="mt" onclick="smeet('special',this)">🔔 特别会议</button>
       </div>
-      <div style="display:flex;align-items:center;gap:8px;background:var(--white);border:1.5px solid var(--border);border-radius:10px;padding:8px 14px;box-shadow:var(--sh)">
-        <span style="font-size:10.5px;color:var(--muted);font-weight:600">⏱</span>
-        <input type="number" id="mt-mins-input" min="1" max="120" value="10" oninput="if(!mtRunning){const m=parseInt(this.value)||10;document.getElementById('mt-display').textContent=m+':00';}" style="width:44px;padding:2px 5px;border:1.5px solid var(--border);border-radius:6px;font-size:11px;text-align:center;outline:none">
-        <span style="font-size:10px;color:var(--muted)">分钟</span>
-        <div id="mt-display" style="font-family:'Space Mono',monospace;font-size:19px;font-weight:800;color:var(--text);min-width:54px;text-align:center;letter-spacing:1px">10:00</div>
-        <button id="mt-start-btn" onclick="mtToggle()" style="padding:4px 12px;border:1.5px solid var(--green);background:var(--greenB);color:var(--green);border-radius:7px;cursor:pointer;font-size:11px;font-weight:700">▶ 开始</button>
-        <button onclick="mtReset()" style="padding:4px 10px;border:1.5px solid var(--border);background:transparent;border-radius:7px;cursor:pointer;font-size:11px;color:var(--muted)">↺</button>
       </div>
-    </div>
     <div class="ms-tab on" id="ms-monthly">
       <div class="ib ib-gold"><b>📅 Monthly Meeting — 每月最后拜二</b>全员参与 · 每人准备部门报告 · <a onclick="go('decisions')" style="color:var(--gold);cursor:pointer;text-decoration:underline">⚡ 点击先去投票</a> · <button onclick="toggleFayuBanner('mo-fayu')" style="font-size:10px;padding:2px 8px;border:1.5px solid var(--gold);background:transparent;border-radius:6px;cursor:pointer;color:var(--gold);font-weight:700">📖 发愿</button></div>
       <div id="mo-fayu" style="display:none;background:var(--amberB);border-radius:10px;padding:14px;margin-bottom:12px;max-height:70vh;overflow-y:auto"></div>
@@ -1562,12 +1564,15 @@ const MO_AGENDA=[
   {t:'+5m',title:'☕ 咖啡庆祝',desc:'好种子分享 · 结束调频',o:'全体'},
 ];
 const WK_AGENDA=[
-  {t:'8:00am',title:'🙏 DLIG 开场定调',desc:'发愿 + 感恩彼此（每人1句）',o:'全体',expand:true},
-  {t:'8:10am',title:'⚡ 快速同步',desc:'各人本周重点 + 阻碍（每人 2 分钟）',o:'全体'},
-  {t:'8:10am',title:'💰 Sales 跟进',desc:'本周成交 · 需要支持的客户',o:'Li Joo'},
-  {t:'8:20am',title:'📋 任务更新',desc:'上周完成情况 · 本周任务确认',o:'全体'},
-  {t:'8:35am',title:'⚡ 快速决策',desc:'本周需要拍板的小事项',o:'全体'},
-  {t:'8:50am',title:'✅ 结束',desc:'Recap + 各人今天重点任务',o:'全体'},
+  {t:'8:00am',dur:'5min', title:'🙏 调频',desc:'发愿 + 读愿景使命 + 感恩彼此（每人1句）',o:'轮值主持',expand:true},
+  {t:'8:05am',dur:'5min', title:'📊 目标回顾',desc:'上周 KPI / 本月进度',o:'Sales（Li Joo）'},
+  {t:'8:10am',dur:'7min', title:'💰 Sales 报告',desc:'本周成交 · 需要支持的客户',o:'Li Joo'},
+  {t:'8:17am',dur:'7min', title:'📣 Marketing 报告',desc:'内容进度 · 本周计划',o:'Jasper'},
+  {t:'8:24am',dur:'7min', title:'⚙️ Operation 报告',desc:'活动进度 · SOP 更新',o:'Stella'},
+  {t:'8:31am',dur:'7min', title:'🗂 Admin 报告',desc:'Inventory · Automation · 财务',o:'Roy'},
+  {t:'8:38am',dur:'12min',title:'⚡ 决策讨论',desc:'本周需要拍板的事项',o:'All'},
+  {t:'8:50am',dur:'10min',title:'✅ 任务分配',desc:'认领任务 → Task Board',o:'All'},
+  {t:'9:00am',dur:'5min', title:'☕ 咖啡庆祝',desc:'好种子分享 · 结束调频',o:'All'},
 ];
 const POLICIES=[
   {title:'💼 公司结构',items:[
@@ -2944,7 +2949,7 @@ function mtReset(){
   document.getElementById('mt-start-btn').textContent='▶ 开始';
 }
 function renderMeeting(){
-  const mkAg=(data,id)=>{document.getElementById(id).innerHTML=data.map(a=>`<div class="ag-blk"><div class="ag-time">${a.t}</div><div class="ag-line"><div class="ag-dot"></div><div class="ag-conn"></div></div><div class="ag-body"><div class="ag-title">${a.title}${a.expand?` <button onclick="toggleFayu(this)" style="font-size:9px;padding:2px 8px;border:1.5px solid var(--gold);background:transparent;border-radius:6px;cursor:pointer;color:var(--gold);font-weight:700">📖 展开</button>`:''}</div><div class="ag-desc">${a.desc}</div>${a.expand?`<div class="fayu-wrap" style="display:none;margin-top:12px;background:var(--amberB);border-radius:10px;padding:14px;max-height:70vh;overflow-y:auto">${FAYU_HTML}</div>`:''}<div style="margin-top:5px">${ptag(a.o)}</div></div></div>`).join('');};
+  const mkAg=(data,id)=>{document.getElementById(id).innerHTML=data.map(a=>`<div class="ag-blk"><div class="ag-time">${a.t}${a.dur?`<div style="font-size:9px;color:var(--muted);font-weight:600;margin-top:2px;font-family:'DM Sans',sans-serif">${a.dur}</div>`:''}</div><div class="ag-line"><div class="ag-dot"></div><div class="ag-conn"></div></div><div class="ag-body"><div class="ag-title">${a.title}${a.expand?` <button onclick="toggleFayu(this)" style="font-size:9px;padding:2px 8px;border:1.5px solid var(--gold);background:transparent;border-radius:6px;cursor:pointer;color:var(--gold);font-weight:700">📖 展开</button>`:''}</div><div class="ag-desc">${a.desc}</div>${a.expand?`<div class="fayu-wrap" style="display:none;margin-top:12px;background:var(--amberB);border-radius:10px;padding:14px;max-height:70vh;overflow-y:auto">${FAYU_HTML}</div>`:''}<div style="margin-top:5px">${ptag(a.o)}</div></div></div>`).join('');};
   mkAg(MO_AGENDA,'mo-agenda');mkAg(WK_AGENDA,'wk-agenda');
   const moF=document.getElementById('mo-fayu');if(moF)moF.innerHTML=FAYU_HTML;
   const wkF=document.getElementById('wk-fayu');if(wkF)wkF.innerHTML=FAYU_HTML;
