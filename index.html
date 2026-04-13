@@ -2026,7 +2026,7 @@ function updateStats(){
 }
 let TIME_F='all';
 function setTimeFilter(f,btn){TIME_F=f;document.querySelectorAll('#tf-all,#tf-month,#tf-30').forEach(b=>b.classList.remove('on'));btn.classList.add('on');renderTasks();}
-function editTask(id,field,val){const t=TASKS.find(x=>x.id===id);if(t){t[field]=val;save('tasks',TASKS);if(field==='priority'||field==='deadline')renderOverview();}}
+function editTask(id,field,val){const t=TASKS.find(x=>x.id===id);if(t){t[field]=val;save('tasks',TASKS);if(field==='doneDate'||field==='actual')renderTasks();else if(field==='priority'||field==='deadline')renderOverview();}}
 function openTaskNote(id){
   const t=TASKS.find(x=>x.id===id);if(!t)return;
   const ex=document.getElementById('task-note-modal');if(ex)ex.remove();
