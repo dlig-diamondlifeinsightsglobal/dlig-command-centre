@@ -553,8 +553,8 @@ body{background:var(--cream);color:var(--text);font-family:'Plus Jakarta Sans',s
             <option>System</option>
             <option>GDC job</option>
             <option>GDC 视频文案</option>
-            <option>GDC 图文文案</option>
-            <option>GDC 金句图文</option>
+            <option>GDC 文案书写</option>
+            <option>GDC 图文Post</option>
             <option>GDC 视频拍摄</option>
             <option>GDC 视频脚本</option>
             <option>GDC 短视频剪辑</option>
@@ -947,7 +947,7 @@ body{background:var(--cream);color:var(--text);font-family:'Plus Jakarta Sans',s
           <label style="font-size:11px;display:flex;align-items:center;gap:4px;cursor:pointer"><input type="checkbox" id="gdc-plt-wa" value="WA文案"> WA文案</label>
         </div></div>
         <div class="ff"><div class="fl2">类型</div><select class="fs" id="gdc-cat" style="width:160px">
-          <option>GDC 视频文案</option><option>GDC 图文文案</option><option>GDC 金句图文</option>
+          <option>GDC 视频文案</option><option>GDC 文案书写</option><option>GDC 图文Post</option>
           <option>GDC 视频拍摄</option><option>GDC 视频脚本</option><option>GDC 短视频剪辑</option>
           <option>GDC DLIG对接</option><option>GDC 方案讨论</option><option>GDC Project管理</option>
         </select></div>
@@ -2021,7 +2021,7 @@ function renderTasks(){
       const e=t.status==='已完成'?calcEff(t):null;
       const isDone=t.status==='已完成';
       const PEOPLE=['全员','Li Joo','Jasper','Stella','Roy','待认领'];
-      const CATS=['Operation','Marketing','✍ 视频文案/信息文案','📣 制作Post图+文案','🖼 制作海报','📝 视频脚本','📱 剪辑短视频-一键成片','📱 剪辑短视频','🎬 剪辑YouTube','🧠 Landing Page文案','🖥 Landing Page制作','Sales','Admin','System','GDC job','GDC 视频文案','GDC 图文文案','GDC 金句图文','GDC 视频拍摄','GDC 视频脚本','GDC 短视频剪辑','GDC DLIG对接','GDC 方案讨论','GDC Project管理'];
+      const CATS=['Operation','Marketing','✍ 视频文案/信息文案','📣 制作Post图+文案','🖼 制作海报','📝 视频脚本','📱 剪辑短视频-一键成片','📱 剪辑短视频','🎬 剪辑YouTube','🧠 Landing Page文案','🖥 Landing Page制作','Sales','Admin','System','GDC job','GDC 视频文案','GDC 文案书写','GDC 图文Post','GDC 视频拍摄','GDC 视频脚本','GDC 短视频剪辑','GDC DLIG对接','GDC 方案讨论','GDC Project管理'];
       return`<tr style="${isDone?'background:rgba(200,160,90,0.07);':''}">
         <td style="cursor:pointer" onclick="openTaskNote(${t.id})" title="点击查看/编辑备注"><div style="font-size:11.5px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;${isDone?'text-decoration:line-through;color:var(--muted)':''}">${t.task}</div>${t.desc?`<div style="font-size:10px;color:var(--muted);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">📝 ${t.desc}</div>`:''}</td>
         <td><select style="border:none;background:transparent;font-family:'Plus Jakarta Sans',sans-serif;font-size:11px;cursor:pointer;outline:none" onchange="editTask(${t.id},'person',this.value)">${PEOPLE.map(p=>`<option ${p===t.person?'selected':''}>${p}</option>`).join('')}</select></td>
@@ -2848,7 +2848,7 @@ function renderGDC(){
     <td><input type="date" style="border:none;background:transparent;font-family:'DM Sans',sans-serif;font-size:10px;font-weight:600;outline:none;cursor:pointer;width:100%" value="${t.date||''}" onchange="editGDC('${t.id}','date',this.value)"></td>
     <td><input style="border:none;background:transparent;font-family:'Plus Jakarta Sans',sans-serif;font-size:10.5px;font-weight:600;width:100%;outline:none;${isDone?'text-decoration:line-through;color:var(--muted);':''}" value="${(t.task||'').replace(/"/g,'&quot;')}" onchange="editGDC('${t.id}','task',this.value)"></td>
     <td><input style="border:none;background:transparent;font-size:9px;outline:none;width:100%" value="${(t.platform||'').replace(/"/g,'&quot;')}" onchange="editGDC('${t.id}','platform',this.value)" placeholder="—"></td>
-    <td><select style="border:none;background:transparent;font-size:9px;cursor:pointer;outline:none;width:100%" onchange="editGDC('${t.id}','cat',this.value)">${['GDC 视频文案','GDC 图文文案','GDC 金句图文','GDC 视频拍摄','GDC 视频脚本','GDC 短视频剪辑','GDC DLIG对接','GDC 方案讨论','GDC Project管理'].map(opt=>`<option ${t.cat===opt?'selected':''}>${opt}</option>`).join('')}</select></td>
+    <td><select style="border:none;background:transparent;font-size:9px;cursor:pointer;outline:none;width:100%" onchange="editGDC('${t.id}','cat',this.value)">${['GDC 视频文案','GDC 文案书写','GDC 图文Post','GDC 视频拍摄','GDC 视频脚本','GDC 短视频剪辑','GDC DLIG对接','GDC 方案讨论','GDC Project管理'].map(opt=>`<option ${t.cat===opt?'selected':''}>${opt}</option>`).join('')}</select></td>
     <td><input type="date" style="border:none;background:transparent;font-family:'DM Sans',sans-serif;font-size:10px;color:var(--amber);outline:none;cursor:pointer;width:100%" value="${t.dl||''}" onchange="editGDC('${t.id}','dl',this.value)"></td>
     <td><input type="date" style="border:none;background:transparent;font-family:'DM Sans',sans-serif;font-size:10px;color:var(--green);outline:none;cursor:pointer;width:100%" value="${t.doneDate||''}" onchange="editGDC('${t.id}','doneDate',this.value)"></td>
     <td><input type="number" min="0" step="0.5" style="border:none;background:transparent;font-family:'DM Sans',sans-serif;font-size:10.5px;font-weight:600;text-align:center;outline:none;width:100%" value="${t.hours||''}" placeholder="—" onchange="editGDC('${t.id}','hours',this.value)"></td>
@@ -2917,19 +2917,19 @@ function restoreGDCData(){
   const existing=GDC_TASKS.filter(t=>t.task&&String(t.task).trim());
   if(existing.length>0&&!confirm('现在已有'+existing.length+'条GDC数据，确定要追加恢复丢失的数据吗？'))return;
   const restore=[
-    {id:'g_r1',task:'Jenny 老师 各区教授图片',status:'待开始',pic:'Li Joo',who:'',date:'2026-04-01',dl:'2026-04-01',platform:'GDC Page',cat:'GDC 图文文案',doneDate:'',eff:'',pay:''},
+    {id:'g_r1',task:'Jenny 老师 各区教授图片',status:'待开始',pic:'Li Joo',who:'',date:'2026-04-01',dl:'2026-04-01',platform:'GDC Page',cat:'GDC 文案书写',doneDate:'',eff:'',pay:''},
     {id:'g_r2',task:'格西老师 7阶 短视频',status:'待开始',pic:'Roy',who:'',date:'2026-04-01',dl:'2026-04-05',platform:'GDC Page',cat:'GDC 短视频剪辑',doneDate:'',eff:'',pay:''},
     {id:'g_r3',task:'JB 清障碍 活动花絮',status:'待开始',pic:'待认领',who:'',date:'2026-04-01',dl:'2026-04-05',platform:'GDC Page',cat:'GDC 视频文案',doneDate:'',eff:'',pay:''},
-    {id:'g_r4',task:'金句合集',status:'待开始',pic:'待认领',who:'',date:'2026-04-01',dl:'2026-04-05',platform:'GDC Page',cat:'GDC 图文文案',doneDate:'',eff:'',pay:''},
-    {id:'g_r5',task:'痛点post',status:'待开始',pic:'待认领',who:'',date:'2026-04-01',dl:'2026-04-05',platform:'GDC Page',cat:'GDC 图文文案',doneDate:'',eff:'',pay:''},
+    {id:'g_r4',task:'金句合集',status:'待开始',pic:'待认领',who:'',date:'2026-04-01',dl:'2026-04-05',platform:'GDC Page',cat:'GDC 文案书写',doneDate:'',eff:'',pay:''},
+    {id:'g_r5',task:'痛点post',status:'待开始',pic:'待认领',who:'',date:'2026-04-01',dl:'2026-04-05',platform:'GDC Page',cat:'GDC 文案书写',doneDate:'',eff:'',pay:''},
     {id:'g_r6',task:'Jenny老师 短视频',status:'待开始',pic:'待认领',who:'',date:'2026-04-01',dl:'2026-04-05',platform:'GDC Page',cat:'GDC 短视频剪辑',doneDate:'',eff:'',pay:''},
-    {id:'g_r7',task:'痛点post 2',status:'待开始',pic:'待认领',who:'',date:'2026-04-01',dl:'2026-04-05',platform:'GDC Page',cat:'GDC 图文文案',doneDate:'',eff:'',pay:''},
+    {id:'g_r7',task:'痛点post 2',status:'待开始',pic:'待认领',who:'',date:'2026-04-01',dl:'2026-04-05',platform:'GDC Page',cat:'GDC 文案书写',doneDate:'',eff:'',pay:''},
     {id:'g_r8',task:'Jenny老师 短视频 2',status:'待开始',pic:'Li Joo',who:'',date:'2026-04-01',dl:'2026-04-15',platform:'GDC Page',cat:'GDC 短视频剪辑',doneDate:'',eff:'',pay:''},
     {id:'g_r9',task:'格西老师 短视频',status:'待开始',pic:'Jasper',who:'',date:'2026-04-01',dl:'2026-04-15',platform:'GDC Page',cat:'GDC 短视频剪辑',doneDate:'',eff:'',pay:''},
     {id:'g_r10',task:'Jenny老师 短视频 3',status:'待开始',pic:'Li Joo',who:'',date:'2026-04-01',dl:'2026-04-15',platform:'GDC Page',cat:'GDC 短视频剪辑',doneDate:'',eff:'',pay:''},
     {id:'g_r11',task:'格西老师 短视频 2',status:'待开始',pic:'Jasper',who:'',date:'2026-04-01',dl:'2026-04-15',platform:'GDC Page',cat:'GDC 短视频剪辑',doneDate:'',eff:'',pay:''},
-    {id:'g_r12',task:'学员故事post/卖训练营',status:'已完成',pic:'Roy',who:'',date:'2026-03-01',dl:'2026-03-31',platform:'GDC Page',cat:'GDC 图文文案',doneDate:'2026-03-31',eff:'',pay:''},
-    {id:'g_r13',task:'痛点post-明明很努力...',status:'已完成',pic:'Li Joo',who:'',date:'2026-03-01',dl:'2026-03-31',platform:'GDC Page',cat:'GDC 图文文案',doneDate:'2026-03-31',eff:'',pay:''},
+    {id:'g_r12',task:'学员故事post/卖训练营',status:'已完成',pic:'Roy',who:'',date:'2026-03-01',dl:'2026-03-31',platform:'GDC Page',cat:'GDC 文案书写',doneDate:'2026-03-31',eff:'',pay:''},
+    {id:'g_r13',task:'痛点post-明明很努力...',status:'已完成',pic:'Li Joo',who:'',date:'2026-03-01',dl:'2026-03-31',platform:'GDC Page',cat:'GDC 文案书写',doneDate:'2026-03-31',eff:'',pay:''},
     {id:'g_r14',task:'Jenny老师 短视频-landing page视频',status:'已完成',pic:'Li Joo',who:'',date:'2026-03-01',dl:'2026-03-31',platform:'GDC Page',cat:'GDC 短视频剪辑',doneDate:'2026-03-31',eff:'',pay:''},
     {id:'g_r15',task:'训练营倒数-今晚见',status:'已完成',pic:'待认领',who:'',date:'2026-03-01',dl:'2026-03-31',platform:'GDC Page',cat:'GDC 视频文案',doneDate:'2026-03-31',eff:'',pay:''}
   ];
