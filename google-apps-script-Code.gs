@@ -635,8 +635,10 @@ function readDecisions() {
     try { opts     = JSON.parse(String(r[2]||'[]')); } catch(e){}
     try { votes    = JSON.parse(String(r[3]||'{}')); } catch(e){}
     try { comments = JSON.parse(String(r[4]||'[]')); } catch(e){}
+    const type     = String(r[7]||'vote');
+    const resolved = String(r[8]||'') === 'true';
     return { id:String(r[0]), q:String(r[1]||''), opts, votes, comments,
-             owner:String(r[5]||''), dl:String(r[6]||'待定') };
+             owner:String(r[5]||''), dl:String(r[6]||'待定'), type, resolved };
   });
 }
 
@@ -645,20 +647,27 @@ function writeDecisions(items) {
   let tab   = ss.getSheetByName(DECISIONS_TAB);
   if (!tab) {
     tab = ss.insertSheet(DECISIONS_TAB);
-    tab.getRange(1,1,1,7).setValues([['id','question','options','votes','comments','owner','deadline']])
+    tab.getRange(1,1,1,9).setValues([['id','question','options','votes','comments','owner','deadline','type','resolved']])
        .setFontWeight('bold').setBackground('#fff0f5');
+  } else {
+    // 确保 header 有 type/resolved 列
+    const h = tab.getRange(1,1,1,9).getValues()[0];
+    if (!h[7]) tab.getRange(1,8).setValue('type');
+    if (!h[8]) tab.getRange(1,9).setValue('resolved');
   }
   const lastRow = tab.getLastRow();
-  if (lastRow > 1) tab.getRange(2,1,lastRow-1,7).clearContent();
+  if (lastRow > 1) tab.getRange(2,1,lastRow-1,9).clearContent();
   if (!items.length) return { ok:true, count:0 };
   const rows = items.map(d => [
     d.id||'', d.q||'',
     JSON.stringify(d.opts||[]),
     JSON.stringify(d.votes||{}),
     JSON.stringify(d.comments||[]),
-    d.owner||'', d.dl||'待定'
+    d.owner||'', d.dl||'待定',
+    d.type||'vote',
+    d.resolved ? 'true' : 'false'
   ]);
-  tab.getRange(2,1,rows.length,7).setValues(rows);
+  tab.getRange(2,1,rows.length,9).setValues(rows);
   return { ok:true, count:rows.length };
 }
 
