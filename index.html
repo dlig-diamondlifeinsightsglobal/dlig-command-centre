@@ -1141,35 +1141,35 @@ body{background:var(--cream);color:var(--text);font-family:'Plus Jakarta Sans',s
         <span style="font-size:11px;color:var(--muted)">· 选好身份再投票，系统会记录是谁投的</span>
         <button class="fb" style="margin-left:auto" onclick="go('decisions')">⚡ 去投票</button>
       </div>
-      <div class="ib ib-red"><b>⚠️ 待拍板事项</b>大家提前投票 &amp; 留言，会议时直接确认</div>
+      <div class="ib" style="background:var(--blueB);border:1.5px solid rgba(59,130,246,.2)"><b>💬 待处理 / 待讨论</b>需要开会讨论、暂不需要投票的事项</div>
       <div style="background:var(--white);border:1.5px solid var(--border);border-radius:var(--r);padding:14px;margin-bottom:16px;box-shadow:var(--sh)">
-        <div style="font-size:12px;font-weight:700;color:var(--text2);margin-bottom:10px">➕ 添加待决策事项</div>
+        <div style="font-size:12px;font-weight:700;color:var(--text2);margin-bottom:10px">➕ 添加待讨论事项</div>
         <div style="display:flex;flex-direction:column;gap:8px">
-          <div class="ff"><div class="fl2">决策题目</div><input class="fi" id="dec-q-new" placeholder="需要拍板的问题..."></div>
-          <div class="ff"><div class="fl2">选项（用 | 分隔）</div><input class="fi" id="dec-opts-new" placeholder="方案A | 方案B | 方案C"></div>
+          <div class="ff"><div class="fl2">讨论题目</div><input class="fi" id="disc-q-new" placeholder="需要讨论的事项..."></div>
           <div style="display:flex;gap:8px">
-            <div class="ff" style="flex:1"><div class="fl2">负责人</div><select class="fs" id="dec-owner-new"><option>All</option><option>Li Joo</option><option>Jasper</option><option>Stella</option><option>Roy</option></select></div>
-            <div class="ff" style="flex:1"><div class="fl2">截止</div><input class="fi" id="dec-dl-new" type="date"></div>
-            <button class="add-btn" onclick="addDecision()" style="align-self:flex-end">+ 添加</button>
+            <div class="ff" style="flex:1"><div class="fl2">负责人</div><select class="fs" id="disc-owner-new"><option>All</option><option>Li Joo</option><option>Jasper</option><option>Stella</option><option>Roy</option></select></div>
+            <div class="ff" style="flex:1"><div class="fl2">截止</div><input class="fi" id="disc-dl-new" type="date"></div>
+            <button class="add-btn" onclick="addDiscussion()" style="align-self:flex-end;background:linear-gradient(135deg,#3b82f6,#60a5fa)">+ 添加</button>
           </div>
         </div>
       </div>
-      <div id="dec-blocks"></div>
+      <div id="disc-blocks"></div>
 
       <div style="margin-top:22px">
-        <div class="ib" style="background:var(--blueB);border:1.5px solid rgba(59,130,246,.2)"><b>💬 待处理 / 待讨论</b>需要开会讨论、暂不需要投票的事项</div>
+        <div class="ib ib-red"><b>⚠️ 待拍板事项</b>大家提前投票 &amp; 留言，会议时直接确认</div>
         <div style="background:var(--white);border:1.5px solid var(--border);border-radius:var(--r);padding:14px;margin-bottom:16px;box-shadow:var(--sh)">
-          <div style="font-size:12px;font-weight:700;color:var(--text2);margin-bottom:10px">➕ 添加待讨论事项</div>
+          <div style="font-size:12px;font-weight:700;color:var(--text2);margin-bottom:10px">➕ 添加待决策事项</div>
           <div style="display:flex;flex-direction:column;gap:8px">
-            <div class="ff"><div class="fl2">讨论题目</div><input class="fi" id="disc-q-new" placeholder="需要讨论的事项..."></div>
+            <div class="ff"><div class="fl2">决策题目</div><input class="fi" id="dec-q-new" placeholder="需要拍板的问题..."></div>
+            <div class="ff"><div class="fl2">选项（用 | 分隔）</div><input class="fi" id="dec-opts-new" placeholder="方案A | 方案B | 方案C"></div>
             <div style="display:flex;gap:8px">
-              <div class="ff" style="flex:1"><div class="fl2">负责人</div><select class="fs" id="disc-owner-new"><option>All</option><option>Li Joo</option><option>Jasper</option><option>Stella</option><option>Roy</option></select></div>
-              <div class="ff" style="flex:1"><div class="fl2">截止</div><input class="fi" id="disc-dl-new" type="date"></div>
-              <button class="add-btn" onclick="addDiscussion()" style="align-self:flex-end;background:linear-gradient(135deg,#3b82f6,#60a5fa)">+ 添加</button>
+              <div class="ff" style="flex:1"><div class="fl2">负责人</div><select class="fs" id="dec-owner-new"><option>All</option><option>Li Joo</option><option>Jasper</option><option>Stella</option><option>Roy</option></select></div>
+              <div class="ff" style="flex:1"><div class="fl2">截止</div><input class="fi" id="dec-dl-new" type="date"></div>
+              <button class="add-btn" onclick="addDecision()" style="align-self:flex-end">+ 添加</button>
             </div>
           </div>
         </div>
-        <div id="disc-blocks"></div>
+        <div id="dec-blocks"></div>
       </div>
     </div>
   </div>
@@ -3285,7 +3285,7 @@ function sProj(prefix,sec,btn){const pg=btn.closest('.page');pg.querySelectorAll
 // MARKETING HELPERS
 // ═══════════════════════════════════════
 function editMkt(id,field,val){const m=MKT_CONTENT.find(x=>x.id===id);if(m){m[field]=val;save('mkt_content',MKT_CONTENT);renderMktCal();}}
-function editGDC(id,field,val){const t=GDC_TASKS.find(x=>x.id===id);if(t){t[field]=val;save('gdc_tasks',GDC_TASKS);renderGDC();}}
+function editGDC(id,field,val){const t=GDC_TASKS.find(x=>x.id===id);if(!t)return;t[field]=val;save('gdc_tasks',GDC_TASKS);if(field==='date'||field==='dl'||field==='doneDate'||field==='status')renderGDC();}
 function completeMktItem(id){
   const m=MKT_CONTENT.find(x=>x.id===id);if(!m)return;
   m.status='已发布';
