@@ -2162,9 +2162,9 @@ function renderMktCal(){
   const curMEl=document.getElementById('mkt-cur-month');
   if(curMEl)curMEl.textContent=now.toLocaleDateString('zh-CN',{year:'numeric',month:'long'});
   const map={};
-  MKT_CONTENT.filter(m=>m.status!=='已发布').forEach(m=>{if(!map[m.date])map[m.date]=[];map[m.date].push(m);});
+  MKT_CONTENT.forEach(m=>{if(!map[m.date])map[m.date]=[];map[m.date].push(m);});
 
-  const statColors={已发布:{bg:'var(--greenB)',c:'var(--green)'},进行中:{bg:'var(--amberB)',c:'var(--amber)'},待发布:{bg:'#6a3a96',c:'#fff'}};
+  const statColors={已发布:{bg:'var(--purpleB)',c:'#4a2070'},进行中:{bg:'var(--amberB)',c:'var(--amber)'},待发布:{bg:'#6a3a96',c:'#fff'}};
 
   let ch=`<div style="font-size:12px;font-weight:700;color:var(--purple);padding:8px 12px;background:var(--purpleB);border-radius:8px;margin-bottom:10px">${now.toLocaleDateString('zh-CN',{year:'numeric',month:'long'})} · Marketing Content Calendar</div>`;
   ch+=`<div class="mkt-cal-grid" style="margin-bottom:14px">`;
@@ -2794,7 +2794,7 @@ function renderGDC(){
     const curMEl=document.getElementById('gdc-cur-month');
     if(curMEl)curMEl.textContent=now.toLocaleDateString('zh-CN',{year:'numeric',month:'long'});
     const map={};
-    GDC_TASKS.filter(t=>t.status!=='已完成'&&t.status!=='已付款').forEach(t=>{const k=t.date||t.dl;if(k){if(!map[k])map[k]=[];map[k].push(t);}});
+    GDC_TASKS.forEach(t=>{const k=t.date||t.dl;if(k){if(!map[k])map[k]=[];map[k].push(t);}});
     let ch=`<div style="font-size:12px;font-weight:700;color:var(--purple);padding:8px 12px;background:var(--purpleB);border-radius:8px;margin-bottom:10px">${now.toLocaleDateString('zh-CN',{year:'numeric',month:'long'})} · GDC Marketing Calendar</div>`;
     ch+=`<div class="mkt-cal-grid" style="margin-bottom:14px">`;
     ['一','二','三','四','五','六','日'].forEach(h=>{ch+=`<div class="mkt-cal-head">${h}</div>`;});
@@ -2806,7 +2806,7 @@ function renderGDC(){
       const ds=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
       const items=(map[ds]||[]);
       ch+=`<div class="mkt-cell${iT?' today':''}"><div class="mkt-date">${day}</div>`;
-      const gdcStatC={进行中:{bg:'var(--amberB)',c:'var(--amber)'},待开始:{bg:'#6a3a96',c:'#fff'}};
+      const gdcStatC={已完成:{bg:'var(--purpleB)',c:'#4a2070'},已付款:{bg:'var(--purpleB)',c:'#4a2070'},进行中:{bg:'var(--amberB)',c:'var(--amber)'},待开始:{bg:'#6a3a96',c:'#fff'}};
       items.forEach(t=>{
         const sc=gdcStatC[t.status]||gdcStatC['待开始'];
         ch+=`<div style="background:${sc.bg};color:${sc.c};padding:3px 5px;border-radius:4px;font-size:8px;font-weight:700;margin-bottom:2px;overflow:hidden;cursor:pointer;line-height:1.4" onclick="cycleGDCStatus('${t.id}')"><div style="white-space:nowrap;text-overflow:ellipsis;overflow:hidden">${(t.task||'').slice(0,14)}</div>${t.who?`<div style="font-size:7px;opacity:.8;white-space:nowrap;text-overflow:ellipsis;overflow:hidden">GDC: ${t.who}</div>`:t.pic?`<div style="font-size:7px;opacity:.75;white-space:nowrap;overflow:hidden">${t.pic}</div>`:''}</div>`;
