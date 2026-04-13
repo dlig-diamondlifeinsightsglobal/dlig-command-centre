@@ -950,7 +950,6 @@ body{background:var(--cream);color:var(--text);font-family:'Plus Jakarta Sans',s
       <button class="fb" onclick="gdcCalNextMonth()">下月 ›</button>
     </div>
     <div id="gdc-cal-view"></div>
-    <div style="margin-bottom:8px"><button class="fb" onclick="restoreGDCData()" style="font-size:10px;color:var(--purple);border-color:var(--purple)">🔄 恢复丢失的GDC数据</button></div>
     <div style="overflow-x:auto;margin-bottom:14px"><table class="pt"><thead id="gdc-thead"><tr><th>发布日期</th><th style="min-width:180px">发布内容</th><th>平台</th><th>类型</th><th>Deadline</th><th>完成日期</th><th>效率</th><th>GDC 对接</th><th>DLIG负责</th><th>操作</th></tr></thead><tbody id="gdc-list"></tbody></table></div>
   </div>
 
@@ -2734,6 +2733,7 @@ function renderGDC(){
     ${thS('类型','cat',GDC_SORT,'setSortGDC','')}
     ${thS('Deadline','dl',GDC_SORT,'setSortGDC','')}
     ${thS('完成日期','doneDate',GDC_SORT,'setSortGDC','')}
+    ${thS('用时','hours',GDC_SORT,'setSortGDC','')}
     <th>效率</th>
     ${thS('GDC对接','who',GDC_SORT,'setSortGDC','')}
     ${thS('DLIG负责','pic',GDC_SORT,'setSortGDC','')}
@@ -2759,6 +2759,7 @@ function renderGDC(){
     <td><select style="border:none;background:transparent;font-size:9px;cursor:pointer;outline:none;max-width:110px" onchange="editGDC('${t.id}','cat',this.value)">${['GDC 视频文案','GDC 图文文案','GDC 金句图文','GDC 视频拍摄','GDC 视频脚本','GDC 短视频剪辑','GDC DLIG对接','GDC 方案讨论','GDC Project管理'].map(opt=>`<option ${t.cat===opt?'selected':''}>${opt}</option>`).join('')}</select></td>
     <td><input type="date" style="border:none;background:transparent;font-family:'DM Sans',sans-serif;font-size:10.5px;color:var(--amber);outline:none;cursor:pointer" value="${t.dl||''}" onchange="editGDC('${t.id}','dl',this.value)"></td>
     <td><input type="date" style="border:none;background:transparent;font-family:'DM Sans',sans-serif;font-size:10.5px;color:var(--green);outline:none;cursor:pointer" value="${t.doneDate||''}" onchange="editGDC('${t.id}','doneDate',this.value)"></td>
+    <td><input type="number" min="0" step="0.5" style="border:none;background:transparent;font-family:'DM Sans',sans-serif;font-size:11px;font-weight:600;text-align:center;outline:none;width:48px" value="${t.hours||''}" placeholder="—" onchange="editGDC('${t.id}','hours',this.value)"></td>
     <td style="font-size:10px;font-weight:600;color:${effColor}">${effStr}</td>
     <td><input style="border:none;background:transparent;font-size:10.5px;outline:none;width:80px" value="${(t.who||'').replace(/"/g,'&quot;')}" onchange="editGDC('${t.id}','who',this.value)" placeholder="—"></td>
     <td><input style="border:none;background:transparent;font-size:10.5px;outline:none;width:70px" value="${(t.pic||'').replace(/"/g,'&quot;')}" onchange="editGDC('${t.id}','pic',this.value)" placeholder="—"></td>
@@ -2766,7 +2767,7 @@ function renderGDC(){
       ${!isDone?`<button class="tc-btn" onclick="openGDCComplete('${t.id}','${(t.task||'').replace(/'/g,"\\'").replace(/"/g,'&quot;')}')" style="background:var(--greenB);border-color:var(--green);color:var(--green);font-size:10px">✓ 完成</button>`:`<button class="tc-btn" onclick="undoneGDCTask('${t.id}')" style="background:var(--amberB);border-color:var(--amber);color:var(--amber);font-size:10px">✅ 撤回</button>`}
       <button class="tc-btn" onclick="delGDCTask('${t.id}')" style="color:var(--red);font-size:10px;margin-left:4px">删</button>
     </td>
-  </tr>`;}).join(''):'<tr><td colspan="10" style="text-align:center;color:var(--muted);padding:20px">暂无 GDC 任务</td></tr>';
+  </tr>`;}).join(''):'<tr><td colspan="11" style="text-align:center;color:var(--muted);padding:20px">暂无 GDC 任务</td></tr>';
 
 }
 function renderGDCLinks(){
@@ -2796,7 +2797,8 @@ function openGDCComplete(id,name){
   modal.innerHTML=`<div style="background:var(--white);border-radius:14px;padding:22px;max-width:360px;width:90%;box-shadow:0 20px 60px rgba(0,0,0,.2)">
     <div style="font-size:15px;font-weight:800;margin-bottom:4px">✅ GDC 任务完成</div>
     <div style="font-size:11.5px;color:var(--muted);margin-bottom:14px">${t.task}</div>
-    <div class="ff" style="margin-bottom:12px"><div class="fl2">完成日期</div><input class="fi" id="gdc-done-date" type="date" value="${new Date().toISOString().split('T')[0]}"></div>
+    <div class="ff" style="margin-bottom:10px"><div class="fl2">完成日期</div><input class="fi" id="gdc-done-date" type="date" value="${new Date().toISOString().split('T')[0]}"></div>
+    <div class="ff" style="margin-bottom:12px"><div class="fl2">实际用时 (hours)</div><input class="fi" id="gdc-done-hours" type="number" min="0.5" step="0.5" placeholder="填写小时数" value="${t.hours||''}"></div>
     <div style="font-size:11px;color:var(--muted);padding:9px 12px;background:var(--purpleB);border-radius:8px;margin-bottom:14px">💰 GDC Task Fee · 参考 Company Policy 价目表</div>
     <div style="display:flex;gap:8px">
       <button class="add-btn" onclick="confirmGDCComplete('${t.id}')" style="flex:1;background:linear-gradient(135deg,#6a3a96,#9b59b6)">✓ 确认</button>
@@ -2809,6 +2811,8 @@ function confirmGDCComplete(id){
   const t=GDC_TASKS.find(x=>String(x.id)===String(id));if(!t)return;
   t.status='已完成';
   t.doneDate=document.getElementById('gdc-done-date')?.value||new Date().toISOString().split('T')[0];
+  const hrs=document.getElementById('gdc-done-hours')?.value;
+  if(hrs&&parseFloat(hrs)>0)t.hours=parseFloat(hrs);
   if(t.dl)t.eff=calcEffDL(t.dl,t.doneDate);
   document.getElementById('gdc-complete-modal')?.remove();
   save('gdc_tasks',GDC_TASKS);renderGDC();
@@ -2847,7 +2851,7 @@ function restoreGDCData(){
 function resetRoles(){if(!confirm('确定重置所有岗位负责人？'))return;ROLES_D1.forEach(r=>r.person='');ROLES_D2.forEach(r=>r.person='');save('xd_roles',{d1:ROLES_D1,d2:ROLES_D2});renderXindong();}
 function undoneGDCTask(id){
   const t=GDC_TASKS.find(x=>String(x.id)===String(id));if(!t)return;
-  t.status='进行中';t.doneDate='';
+  t.status='进行中';t.doneDate='';t.hours='';
   save('gdc_tasks',GDC_TASKS);renderGDC();
 }
 function cycleGDCStatus(id){
