@@ -975,6 +975,22 @@ body{background:var(--cream);color:var(--text);font-family:'Plus Jakarta Sans',s
     </div>
     <div id="gdc-cal-view"></div>
     <div style="overflow-x:auto;margin-bottom:14px"><table class="pt" id="gdc-table"><thead id="gdc-thead"><tr><th>发布日期</th><th>发布内容</th><th>平台</th><th>类型</th><th>Deadline</th><th>完成日期</th><th>用时</th><th>效率</th><th>GDC对接</th><th>DLIG负责</th><th>操作</th></tr></thead><tbody id="gdc-list"></tbody></table></div>
+
+    <!-- GDC 共享备忘录 -->
+    <div style="margin-top:20px">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+        <div class="sl" style="margin:0">📝 GDC 共享备忘录</div>
+        <span style="font-size:10px;color:var(--muted)">— 会议要点 · 跟进记录 · 注意事项，大家共享可查</span>
+      </div>
+      <div style="background:var(--white);border:1.5px solid var(--border);border-radius:var(--r);padding:14px;margin-bottom:12px;box-shadow:var(--sh)">
+        <div style="display:flex;gap:8px;align-items:flex-end;flex-wrap:wrap">
+          <div class="ff" style="flex:0 0 110px"><div class="fl2">我是</div><select class="fs" id="gdc-note-author"><option>Li Joo</option><option>Jasper</option><option>Stella</option><option>Roy</option></select></div>
+          <div class="ff" style="flex:1;min-width:200px"><div class="fl2">备忘内容</div><textarea class="fi" id="gdc-note-text" rows="2" placeholder="写下会议要点、注意事项、跟进记录..." style="resize:vertical;min-height:54px;line-height:1.5"></textarea></div>
+          <button class="add-btn" style="background:linear-gradient(135deg,#6a3a96,#9b59b6);align-self:flex-end" onclick="addGDCNote()">+ 记录</button>
+        </div>
+      </div>
+      <div id="gdc-notes-list"></div>
+    </div>
   </div>
 
     <!-- ══ COMPANY POLICY ══ -->
@@ -1199,7 +1215,7 @@ function calcEffDL(dl,done){if(!dl||!done)return null;try{const d=Math.floor((ne
 // ═══════════════════════════════════════
 const SHEETS_API_URL = 'https://script.google.com/macros/s/AKfycbxD9lCg_7WC69Wzq-HBK4tSQPJv4f_cpV-73-GRP8duy2JhwO7-NVetJnam4KPPSUXz/exec';
 
-const SHEET_KEY_MAP = {'tasks':'tasks','mkt_content':'mkt','gdc_tasks':'gdc','logs':'logs','decisions':'decisions','special_meetings':'special_meetings','attendance':'attendance','sb_records':'sb_records','au_records':'au_records','xd_roles':'xd_roles','xd_flow':'xd_flow','xd_cl_data':'xd_cl_data'};
+const SHEET_KEY_MAP = {'tasks':'tasks','mkt_content':'mkt','gdc_tasks':'gdc','logs':'logs','decisions':'decisions','special_meetings':'special_meetings','attendance':'attendance','sb_records':'sb_records','au_records':'au_records','xd_roles':'xd_roles','xd_flow':'xd_flow','xd_cl_data':'xd_cl_data','gdc_notes':'gdc_notes'};
 
 let _syncTimer=null;
 function showSyncStatus(success){
@@ -1242,6 +1258,7 @@ async function loadFromSheets(){
         if(lsKey==='decisions')        DEC=rows;
         if(lsKey==='special_meetings') SPECIAL_MEETINGS=rows;
         if(lsKey==='logs')             LOGS=rows;
+        if(lsKey==='gdc_notes')        GDC_NOTES=rows;
       }
     }catch(e){ok=false;}
   }
@@ -1318,6 +1335,7 @@ let TASKS=load('tasks',[
 ]);
 let LOGS=load('logs',[]);
 let GDC_LINKS=load('gdc_links',[{label:'》GDC Content Bulk Upload',url:'https://docs.google.com/spreadsheets/d/1Gc0rO-gx_CBSZ60fFHvmMeTsq7dClsCU4WiSN5ii-2M/edit?usp=sharing'}]);
+let GDC_NOTES=load('gdc_notes',[]);
 let DEC=load('decisions',[
   {id:'d1',q:'心动觉察活动是否继续赠送 YLYD 终身会员资格？',opts:['赠送 → 更新 Checklist','不赠送 → 定购买门槛','Lucky Draw 形式'],votes:{},comments:[],owner:'All',dl:'2026-04-12'},
   {id:'d2',q:'分钱机制最终定案（贡献时间 × 价值系数）',opts:['季度结算，工时50%+任务50%','月度结算'],votes:{},comments:[],owner:'All',dl:'2026-04-05'},
@@ -2732,6 +2750,40 @@ function syncTaskBoardToGDC(){
   if(changed)save('gdc_tasks',GDC_TASKS);
 }
 
+function renderGDCNotes(){
+  const el=document.getElementById('gdc-notes-list');if(!el)return;
+  if(!GDC_NOTES.length){el.innerHTML='<div style="text-align:center;color:var(--muted);padding:16px;font-size:12px">暂无备忘记录 — 写下第一条吧 ✍️</div>';return;}
+  const sorted=[...GDC_NOTES].sort((a,b)=>b.ts-a.ts);
+  el.innerHTML=sorted.map(n=>{
+    const ACOLORS={'Li Joo':'#c84010','Jasper':'var(--jp)','Stella':'var(--st)','Roy':'var(--ry)'};
+    const ac=ACOLORS[n.author]||'var(--purple)';
+    return`<div style="background:var(--white);border:1.5px solid var(--border);border-radius:var(--r);padding:12px 14px;margin-bottom:8px;box-shadow:var(--sh)">
+      <div style="display:flex;align-items:flex-start;gap:8px">
+        <div style="flex:1">
+          <div style="font-size:10px;color:var(--muted);margin-bottom:5px;display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+            <span style="font-weight:800;font-size:11px;color:${ac}">${n.author}</span>
+            <span>${n.date}</span>
+          </div>
+          <div style="font-size:12.5px;line-height:1.65;white-space:pre-wrap;word-break:break-word;color:var(--text)">${n.text}</div>
+        </div>
+        <button onclick="deleteGDCNote('${n.id}')" title="删除" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:14px;padding:0;flex-shrink:0;line-height:1">✕</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+function addGDCNote(){
+  const text=document.getElementById('gdc-note-text')?.value.trim();if(!text)return;
+  const author=document.getElementById('gdc-note-author')?.value||'Li Joo';
+  const now=new Date();
+  GDC_NOTES.push({id:'gn'+now.getTime(),author,date:now.toISOString().split('T')[0],text,ts:now.getTime()});
+  document.getElementById('gdc-note-text').value='';
+  save('gdc_notes',GDC_NOTES);renderGDCNotes();
+}
+function deleteGDCNote(id){
+  if(!confirm('确定删除这条备忘？'))return;
+  GDC_NOTES=GDC_NOTES.filter(n=>n.id!==id);
+  save('gdc_notes',GDC_NOTES);renderGDCNotes();
+}
 function renderGDC(){
   syncTaskBoardToGDC();
   renderGDCLinks();
@@ -2809,6 +2861,7 @@ function renderGDC(){
     </td>
   </tr>`;}).join(''):'<tr><td colspan="11" style="text-align:center;color:var(--muted);padding:20px">暂无 GDC 任务</td></tr>';
 
+  renderGDCNotes();
 }
 function renderGDCLinks(){
   const el=document.getElementById('gdc-links-list');if(!el)return;
