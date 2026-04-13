@@ -110,11 +110,11 @@ function readTaskBoard() {
     const doneDateRaw= fmtDate(row[h['完成日期']]);
     const actual     = String(row[h['用时']]  ?? '').trim();
     const eff        = String(row[h['效率']]  ?? '').trim();
-    // 只有完成日期 AND 用时都有填写，才算真正完成
-    // 避免 Sheet 里「完成日期」列有默认值但实际上还没完成的误判
-    const isRealDone = doneDateRaw && actual && actual !== '0';
+    // 有完成日期 OR 状态列明确写「已完成」，就算已完成
+    const rawStatus  = h['状态'] !== undefined ? String(row[h['状态']] ?? '').trim() : '';
+    const isRealDone = doneDateRaw !== '' || rawStatus === '已完成';
     const doneDate   = isRealDone ? doneDateRaw : '';
-    const status     = isRealDone ? '已完成' : '待启动';
+    const status     = isRealDone ? '已完成' : (rawStatus || '待启动');
 
     results.push({
       id:       idx + 100,
@@ -180,6 +180,7 @@ function writeTaskBoard(tasks) {
     if (h['完成日期'] !== undefined) row[h['完成日期']] = item.doneDate || '';
     if (h['用时']     !== undefined) row[h['用时']]     = item.actual   || '';
     if (h['效率']     !== undefined) row[h['效率']]     = eff !== ''    ? eff : '';
+    if (h['状态']     !== undefined) row[h['状态']]     = item.status   || '';
     if (h['备注']     !== undefined) row[h['备注']]     = pres.note;
     return row;
   });
@@ -302,12 +303,12 @@ function readGDCJobs() {
 
   const col = {
     id:     find('id'),
-    task:   find('任务内容','task','内容','job','工作'),
+    task:   find('发布内容','任务内容','task','内容','job','工作'),
     date:   find('发布日期','date','日期'),
     dl:     find('截止日期','deadline','dl','due'),
     cat:    find('类别','cat','type','类型','category'),
-    who:    find('负责人','who','person','负责 gdc','负责'),
-    pic:    find('pic','截图','screenshot'),
+    who:    find('gdc对接人','gdc对接','gdc 对接','对接人','负责 gdc','who'),
+    pic:    find('负责人','dlig跟进','dlig负责人','dlig负责','dlig 跟进','跟进','pic','截图','person'),
     status: find('状态','status'),
     pay:    find('pay','费用','amount','金额')
   };
@@ -316,9 +317,9 @@ function readGDCJobs() {
   const fd = (row, c) => c >= 0 ? fmtDate(row[c]) : '';
 
   return data.slice(1)
-    .filter(r => r.some(c => String(c || '').trim() !== ''))
+    .filter(r => col.task >= 0 && String(r[col.task] || '').trim() !== '')
     .map((row, idx) => ({
-      id:     g(row, col.id) || ('gdc' + (idx + 100)),
+      id:     g(row, col.id) || ('gdc_' + g(row, col.task).slice(0,30).replace(/\s+/g,'_')),
       task:   g(row, col.task),
       date:   fd(row, col.date)     || g(row, col.date),
       dl:     fd(row, col.dl)       || g(row, col.dl),
@@ -350,12 +351,12 @@ function writeGDCJobs(items) {
 
   const colMap = {
     id:     find('id'),
-    task:   find('任务内容','task','内容','job'),
+    task:   find('发布内容','任务内容','task','内容','job'),
     date:   find('发布日期','date','日期'),
     dl:     find('截止日期','deadline','dl'),
     cat:    find('类别','cat','type','类型'),
-    who:    find('负责人','who','person'),
-    pic:    find('pic','截图'),
+    who:    find('gdc对接人','gdc对接','gdc 对接','对接人','负责 gdc','who'),
+    pic:    find('负责人','dlig跟进','dlig负责人','dlig负责','dlig 跟进','跟进','pic','截图','person'),
     status: find('状态','status'),
     pay:    find('pay','费用')
   };
@@ -831,6 +832,46 @@ function writeXdRoles(obj) {
   return { ok:true, count:rows.length };
 }
 
+// ─── INVENTORY 读取（Admin spreadsheet Inventory tab）──────────
+
+function readInventory() {
+  const ss  = SpreadsheetApp.openById(SHEET_IDS.admin);
+  let tab   = ss.getSheetByName('Inventory');
+  if (!tab) tab = ss.getSheetByName('inventory');
+  if (!tab) tab = ss.getSheetByName('库存');
+  if (!tab) return { error: 'Inventory tab not found' };
+
+  const data = tab.getDataRange().getValues();
+  if (data.length < 2) return [];
+
+  const hdrs = data[0];
+  const find = makeFlexFinder(hdrs);
+
+  const col = {
+    n:    find('物品名称','名称','item','name'),
+    cat:  find('分类','category','类别','cat'),
+    qty:  find('库存量','库存','qty','quantity','数量'),
+    min:  find('最低量','最低','minimum','min'),
+    s:    find('状态','status','state'),
+    lead: find('到货 lead time','lead time','leadtime','到货','工作日'),
+    link: find('购买链接','link','url','购买','链接')
+  };
+
+  const g = (row, c) => c >= 0 ? String(row[c] ?? '').trim() : '';
+
+  return data.slice(1)
+    .filter(r => col.n >= 0 && String(r[col.n] || '').trim() !== '')
+    .map(row => ({
+      n:    g(row, col.n),
+      cat:  g(row, col.cat),
+      qty:  g(row, col.qty) !== '' ? Number(g(row, col.qty)) || 0 : null,
+      min:  g(row, col.min) !== '' ? Number(g(row, col.min)) || 0 : 0,
+      s:    g(row, col.s)   || '充足',
+      lead: g(row, col.lead),
+      link: g(row, col.link)
+    }));
+}
+
 // ─── doGet ───────────────────────────────────────────────────
 
 function doGet(e) {
@@ -850,6 +891,7 @@ function doGet(e) {
     if (type === 'sb_records')        return respond(readSbRecords());
     if (type === 'au_records')        return respond(readAuRecords());
     if (type === 'xd_roles')          return respond(readXdRoles());
+    if (type === 'inventory')         return respond(readInventory());
     return respond({ error: 'Unknown sheet: ' + type });
   } catch(err) {
     return respond({ error: err.message });
