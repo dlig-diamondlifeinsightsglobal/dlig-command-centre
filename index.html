@@ -552,6 +552,15 @@ body{background:var(--cream);color:var(--text);font-family:'Plus Jakarta Sans',s
             <option>Admin</option>
             <option>System</option>
             <option>GDC job</option>
+            <option>GDC 视频文案</option>
+            <option>GDC 图文文案</option>
+            <option>GDC 金句图文</option>
+            <option>GDC 视频拍摄</option>
+            <option>GDC 视频脚本</option>
+            <option>GDC 短视频剪辑</option>
+            <option>GDC DLIG对接</option>
+            <option>GDC 方案讨论</option>
+            <option>GDC Project管理</option>
           </select></div>
           <div class="ff"><div class="fl2">Task 类型</div><select class="fs" id="ntype"><option value="contrib">贡献时间类（分红）</option><option value="fee">Task Fee 类（按件算钱）</option></select></div>
           <div class="ff"><div class="fl2">优先级</div><select class="fs" id="nk"><option>🔴 紧急</option><option>🟡 本周</option><option>⚡ 本月</option><option>⭐ 长期</option></select></div>
@@ -1130,6 +1139,22 @@ body{background:var(--cream);color:var(--text);font-family:'Plus Jakarta Sans',s
         </div>
       </div>
       <div id="dec-blocks"></div>
+
+      <div style="margin-top:22px">
+        <div class="ib" style="background:var(--blueB);border:1.5px solid rgba(59,130,246,.2)"><b>💬 待处理 / 待讨论</b>需要开会讨论、暂不需要投票的事项</div>
+        <div style="background:var(--white);border:1.5px solid var(--border);border-radius:var(--r);padding:14px;margin-bottom:16px;box-shadow:var(--sh)">
+          <div style="font-size:12px;font-weight:700;color:var(--text2);margin-bottom:10px">➕ 添加待讨论事项</div>
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <div class="ff"><div class="fl2">讨论题目</div><input class="fi" id="disc-q-new" placeholder="需要讨论的事项..."></div>
+            <div style="display:flex;gap:8px">
+              <div class="ff" style="flex:1"><div class="fl2">负责人</div><select class="fs" id="disc-owner-new"><option>All</option><option>Li Joo</option><option>Jasper</option><option>Stella</option><option>Roy</option></select></div>
+              <div class="ff" style="flex:1"><div class="fl2">截止</div><input class="fi" id="disc-dl-new" type="date"></div>
+              <button class="add-btn" onclick="addDiscussion()" style="align-self:flex-end;background:linear-gradient(135deg,#3b82f6,#60a5fa)">+ 添加</button>
+            </div>
+          </div>
+        </div>
+        <div id="disc-blocks"></div>
+      </div>
     </div>
   </div>
 
@@ -1908,7 +1933,7 @@ function renderTasks(){
   else if(TF==='marketing')fil=TASKS.filter(t=>t.cat==='Marketing');
   else if(TF==='fee')fil=TASKS.filter(t=>t.type==='fee');
   else if(TF==='contrib')fil=TASKS.filter(t=>t.type!=='fee');
-  else if(TF==='GDC job')fil=TASKS.filter(t=>t.cat==='GDC job');
+  else if(TF==='GDC job')fil=TASKS.filter(t=>t.cat&&(t.cat==='GDC job'||t.cat.startsWith('GDC ')));
   else fil=TASKS.filter(t=>t.person===TF||t.person==='All'||t.person==='全员');
 
   // 确保按钮状态与 TV 一致
@@ -1978,8 +2003,8 @@ function renderTasks(){
       const e=t.status==='已完成'?calcEff(t):null;
       const isDone=t.status==='已完成';
       const PEOPLE=['全员','Li Joo','Jasper','Stella','Roy','待认领'];
-      const CATS=['Operation','Marketing','✍ 视频文案/信息文案','📣 制作Post图+文案','🖼 制作海报','📝 视频脚本','📱 剪辑短视频-一键成片','📱 剪辑短视频','🎬 剪辑YouTube','🧠 Landing Page文案','🖥 Landing Page制作','Sales','Admin','System','GDC job'];
-      return`<tr>
+      const CATS=['Operation','Marketing','✍ 视频文案/信息文案','📣 制作Post图+文案','🖼 制作海报','📝 视频脚本','📱 剪辑短视频-一键成片','📱 剪辑短视频','🎬 剪辑YouTube','🧠 Landing Page文案','🖥 Landing Page制作','Sales','Admin','System','GDC job','GDC 视频文案','GDC 图文文案','GDC 金句图文','GDC 视频拍摄','GDC 视频脚本','GDC 短视频剪辑','GDC DLIG对接','GDC 方案讨论','GDC Project管理'];
+      return`<tr style="${isDone?'background:rgba(200,160,90,0.07);':''}">
         <td style="cursor:pointer" onclick="openTaskNote(${t.id})" title="点击查看/编辑备注"><div style="font-size:11.5px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;${isDone?'text-decoration:line-through;color:var(--muted)':''}">${t.task}</div>${t.desc?`<div style="font-size:10px;color:var(--muted);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">📝 ${t.desc}</div>`:''}</td>
         <td><select style="border:none;background:transparent;font-family:'Plus Jakarta Sans',sans-serif;font-size:11px;cursor:pointer;outline:none" onchange="editTask(${t.id},'person',this.value)">${PEOPLE.map(p=>`<option ${p===t.person?'selected':''}>${p}</option>`).join('')}</select></td>
         <td><select style="border:none;background:transparent;font-family:'Plus Jakarta Sans',sans-serif;font-size:10px;cursor:pointer;outline:none;max-width:90px" onchange="editTask(${t.id},'cat',this.value)">${CATS.map(c=>`<option ${c===t.cat?'selected':''}>${c}</option>`).join('')}</select></td>
@@ -2164,10 +2189,10 @@ function renderMktCal(){
     const effVal=isDone&&m.dl&&m.doneDate?calcEffDL(m.dl,m.doneDate):null;
     const effStr=effVal!==null?effLabel(effVal):'—';
     const effColor=effVal>=1?'var(--green)':effVal>=0.5?'var(--amber)':effVal===0?'var(--red)':'var(--muted)';
-    const rowBg=isDone?'background:rgba(34,197,94,0.06);opacity:0.8;':'';
+    const rowBg=isDone?'background:rgba(200,160,90,0.07);':'';
     return`<tr style="${rowBg}">
     <td><input type="date" style="border:none;background:transparent;font-family:'DM Sans',sans-serif;font-size:10.5px;font-weight:600;outline:none;cursor:pointer" value="${m.date||''}" onchange="editMkt('${m.id}','date',this.value)"></td>
-    <td style="min-width:160px"><input style="border:none;background:transparent;font-family:'Plus Jakarta Sans',sans-serif;font-size:11px;font-weight:600;width:100%;outline:none" value="${(m.title||'').replace(/"/g,'&quot;')}" onchange="editMkt('${m.id}','title',this.value)"></td>
+    <td style="min-width:160px"><input style="border:none;background:transparent;font-family:'Plus Jakarta Sans',sans-serif;font-size:11px;font-weight:600;width:100%;outline:none;${isDone?'text-decoration:line-through;color:var(--muted);':''}" value="${(m.title||'').replace(/"/g,'&quot;')}" onchange="editMkt('${m.id}','title',this.value)"></td>
     <td><select style="border:none;background:transparent;font-size:9px;cursor:pointer;outline:none;max-width:130px" onchange="editMkt('${m.id}','type',this.value)">${['Operation','Marketing','✍ 视频文案/信息文案','📣 制作Post图+文案','🖼 制作海报','📝 视频脚本','📱 剪辑短视频-一键成片','📱 剪辑短视频','🎬 剪辑YouTube','🧠 Landing Page文案','🖥 Landing Page制作','Sales','Admin','System','GDC job'].map(opt=>`<option ${m.type===opt?'selected':''}>${opt}</option>`).join('')}</select></td>
     <td><select style="border:none;background:transparent;font-size:10px;cursor:pointer;outline:none" onchange="editMkt('${m.id}','person',this.value)">${['Jasper','Li Joo','Stella','Roy','GDC','待认领'].map(opt=>`<option ${m.person===opt?'selected':''}>${opt}</option>`).join('')}</select></td>
     <td><input type="date" style="border:none;background:transparent;font-family:'DM Sans',sans-serif;font-size:10.5px;color:var(--amber);outline:none;cursor:pointer" value="${m.dl||''}" onchange="editMkt('${m.id}','dl',this.value)"></td>
@@ -2670,7 +2695,7 @@ function addGDCTask(){
   // 同步到 Task Board
   const _gdcNumIds=TASKS.map(t=>t.id).filter(id=>typeof id==='number'&&!isNaN(id));
   const nid=_gdcNumIds.length>0?Math.max(..._gdcNumIds)+1:Date.now();
-  TASKS.push({id:nid,task:`🎨 GDC: ${task}`,person:pic,cat:'GDC job',type:'fee',priority:'⚡ 本月',deadline:dl||date,status:'待启动',est:1,actual:'',doneDate:'',desc:''});
+  TASKS.push({id:nid,task:`🎨 GDC: ${task}`,person:pic,cat:cat||'GDC job',type:'fee',priority:'⚡ 本月',deadline:dl||date,status:'待启动',est:1,actual:'',doneDate:'',desc:''});
   document.getElementById('gdc-task').value='';
   if(document.getElementById('gdc-date'))document.getElementById('gdc-date').value='';
   if(document.getElementById('gdc-dl'))document.getElementById('gdc-dl').value='';
@@ -2717,7 +2742,7 @@ function renderGDC(){
     const curMEl=document.getElementById('gdc-cur-month');
     if(curMEl)curMEl.textContent=now.toLocaleDateString('zh-CN',{year:'numeric',month:'long'});
     const map={};
-    GDC_TASKS.filter(t=>t.status!=='已完成'&&t.status!=='已付款').forEach(t=>{const k=t.dl||t.date;if(k){if(!map[k])map[k]=[];map[k].push(t);}});
+    GDC_TASKS.filter(t=>t.status!=='已完成'&&t.status!=='已付款').forEach(t=>{const k=t.date||t.dl;if(k){if(!map[k])map[k]=[];map[k].push(t);}});
     let ch=`<div style="font-size:12px;font-weight:700;color:var(--purple);padding:8px 12px;background:var(--purpleB);border-radius:8px;margin-bottom:10px">${now.toLocaleDateString('zh-CN',{year:'numeric',month:'long'})} · GDC Marketing Calendar</div>`;
     ch+=`<div class="mkt-cal-grid" style="margin-bottom:14px">`;
     ['一','二','三','四','五','六','日'].forEach(h=>{ch+=`<div class="mkt-cal-head">${h}</div>`;});
@@ -2745,7 +2770,7 @@ function renderGDC(){
     ${thS('发布日期','date',GDC_SORT,'setSortGDC','')}
     <th style="min-width:180px">发布内容</th>
     ${thS('平台','platform',GDC_SORT,'setSortGDC','')}
-    ${thS('类型','cat',GDC_SORT,'setSortGDC','')}
+    ${thS('类别','cat',GDC_SORT,'setSortGDC','')}
     ${thS('Deadline','dl',GDC_SORT,'setSortGDC','')}
     ${thS('完成日期','doneDate',GDC_SORT,'setSortGDC','')}
     ${thS('用时','hours',GDC_SORT,'setSortGDC','')}
@@ -2766,10 +2791,10 @@ function renderGDC(){
     const effVal=isDone&&t.dl&&t.doneDate?calcEffDL(t.dl,t.doneDate):null;
     const effStr=effVal!==null?effLabel(effVal):'—';
     const effColor=effVal>=1?'var(--green)':effVal>=0.5?'var(--amber)':effVal===0?'var(--red)':'var(--muted)';
-    const rowBg=isDone?'background:rgba(34,197,94,0.06);opacity:0.8;':'';
+    const rowBg=isDone?'background:rgba(200,160,90,0.07);':'';
     return`<tr style="${rowBg}">
     <td><input type="date" style="border:none;background:transparent;font-family:'DM Sans',sans-serif;font-size:10px;font-weight:600;outline:none;cursor:pointer;width:100%" value="${t.date||''}" onchange="editGDC('${t.id}','date',this.value)"></td>
-    <td><input style="border:none;background:transparent;font-family:'Plus Jakarta Sans',sans-serif;font-size:10.5px;font-weight:600;width:100%;outline:none" value="${(t.task||'').replace(/"/g,'&quot;')}" onchange="editGDC('${t.id}','task',this.value)"></td>
+    <td><input style="border:none;background:transparent;font-family:'Plus Jakarta Sans',sans-serif;font-size:10.5px;font-weight:600;width:100%;outline:none;${isDone?'text-decoration:line-through;color:var(--muted);':''}" value="${(t.task||'').replace(/"/g,'&quot;')}" onchange="editGDC('${t.id}','task',this.value)"></td>
     <td><input style="border:none;background:transparent;font-size:9px;outline:none;width:100%" value="${(t.platform||'').replace(/"/g,'&quot;')}" onchange="editGDC('${t.id}','platform',this.value)" placeholder="—"></td>
     <td><select style="border:none;background:transparent;font-size:9px;cursor:pointer;outline:none;width:100%" onchange="editGDC('${t.id}','cat',this.value)">${['GDC 视频文案','GDC 图文文案','GDC 金句图文','GDC 视频拍摄','GDC 视频脚本','GDC 短视频剪辑','GDC DLIG对接','GDC 方案讨论','GDC Project管理'].map(opt=>`<option ${t.cat===opt?'selected':''}>${opt}</option>`).join('')}</select></td>
     <td><input type="date" style="border:none;background:transparent;font-family:'DM Sans',sans-serif;font-size:10px;color:var(--amber);outline:none;cursor:pointer;width:100%" value="${t.dl||''}" onchange="editGDC('${t.id}','dl',this.value)"></td>
@@ -3079,7 +3104,11 @@ function renderDecisions(){
       d.opts=d.opts[0].split(/\s*[|｜]\s*/).map(o=>o.trim()).filter(Boolean);
     }
   });
-  document.getElementById('dec-blocks').innerHTML=DEC.map((d,i)=>{
+  // 分成投票事项 & 待讨论事项
+  const voteItems=DEC.filter(d=>!d.type||d.type==='vote');
+  const discItems=DEC.filter(d=>d.type==='discuss'&&!d.resolved);
+  document.getElementById('dec-blocks').innerHTML=voteItems.map((d,i)=>{
+    const i2=DEC.indexOf(d);
     const vC={};Object.values(d.votes).forEach(v=>{vC[v]=(vC[v]||0)+1;});
     const vr=Object.keys(d.votes).length>0?Object.entries(vC).map(([o,n])=>`<span style="margin-right:10px"><b>${o.slice(0,30)}</b> <span style="color:var(--gold);font-weight:700">${n}票</span></span>`).join(''):'<span style="color:var(--muted)">还没有人投票 · 点选你的答案</span>';
     const optsEsc=(d.opts||[]).join(' | ').replace(/"/g,'&quot;');
@@ -3096,17 +3125,17 @@ function renderDecisions(){
     <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
       <div style="min-width:28px;font-weight:700;color:var(--text2)">${String.fromCharCode(65+j)}.</div>
       <div style="flex:1;min-width:160px;font-size:12px;color:var(--text2)">${o}</div>
-      <button class="vb" onclick="vote(${i},'${o.replace(/'/g,"\\'")}')">选择 ${String.fromCharCode(65+j)}</button>
+      <button class="vb" onclick="vote(${i2},'${o.replace(/'/g,"\\'")}')">选择 ${String.fromCharCode(65+j)}</button>
     </div>
   `).join('')}
 </div>
 
 <div style="display:flex;gap:8px;align-items:flex-start;flex-wrap:wrap;margin-bottom:8px">
-  <textarea id="other-op-${i}" rows="1" placeholder="写下你的想法..." style="flex:1;border:1.5px solid var(--border);border-radius:8px;padding:8px 10px;font-size:11px;outline:none;font-family:'DM Sans',sans-serif"></textarea>
-  <button class="vb" onclick="addOtherOpinion(${i})">提交想法</button>
+  <textarea id="other-op-${i2}" rows="1" placeholder="写下你的想法..." style="flex:1;border:1.5px solid var(--border);border-radius:8px;padding:8px 10px;font-size:11px;outline:none;font-family:'DM Sans',sans-serif"></textarea>
+  <button class="vb" onclick="addOtherOpinion(${i2})">提交想法</button>
 </div>
       <div style="font-size:11px;color:var(--muted);padding:8px 11px;background:var(--s2);border-radius:7px;margin-bottom:6px">${vr}</div>
-      <textarea class="dec-comment" rows="1" placeholder="写下你的想法... (Enter 提交)" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();addCom(${i},this.value);this.value='';}"></textarea>
+      <textarea class="dec-comment" rows="1" placeholder="写下你的想法... (Enter 提交)" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();addCom(${i2},this.value);this.value='';}"></textarea>
       ${d.comments.length?`<div style="margin-top:8px">${d.comments.map(c=>`<div style="font-size:11px;padding:5px 9px;background:var(--s2);border-radius:7px;margin-bottom:4px">${c}</div>`).join('')}</div>`:''}
       <div style="font-size:10px;color:var(--muted);margin-top:8px;display:flex;align-items:center;gap:6px;flex-wrap:wrap">
         <select onchange="editDec('${d.id}','owner',this.value)" style="font-size:10px;padding:2px 4px;border:1px solid var(--border);border-radius:4px;background:transparent">${['All','Li Joo','Jasper','Stella','Roy'].map(p=>`<option ${d.owner===p?'selected':''}>${p}</option>`).join('')}</select>
@@ -3114,7 +3143,29 @@ function renderDecisions(){
       </div>
     </div>`;
   }).join('');
+  // 渲染待讨论事项
+  const discEl=document.getElementById('disc-blocks');
+  if(discEl)discEl.innerHTML=discItems.length?discItems.map((d,i)=>`<div class="dec" style="border-left:3px solid var(--blue)">
+    <div style="display:flex;align-items:flex-start;gap:6px;margin-bottom:8px">
+      <div style="flex:1;font-size:13px;font-weight:700;color:var(--text);outline:none;cursor:text" contenteditable="true" onblur="editDec('${d.id}','q',this.innerText.trim())">${d.q}</div>
+      <button onclick="resolveDiscussion('${d.id}')" title="标为已处理" style="background:var(--greenB);border:1.5px solid var(--green);color:var(--green);border-radius:6px;padding:3px 10px;cursor:pointer;font-size:10px;font-weight:700;flex-shrink:0">✓ 已处理</button>
+      <button onclick="delDecision('${d.id}')" title="删除" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:13px;padding:0 2px;flex-shrink:0">✕</button>
+    </div>
+    <textarea class="dec-comment" rows="1" placeholder="留言 / 记录讨论进展... (Enter 提交)" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();addCom(${DEC.indexOf(d)},this.value);this.value='';}"></textarea>
+    ${d.comments.length?`<div style="margin-top:6px">${d.comments.map(c=>`<div style="font-size:11px;padding:5px 9px;background:var(--blueB);border-radius:7px;margin-bottom:4px;color:var(--blue)">${c}</div>`).join('')}</div>`:''}
+    <div style="font-size:10px;color:var(--muted);margin-top:8px;display:flex;align-items:center;gap:6px;flex-wrap:wrap">
+      <select onchange="editDec('${d.id}','owner',this.value)" style="font-size:10px;padding:2px 4px;border:1px solid var(--border);border-radius:4px;background:transparent">${['All','Li Joo','Jasper','Stella','Roy'].map(p=>`<option ${d.owner===p?'selected':''}>${p}</option>`).join('')}</select>
+      · ⏰ <input type="date" value="${d.dl&&d.dl!=='待定'?d.dl:''}" onchange="editDec('${d.id}','dl',this.value||'待定')" style="border:none;background:transparent;font-size:10px;color:var(--muted);outline:none;cursor:pointer">
+    </div>
+  </div>`).join(''):'<div style="text-align:center;color:var(--muted);padding:16px;font-size:12px">暂无待讨论事项</div>';
 }
+function addDiscussion(){
+  const q=document.getElementById('disc-q-new')?.value.trim();if(!q)return;
+  DEC.push({id:'d'+Date.now(),type:'discuss',q,opts:[],votes:{},comments:[],owner:document.getElementById('disc-owner-new').value,dl:document.getElementById('disc-dl-new')?.value||'待定',resolved:false});
+  document.getElementById('disc-q-new').value='';
+  save('decisions',DEC);renderDecisions();updateStats();
+}
+function resolveDiscussion(id){const d=DEC.find(x=>x.id===id);if(d){d.resolved=true;save('decisions',DEC);renderDecisions();updateStats();}}
 function vote(i,o){
   const voter=document.getElementById('dec-voter')?.value||'匿名';
   DEC[i].votes[voter]=o;
