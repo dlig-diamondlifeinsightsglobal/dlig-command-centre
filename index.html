@@ -2896,8 +2896,22 @@ function addGDCLink(){
 }
 function delGDCLink(i){GDC_LINKS.splice(i,1);save('gdc_links',GDC_LINKS);renderGDCLinks();}
 function delGDCTask(id){
-  GDC_TASKS.splice(GDC_TASKS.findIndex(t=>String(t.id)===String(id)),1);
-  save('gdc_tasks',GDC_TASKS);renderGDC();
+  const gT=GDC_TASKS.find(t=>String(t.id)===String(id));
+  const idx=GDC_TASKS.findIndex(t=>String(t.id)===String(id));
+  if(idx<0)return;
+  GDC_TASKS.splice(idx,1);
+  // 同时删掉 Task Board 里对应的条目，防止 syncTaskBoardToGDC 重新加回来
+  if(gT){
+    const gName=(gT.task||'').trim();
+    const origLen=TASKS.length;
+    TASKS=TASKS.filter(tb=>{
+      if(!(tb.cat==='GDC job'||String(tb.cat||'').startsWith('GDC ')))return true;
+      const tn=String(tb.task||'').replace(/^🎨\s*/,'').replace(/^GDC:\s*/i,'').trim();
+      return tn!==gName&&!tn.includes(gName)&&!gName.includes(tn);
+    });
+    if(TASKS.length!==origLen)save('tasks',TASKS);
+  }
+  save('gdc_tasks',GDC_TASKS);renderGDC();renderTasks();
 }
 function openGDCComplete(id,name){
   let t=GDC_TASKS.find(x=>String(x.id)===String(id));
