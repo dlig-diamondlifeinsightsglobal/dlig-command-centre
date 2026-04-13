@@ -1099,7 +1099,10 @@ body{background:var(--cream);color:var(--text);font-family:'Plus Jakarta Sans',s
       <div class="ag-wrap" id="mo-agenda"></div>
     </div>
     <div class="ms-tab" id="ms-weekly">
-      <div class="ib ib-blue"><b>⚡ Weekly Meeting — 每周 Thu 8am</b>快速对齐 + 任务分配 · <a onclick="go('decisions')" style="color:var(--blue);cursor:pointer;text-decoration:underline">⚡ 点击先去投票</a> · <button onclick="toggleFayuBanner('wk-fayu')" style="font-size:10px;padding:2px 8px;border:1.5px solid var(--blue);background:transparent;border-radius:6px;cursor:pointer;color:var(--blue);font-weight:700">📖 发愿</button></div>
+      <div class="ib ib-blue" style="display:flex;align-items:flex-start;gap:10px;flex-wrap:wrap">
+        <div style="flex:1"><b>⚡ Weekly Meeting — 每周 Thu 8am</b>快速对齐 + 任务分配 · <a onclick="go('decisions')" style="color:var(--blue);cursor:pointer;text-decoration:underline">⚡ 点击先去投票</a> · <button onclick="toggleFayuBanner('wk-fayu')" style="font-size:10px;padding:2px 8px;border:1.5px solid var(--blue);background:transparent;border-radius:6px;cursor:pointer;color:var(--blue);font-weight:700">📖 发愿</button></div>
+        <a href="https://docs.google.com/document/d/1YxXGVfEcNReIk3JBH4nPDdpkGK5l_q6Y1YtkZJFqjFg/edit?usp=sharing" target="_blank" class="fb" style="white-space:nowrap;text-decoration:none;flex-shrink:0;color:var(--blue);border-color:rgba(59,130,246,.35);background:rgba(59,130,246,.08);font-weight:700">📝 会议记录 ↗</a>
+      </div>
       <div id="wk-fayu" style="display:none;background:rgba(37,99,235,.05);border-radius:10px;padding:14px;margin-bottom:12px;max-height:70vh;overflow-y:auto"></div>
       <div class="ag-wrap" id="wk-agenda"></div>
     </div>
@@ -2264,7 +2267,7 @@ function buildEvMap(startOff,endOff){
     }
     evMap[ds].push({name:'Daily Redesign',time:'6:10am',type:'dr',person:'轮值',isEvent:true});
   }
-  TASKS.forEach(t=>{if(t.deadline&&t.status!=='已完成'){if(!evMap[t.deadline])evMap[t.deadline]=[];evMap[t.deadline].push({name:'📌 '+t.task.slice(0,14),type:'task',person:t.person,isEvent:false});}});
+  // Tasks removed from main calendar per user request — calendar shows meetings/events only
   EVENTS.forEach(e=>{if(!evMap[e.date])evMap[e.date]=[];evMap[e.date].push({...e,isEvent:true});});
   MKT_CONTENT.forEach(m=>{if(!evMap[m.date])evMap[m.date]=[];evMap[m.date].push({name:'📣 '+m.title.slice(0,10),type:'mkt',person:m.person,isEvent:true});});
   return evMap;
@@ -2713,7 +2716,8 @@ function addGDCTask(){
   // 同步到 Task Board
   const _gdcNumIds=TASKS.map(t=>t.id).filter(id=>typeof id==='number'&&!isNaN(id));
   const nid=_gdcNumIds.length>0?Math.max(..._gdcNumIds)+1:Date.now();
-  TASKS.push({id:nid,task:`🎨 GDC: ${task}`,person:pic,cat:cat||'GDC job',type:'fee',priority:'⚡ 本月',deadline:dl||date,status:'待启动',est:1,actual:'',doneDate:'',desc:''});
+  const _gdcClean=task.replace(/^GDC\s+/i,'').trim()||task;
+  TASKS.push({id:nid,task:`🎨 GDC: ${_gdcClean}`,person:pic,cat:cat||'GDC job',type:'fee',priority:'⚡ 本月',deadline:dl||date,status:'待启动',est:1,actual:'',doneDate:'',desc:''});
   document.getElementById('gdc-task').value='';
   if(document.getElementById('gdc-date'))document.getElementById('gdc-date').value='';
   if(document.getElementById('gdc-dl'))document.getElementById('gdc-dl').value='';
