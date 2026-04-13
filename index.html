@@ -929,11 +929,11 @@ body{background:var(--cream);color:var(--text);font-family:'Plus Jakarta Sans',s
   <!-- ══ GDC MARKETING JOB ══ -->
   <div class="page" id="p-gdc">
     <div class="ib" style="background:var(--purpleB);border:1.5px solid rgba(106,58,150,.25)">
-      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:8px">
+      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
         <b style="color:var(--purple)">🎨 GDC Marketing Job</b>
         <span style="font-size:10.5px;color:var(--muted)">— 记录外包任务，每月 RM2,500 package。完成后同步到 Task Board。</span>
+        <a href="https://docs.google.com/spreadsheets/d/1Gc0rO-gx_CBSZ60fFHvmMeTsq7dClsCU4WiSN5ii-2M/edit?usp=sharing" target="_blank" class="fb" style="margin-left:auto;color:var(--purple);border-color:rgba(106,58,150,.35);background:rgba(106,58,150,.08);font-weight:700;text-decoration:none;white-space:nowrap">📊 GDC Content Bulk Upload ↗</a>
       </div>
-      <div id="gdc-links-list" style="display:flex;flex-wrap:wrap;gap:6px"></div>
     </div>
     <div style="background:var(--white);border:1.5px solid var(--border);border-radius:var(--r);padding:14px;margin-bottom:14px;box-shadow:var(--sh)">
       <div style="display:flex;gap:8px;align-items:flex-end;flex-wrap:wrap">
@@ -1931,7 +1931,7 @@ function confirmComplete(id){
   // 同步到 GDC Marketing
   if(t.cat==='GDC job'||t.task.startsWith('🎨')){
     const name=t.task.replace(/^🎨\s*/,'').replace(/^[^:]+:\s*/,'');
-    const gm=GDC_TASKS.find(x=>x.task&&x.task.includes(name)&&x.status!=='已完成'&&x.status!=='已付款');
+    const gm=GDC_TASKS.find(x=>x.task&&x.task.includes(name)&&x.status!=='已完成');
     if(gm){gm.status='已完成';gm.doneDate=doneDate;save('gdc_tasks',GDC_TASKS);renderGDC();}
   }
   // 同步到 Sales & Marketing Calendar
@@ -2786,7 +2786,6 @@ function deleteGDCNote(id){
 }
 function renderGDC(){
   syncTaskBoardToGDC();
-  renderGDCLinks();
   const calEl=document.getElementById('gdc-cal-view');
   if(calEl){
     if(!GDC_CAL_MONTH)GDC_CAL_MONTH=new Date();
@@ -2806,7 +2805,7 @@ function renderGDC(){
       const ds=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
       const items=(map[ds]||[]);
       ch+=`<div class="mkt-cell${iT?' today':''}"><div class="mkt-date">${day}</div>`;
-      const gdcStatC={已完成:{bg:'var(--purpleB)',c:'#4a2070'},已付款:{bg:'var(--purpleB)',c:'#4a2070'},进行中:{bg:'var(--amberB)',c:'var(--amber)'},待开始:{bg:'#6a3a96',c:'#fff'}};
+      const gdcStatC={已完成:{bg:'var(--purpleB)',c:'#4a2070'},进行中:{bg:'var(--amberB)',c:'var(--amber)'},待开始:{bg:'#6a3a96',c:'#fff'}};
       items.forEach(t=>{
         const sc=gdcStatC[t.status]||gdcStatC['待开始'];
         ch+=`<div style="background:${sc.bg};color:${sc.c};padding:3px 5px;border-radius:4px;font-size:8px;font-weight:700;margin-bottom:2px;overflow:hidden;cursor:pointer;line-height:1.4" onclick="cycleGDCStatus('${t.id}')"><div style="white-space:nowrap;text-overflow:ellipsis;overflow:hidden">${(t.task||'').slice(0,14)}</div>${t.who?`<div style="font-size:7px;opacity:.8;white-space:nowrap;text-overflow:ellipsis;overflow:hidden">GDC: ${t.who}</div>`:t.pic?`<div style="font-size:7px;opacity:.75;white-space:nowrap;overflow:hidden">${t.pic}</div>`:''}</div>`;
@@ -2834,12 +2833,12 @@ function renderGDC(){
   let _gdcBase=GDC_F==='全部'?GDC_TASKS:GDC_TASKS.filter(t=>t.status===GDC_F);
   if(GDC_PF!=='全部')_gdcBase=_gdcBase.filter(t=>t.pic===GDC_PF||t.who===GDC_PF);
   if(GDC_TF!=='all')_gdcBase=_gdcBase.filter(t=>passDLFilter(t.dl,t.date,GDC_TF));
-  const _gdcActive=sortArr(_gdcBase.filter(t=>t.status!=='已完成'&&t.status!=='已付款'),GDC_SORT.col,GDC_SORT.dir);
-  const _gdcDone=sortArr(_gdcBase.filter(t=>t.status==='已完成'||t.status==='已付款'),GDC_SORT.col,GDC_SORT.dir);
+  const _gdcActive=sortArr(_gdcBase.filter(t=>t.status!=='已完成'),GDC_SORT.col,GDC_SORT.dir);
+  const _gdcDone=sortArr(_gdcBase.filter(t=>t.status==='已完成'),GDC_SORT.col,GDC_SORT.dir);
   const fil=[..._gdcActive,..._gdcDone];
   const listEl=document.getElementById('gdc-list');
   if(listEl)listEl.innerHTML=fil.length?fil.map((t,i)=>{
-    const isDone=t.status==='已完成'||t.status==='已付款';
+    const isDone=t.status==='已完成';
     const effVal=isDone&&t.dl&&t.doneDate?calcEffDL(t.dl,t.doneDate):null;
     const effStr=effVal!==null?effLabel(effVal):'—';
     const effColor=effVal>=1?'var(--green)':effVal>=0.5?'var(--amber)':effVal===0?'var(--red)':'var(--muted)';
@@ -2949,7 +2948,7 @@ function undoneGDCTask(id){
 }
 function cycleGDCStatus(id){
   const t=GDC_TASKS.find(x=>String(x.id)===String(id));if(!t)return;
-  const s=['待开始','进行中','已完成','已付款'];
+  const s=['待开始','进行中','已完成'];
   t.status=s[(s.indexOf(t.status)+1)%s.length];
   save('gdc_tasks',GDC_TASKS);renderGDC();
 }
