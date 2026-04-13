@@ -2670,7 +2670,7 @@ function addGDCTask(){
   // 同步到 Task Board
   const _gdcNumIds=TASKS.map(t=>t.id).filter(id=>typeof id==='number'&&!isNaN(id));
   const nid=_gdcNumIds.length>0?Math.max(..._gdcNumIds)+1:Date.now();
-  TASKS.push({id:nid,task:`🎨 ${platform}: ${task}`,person:pic,cat:'GDC job',type:'fee',priority:'⚡ 本月',deadline:dl||date,status:'待启动',est:1,actual:'',doneDate:'',desc:''});
+  TASKS.push({id:nid,task:`🎨 GDC: ${task}`,person:pic,cat:'GDC job',type:'fee',priority:'⚡ 本月',deadline:dl||date,status:'待启动',est:1,actual:'',doneDate:'',desc:''});
   document.getElementById('gdc-task').value='';
   if(document.getElementById('gdc-date'))document.getElementById('gdc-date').value='';
   if(document.getElementById('gdc-dl'))document.getElementById('gdc-dl').value='';
