@@ -2090,7 +2090,16 @@ function undoneTask(id){
 function deleteTask(id){
   if(!confirm('确定删除这个任务吗？'))return;
   const idx=TASKS.findIndex(x=>x.id===id);
-  if(idx>=0){TASKS.splice(idx,1);save('tasks',TASKS);renderTasks();renderOverview();}
+  if(idx<0)return;
+  const t=TASKS[idx];
+  TASKS.splice(idx,1);
+  // 如果是 GDC 任务，同步删掉 GDC_TASKS，防止 syncGDCToTaskBoard 重新加回来
+  if(t.cat==='GDC job'||String(t.cat||'').startsWith('GDC ')){
+    const tn=String(t.task||'').replace(/^🎨\s*/,'').replace(/^GDC:\s*/i,'').trim();
+    const gi=GDC_TASKS.findIndex(g=>(g.task||'').trim()===tn);
+    if(gi>=0){GDC_TASKS.splice(gi,1);quietSave('gdc_tasks',GDC_TASKS);}
+  }
+  save('tasks',TASKS);renderTasks();renderOverview();
 }
 function addTask(){
   const tx=document.getElementById('nt').value.trim();if(!tx)return;
