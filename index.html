@@ -600,6 +600,10 @@ body{background:var(--cream);color:var(--text);font-family:'Plus Jakarta Sans',s
       <button class="fb" onclick="catFilter('GDC job',this)" style="color:var(--purple)">🎨 GDC job</button>
       <button class="fb" onclick="fp('fee',this)" style="color:var(--purple)">💰 Task Fee</button>
       <button class="fb" onclick="fp('contrib',this)" style="color:var(--blue)">⏱ 贡献时间</button>
+      <div class="sep"></div>
+      <button class="fb task-sf on" onclick="setTaskSF('全部',this)">全部</button>
+      <button class="fb task-sf" onclick="setTaskSF('未完成',this)">未完成</button>
+      <button class="fb task-sf" onclick="setTaskSF('已完成',this)">已完成</button>
     </div>
     <div class="board" id="board-view" style="display:none"></div>
     <div style="overflow-x:auto" id="list-view">
@@ -724,6 +728,10 @@ body{background:var(--cream);color:var(--text);font-family:'Plus Jakarta Sans',s
       <button class="fb mkt-tf on" onclick="setMktTF('all',this)">全部期限</button>
       <button class="fb mkt-tf" onclick="setMktTF('month',this)">本月</button>
       <button class="fb mkt-tf" onclick="setMktTF('30',this)">近30天</button>
+      <div class="sep"></div>
+      <button class="fb mkt-sf on" onclick="setMktSF('全部',this)">全部</button>
+      <button class="fb mkt-sf" onclick="setMktSF('未完成',this)">未完成</button>
+      <button class="fb mkt-sf" onclick="setMktSF('已完成',this)">已完成</button>
     </div>
     <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px">
       <button class="fb" onclick="mktCalPrevMonth()">‹ 上月</button>
@@ -967,6 +975,10 @@ body{background:var(--cream);color:var(--text);font-family:'Plus Jakarta Sans',s
       <button class="fb gdc-tf on" onclick="setGDCTF('all',this)">全部期限</button>
       <button class="fb gdc-tf" onclick="setGDCTF('month',this)">本月</button>
       <button class="fb gdc-tf" onclick="setGDCTF('30',this)">近30天</button>
+      <div class="sep"></div>
+      <button class="fb gdc-sf on" onclick="setGDCSF('全部',this)">全部</button>
+      <button class="fb gdc-sf" onclick="setGDCSF('未完成',this)">未完成</button>
+      <button class="fb gdc-sf" onclick="setGDCSF('已完成',this)">已完成</button>
     </div>
     <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px">
       <button class="fb" onclick="gdcCalPrevMonth()">‹ 上月</button>
@@ -1880,6 +1892,10 @@ let MKT_SORT={col:'date',dir:1};
 let GDC_SORT={col:'date',dir:1};
 let MKT_PF='全部',MKT_TF='all';
 let GDC_PF='全部',GDC_TF='all';
+let TASK_SF='全部',MKT_SF='全部',GDC_SF='全部';
+function setTaskSF(v,btn){TASK_SF=v;document.querySelectorAll('.task-sf').forEach(b=>b.classList.remove('on'));btn.classList.add('on');renderTasks();}
+function setMktSF(v,btn){MKT_SF=v;document.querySelectorAll('.mkt-sf').forEach(b=>b.classList.remove('on'));btn.classList.add('on');renderMktCal();}
+function setGDCSF(v,btn){GDC_SF=v;document.querySelectorAll('.gdc-sf').forEach(b=>b.classList.remove('on'));btn.classList.add('on');renderGDC();}
 function setMktPF(p,btn){MKT_PF=p;document.querySelectorAll('.mkt-pf').forEach(b=>b.classList.remove('on'));btn.classList.add('on');renderMktCal();}
 function setMktTF(t,btn){MKT_TF=t;document.querySelectorAll('.mkt-tf').forEach(b=>b.classList.remove('on'));btn.classList.add('on');renderMktCal();}
 function setGDCPF(p,btn){GDC_PF=p;document.querySelectorAll('.gdc-pf').forEach(b=>b.classList.remove('on'));btn.classList.add('on');renderGDC();}
@@ -2021,10 +2037,10 @@ function renderTasks(){
       <th style="width:6%">效率</th>
       <th style="width:8%">操作</th>
     </tr>`;
-    // Sort: incomplete first, completed at bottom
+    // Sort: incomplete first, completed at bottom (respects status filter)
     const active=sortArr(fil.filter(t=>t.status!=='已完成'),TASK_SORT.col,TASK_SORT.dir);
     const done=sortArr(fil.filter(t=>t.status==='已完成'),TASK_SORT.col,TASK_SORT.dir);
-    const sorted=[...active,...done];
+    const sorted=TASK_SF==='未完成'?active:TASK_SF==='已完成'?done:[...active,...done];
     // Time filter
     const now2=new Date();
     const tFiltered=sorted.filter(t=>{
@@ -2221,7 +2237,8 @@ function renderMktCal(){
   if(MKT_TF!=='all')mktFil=mktFil.filter(m=>passDLFilter(m.dl,m.date,MKT_TF));
   const _mktActive=sortArr(mktFil.filter(m=>m.status!=='已发布'),MKT_SORT.col,MKT_SORT.dir);
   const _mktDone=sortArr(mktFil.filter(m=>m.status==='已发布'),MKT_SORT.col,MKT_SORT.dir);
-  if(listEl)listEl.innerHTML=[..._mktActive,..._mktDone].map(m=>{
+  const _mktSorted=MKT_SF==='未完成'?_mktActive:MKT_SF==='已完成'?_mktDone:[..._mktActive,..._mktDone];
+  if(listEl)listEl.innerHTML=_mktSorted.map(m=>{
     const isDone=m.status==='已发布';
     const effVal=isDone&&m.dl&&m.doneDate?calcEffDL(m.dl,m.doneDate):null;
     const effStr=effVal!==null?effLabel(effVal):'—';
@@ -2855,7 +2872,7 @@ function renderGDC(){
   if(GDC_TF!=='all')_gdcBase=_gdcBase.filter(t=>passDLFilter(t.dl,t.date,GDC_TF));
   const _gdcActive=sortArr(_gdcBase.filter(t=>t.status!=='已完成'),GDC_SORT.col,GDC_SORT.dir);
   const _gdcDone=sortArr(_gdcBase.filter(t=>t.status==='已完成'),GDC_SORT.col,GDC_SORT.dir);
-  const fil=[..._gdcActive,..._gdcDone];
+  const fil=GDC_SF==='未完成'?_gdcActive:GDC_SF==='已完成'?_gdcDone:[..._gdcActive,..._gdcDone];
   const listEl=document.getElementById('gdc-list');
   if(listEl)listEl.innerHTML=fil.length?fil.map((t,i)=>{
     const isDone=t.status==='已完成';
