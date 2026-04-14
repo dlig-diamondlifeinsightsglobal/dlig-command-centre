@@ -303,15 +303,18 @@ function readGDCJobs() {
   const find = makeFlexFinder(hdrs);
 
   const col = {
-    id:     find('id'),
-    task:   find('发布内容','任务内容','task','内容','job','工作'),
-    date:   find('发布日期','date','日期'),
-    dl:     find('截止日期','deadline','dl','due'),
-    cat:    find('类别','cat','type','类型','category'),
-    who:    find('gdc对接人','gdc对接','gdc 对接','对接人','负责 gdc','who'),
-    pic:    find('负责人','dlig跟进','dlig负责人','dlig负责','dlig 跟进','跟进','pic','截图','person'),
-    status: find('状态','status'),
-    pay:    find('pay','费用','amount','金额')
+    id:       find('id'),
+    task:     find('发布内容','任务内容','task','内容','job','工作'),
+    date:     find('发布日期','date','日期'),
+    dl:       find('截止日期','deadline','dl','due'),
+    platform: find('平台','platform'),
+    cat:      find('类别','cat','type','类型','category'),
+    who:      find('gdc对接人','gdc对接','gdc 对接','对接人','负责 gdc','who'),
+    pic:      find('负责人','dlig跟进','dlig负责人','dlig负责','dlig 跟进','跟进','pic','截图','person'),
+    doneDate: find('完成日期','donedate','done date','done','完成'),
+    eff:      find('效率','eff','efficiency'),
+    status:   find('状态','status'),
+    pay:      find('pay','费用','amount','金额')
   };
 
   const g  = (row, c) => c >= 0 ? String(row[c] ?? '').trim() : '';
@@ -319,17 +322,26 @@ function readGDCJobs() {
 
   return data.slice(1)
     .filter(r => col.task >= 0 && String(r[col.task] || '').trim() !== '')
-    .map((row, idx) => ({
-      id:     g(row, col.id) || ('gdc_' + g(row, col.task).slice(0,30).replace(/\s+/g,'_')),
-      task:   g(row, col.task),
-      date:   fd(row, col.date)     || g(row, col.date),
-      dl:     fd(row, col.dl)       || g(row, col.dl),
-      cat:    g(row, col.cat),
-      who:    g(row, col.who),
-      pic:    g(row, col.pic),
-      status: g(row, col.status)    || '待发布',
-      pay:    g(row, col.pay)
-    }));
+    .map((row, idx) => {
+      const doneDate = fd(row, col.doneDate) || g(row, col.doneDate);
+      const statusRaw = g(row, col.status);
+      // derive status from doneDate if no status column
+      const status = statusRaw || (doneDate ? '已完成' : '待开始');
+      return {
+        id:       g(row, col.id) || ('gdc_' + g(row, col.task).slice(0,30).replace(/\s+/g,'_')),
+        task:     g(row, col.task),
+        date:     fd(row, col.date)   || g(row, col.date),
+        dl:       fd(row, col.dl)     || g(row, col.dl),
+        platform: g(row, col.platform),
+        cat:      g(row, col.cat),
+        who:      g(row, col.who),
+        pic:      g(row, col.pic),
+        doneDate: doneDate,
+        eff:      g(row, col.eff),
+        status:   status,
+        pay:      g(row, col.pay)
+      };
+    });
 }
 
 // ─── GDC MARKETING JOB 写入 ──────────────────────────────────
@@ -351,30 +363,37 @@ function writeGDCJobs(items) {
   const numCols = hdrs.length;
 
   const colMap = {
-    id:     find('id'),
-    task:   find('发布内容','任务内容','task','内容','job'),
-    date:   find('发布日期','date','日期'),
-    dl:     find('截止日期','deadline','dl'),
-    cat:    find('类别','cat','type','类型'),
-    who:    find('gdc对接人','gdc对接','gdc 对接','对接人','负责 gdc','who'),
-    pic:    find('负责人','dlig跟进','dlig负责人','dlig负责','dlig 跟进','跟进','pic','截图','person'),
-    status: find('状态','status'),
-    pay:    find('pay','费用')
+    id:       find('id'),
+    task:     find('发布内容','任务内容','task','内容','job'),
+    date:     find('发布日期','date','日期'),
+    dl:       find('截止日期','deadline','dl'),
+    platform: find('平台','platform'),
+    cat:      find('类别','cat','type','类型'),
+    who:      find('gdc对接人','gdc对接','gdc 对接','对接人','负责 gdc','who'),
+    pic:      find('负责人','dlig跟进','dlig负责人','dlig负责','dlig 跟进','跟进','pic','截图','person'),
+    doneDate: find('完成日期','donedate','done date','done','完成'),
+    eff:      find('效率','eff','efficiency'),
+    status:   find('状态','status'),
+    pay:      find('pay','费用')
   };
 
+  // Only write up to the highest mapped column — avoids wiping formula/button columns (e.g. 操作)
+  const mappedIdxs = Object.values(colMap).filter(v => v >= 0);
+  const writeCols = mappedIdxs.length > 0 ? Math.max(...mappedIdxs) + 1 : numCols;
+
   const lastRow = tab.getLastRow();
-  if (lastRow > 1) tab.getRange(2, 1, lastRow - 1, numCols).clearContent();
+  if (lastRow > 1) tab.getRange(2, 1, lastRow - 1, writeCols).clearContent();
   if (!items.length) return { ok: true, count: 0 };
 
   const rows = items.map(item => {
-    const row = new Array(numCols).fill('');
+    const row = new Array(writeCols).fill('');
     Object.entries(colMap).forEach(([field, idx]) => {
-      if (idx >= 0 && item[field] !== undefined) row[idx] = item[field] ?? '';
+      if (idx >= 0 && idx < writeCols && item[field] !== undefined) row[idx] = item[field] ?? '';
     });
     return row;
   });
 
-  tab.getRange(2, 1, rows.length, numCols).setValues(rows);
+  tab.getRange(2, 1, rows.length, writeCols).setValues(rows);
   return { ok: true, count: rows.length };
 }
 
