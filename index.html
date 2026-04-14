@@ -1220,6 +1220,8 @@ const ktag=k=>{const m={'🔴 紧急':'turg','🟡 本周':'tweek','⚡ 本月':
 const stag=s=>{const m={'已完成':'sb-done','进行中':'sb-prog','待启动':'sb-todo','待处理':'sb-todo','待决策':'sb-dec','待建立':'sb-pend'};return s?`<span class="sb ${m[s]||'sb-pend'}">${s}</span>`:'';}
 const fRM=n=>{const v=parseFloat((n||'').toString().replace(/[^0-9.-]/g,''));return isNaN(v)?'—':'RM'+v.toLocaleString('en-MY',{minimumFractionDigits:0});}
 const save=(k,v)=>{try{localStorage.setItem('dlig7_'+k,JSON.stringify(v));}catch(e){}try{localStorage.setItem('dlig7__lt_'+k,String(Date.now()));}catch(e){}syncToSheets(k,v);}
+// 静默写入：只更新 localStorage，不设 dirty flag、不触发 Sheets sync（供内部 sync 函数使用）
+const quietSave=(k,v)=>{try{localStorage.setItem('dlig7_'+k,JSON.stringify(v));}catch(e){}}
 const load=(k,def)=>{try{const v=localStorage.getItem('dlig7_'+k);return v?JSON.parse(v):def;}catch(e){return def;}}
 const fmtD=v=>{if(!v||v==='—')return'—';try{const d=new Date(v);if(isNaN(d))return v;return`${d.getDate()}/${d.getMonth()+1}/${d.getFullYear()}`;}catch(e){return v;}};
 function calcEffDL(dl,done){if(!dl||!done)return null;try{const d=Math.floor((new Date(done)-new Date(dl))/86400000);if(d<=-2)return 1.5;if(d<=0)return 1;if(d<=3)return 0.5;return 0;}catch(e){return null;}}
@@ -2777,7 +2779,7 @@ function syncTaskBoardToGDC(){
       changed=true;
     }
   });
-  if(changed)save('gdc_tasks',GDC_TASKS);
+  if(changed)quietSave('gdc_tasks',GDC_TASKS);
 }
 
 function syncGDCToTaskBoard(){
@@ -2788,26 +2790,24 @@ function syncGDCToTaskBoard(){
   GDC_TASKS.forEach(g=>{
     const gName=(g.task||'').trim();if(!gName)return;
     const cleanName=gName.replace(/^GDC\s+/i,'').trim()||gName;
-    // 检查 Task Board 里有没有对应条目
+    // 检查 Task Board 里有没有对应条目（只用精确匹配，避免误伤）
     const match=TASKS.find(t=>{
       if(!(t.cat==='GDC job'||String(t.cat||'').startsWith('GDC ')))return false;
       const tn=String(t.task||'').replace(/^🎨\s*/,'').replace(/^GDC:\s*/i,'').trim();
-      return tn===gName||tn===cleanName||(cleanName.length>4&&(tn.includes(cleanName)||cleanName.includes(tn)));
+      return tn===gName||tn===cleanName;
     });
     if(!match){
-      // 新加到 Task Board
       maxId++;
       TASKS.push({id:maxId,task:'🎨 GDC: '+cleanName,person:g.pic||'待认领',cat:g.cat||'GDC job',type:'fee',priority:'⚡ 本月',deadline:g.dl||g.date||'',status:g.status==='已完成'?'已完成':'待启动',est:1,actual:g.eff||'',doneDate:g.doneDate||'',desc:''});
       changed=true;
     } else {
-      // 同步状态和类别
       let upd=false;
       if(g.status==='已完成'&&match.status!=='已完成'){match.status='已完成';match.doneDate=match.doneDate||g.doneDate||'';upd=true;}
       if(g.cat&&match.cat!==g.cat){match.cat=g.cat;upd=true;}
       if(upd)changed=true;
     }
   });
-  if(changed)save('tasks',TASKS);
+  if(changed)quietSave('tasks',TASKS);
 }
 
 function renderGDCNotes(){
