@@ -1723,7 +1723,7 @@ const POL_OPS={items:[
   {k:'价格政策',v:'产品价格冻结至 30/6/2026（入口3除外）· 更改费RM100/次（3个月内再改 RM400/次）'},
   {k:'产品原则',v:'系统 > 动力 · 用户是自由的（可慢可停可选择）· 入口目的是把人送进 YLYD'},
 ]};
-const STRATEGY=['🎯 H1 重点：提升心动觉察成交率至15%，推动 YLYD System 月销10套','📣 主攻：Facebook（广告）+ 小红书（有机增长）','🔑 内容方向：用户真实故事 / 觉察 insight / 活动现场花絮','💡 每周至少3篇：1 FB广告帖 + 1 小红书 + 1 社群内容','🔗 Infinite Sales 负责 lead capture & follow-up automation'];
+let STRATEGY=load('strategy',['🎯 H1 重点：提升心动觉察成交率至15%，推动 YLYD System 月销10套','📣 主攻：Facebook（广告）+ 小红书（有机增长）','🔑 内容方向：用户真实故事 / 觉察 insight / 活动现场花絮','💡 每周至少3篇：1 FB广告帖 + 1 小红书 + 1 社群内容','🔗 Infinite Sales 负责 lead capture & follow-up automation']);
 const DEFAULT_FILES=[
   {cat:'🏢 公司核心资料',items:[
     {n:'Task Tracking Sheet',note:'全团队每天看',link:'https://docs.google.com/spreadsheets/d/1A3g_WPDU-R4zU8gj8gGHu885z5bk4lTBBRnCfDsstDI/edit'},
@@ -2421,21 +2421,28 @@ function renderSales(){
     mkCard('本月已达成',`${fRM(curr.a)} <span style="font-size:13px">(${cp.toFixed(1)}%)</span>`,curr.a>0?'var(--green)':'var(--muted)',cp),
     mkCard('本月 Shortfall',fRM(curr.t-curr.a),'var(--red)',null),
   ].join('');
-  const eNum=(arr,lsKey,idx,field,cur)=>`<input type="number" value="${cur}" min="0" style="width:70px;border:1px solid var(--border);border-radius:5px;padding:2px 5px;font-family:'Space Mono',monospace;font-size:11px;background:transparent;color:var(--text);text-align:right" onchange="${arr}[${idx}].${field}=Number(this.value);save('${lsKey}',${arr});renderSales();updateStats()">`;
-  document.getElementById('mo-body').innerHTML=validSalesArr.map((s,i)=>{
-    const si=SALES.indexOf(s);const p=s.t>0?(s.a/s.t*100):0;const isc=s.m===curMonthStr;
-    return`<tr style="${isc?'background:var(--goldL)':''}"><td style="font-weight:600">${s.m}</td><td style="font-family:'Space Mono',monospace">${fRM(s.t)}</td><td style="font-weight:700">${eNum('SALES','sales',si,'a',s.a)}</td><td><span style="font-family:'Space Mono',monospace;font-size:11px;font-weight:700;color:${p<30?'var(--red)':p<70?'var(--amber)':'var(--green)'}">${p.toFixed(1)}%</span></td><td style="font-family:'Space Mono',monospace;font-size:10.5px;color:var(--red)">${s.a>0?fRM(s.a-s.t):'—'}</td><td style="text-align:center">${eNum('SALES','sales',si,'x',s.x)}</td><td style="text-align:center">${eNum('SALES','sales',si,'y',s.y)}</td><td style="text-align:center">${eNum('SALES','sales',si,'b',s.b)}</td><td style="text-align:center">${eNum('SALES','sales',si,'s',s.s)}</td><td style="font-size:10px;color:var(--muted)">${s.n}</td></tr>`;
+  document.getElementById('mo-body').innerHTML=validSalesArr.map((s)=>{
+    const p=s.t>0?(s.a/s.t*100):0;const isc=s.m===curMonthStr;
+    return`<tr style="${isc?'background:var(--goldL)':''}"><td style="font-weight:600">${s.m}</td><td style="font-family:'Space Mono',monospace">${fRM(s.t)}</td><td style="font-family:'Space Mono',monospace;font-weight:700;color:${s.a>0?'var(--green)':'var(--muted)'}">${s.a>0?fRM(s.a):'—'}</td><td><span style="font-family:'Space Mono',monospace;font-size:11px;font-weight:700;color:${p<30?'var(--red)':p<70?'var(--amber)':'var(--green)'}">${p.toFixed(1)}%</span></td><td style="font-family:'Space Mono',monospace;font-size:10.5px;color:var(--red)">${s.a>0?fRM(s.a-s.t):'—'}</td><td style="text-align:center">${s.x||0}</td><td style="text-align:center">${s.y||0}</td><td style="text-align:center">${s.b||0}</td><td style="text-align:center">${s.s||0}</td><td style="font-size:10px;color:var(--muted)">${s.n||''}</td></tr>`;
   }).join('');
   const fT=validSalesArr.reduce((a,b)=>a+b.t,0),fA=validSalesArr.reduce((a,b)=>a+b.a,0);
   document.getElementById('mo-foot').innerHTML=`<tr style="background:var(--goldL)"><td style="font-weight:800">H1 TOTAL</td><td style="font-family:'Space Mono',monospace;font-weight:700">${fRM(fT)}</td><td style="font-family:'Space Mono',monospace;font-weight:700;color:var(--green)">${fRM(fA)}</td><td style="font-family:'Space Mono',monospace;font-weight:700;color:${fT>0&&fA/fT*100<50?'var(--red)':'var(--green)'}">${fT>0?(fA/fT*100).toFixed(1):0}%</td><td style="font-family:'Space Mono',monospace;color:var(--red)">${fRM(fA-fT)}</td><td colspan="5"></td></tr>`;
-  document.getElementById('sb-body').innerHTML=SBD.map((s,i)=>{
+  // SBD — 实际人数从 SALES 月度数据自动读取（curr.x=心动觉察, curr.y=YLYD, curr.b=体验包, curr.s=设计册）
+  const sbdLive=[
+    {p:'YLYD System',  tp:SBD[0]?.tp||10, pr:SBD[0]?.pr||988,  tr:SBD[0]?.tr||9880, ap:curr.y||0, ar:(curr.y||0)*(SBD[0]?.pr||988)},
+    {p:'心动觉察',      tp:SBD[1]?.tp||35, pr:SBD[1]?.pr||207,  tr:SBD[1]?.tr||7245, ap:curr.x||0, ar:(curr.x||0)*(SBD[1]?.pr||207)},
+    {p:'YLYD 体验包',  tp:SBD[2]?.tp||20, pr:SBD[2]?.pr||177,  tr:SBD[2]?.tr||3540, ap:curr.b||0, ar:(curr.b||0)*(SBD[2]?.pr||177)},
+    {p:'设计册 Refill',tp:SBD[3]?.tp||10, pr:SBD[3]?.pr||81,   tr:SBD[3]?.tr||810,  ap:curr.s||0, ar:(curr.s||0)*(SBD[3]?.pr||81)},
+  ];
+  document.getElementById('sb-body').innerHTML=sbdLive.map((s)=>{
     const p=s.tr>0?(s.ar/s.tr*100):0;
-    return`<tr><td style="font-weight:600">${s.p}</td><td style="text-align:center">${s.tp}</td><td>${fRM(s.pr)}</td><td>${fRM(s.tr)}</td><td style="text-align:center;font-weight:700">${eNum('SBD','sbd',i,'ap',s.ap)}</td><td style="color:var(--green);font-weight:700">${eNum('SBD','sbd',i,'ar',s.ar)}</td><td style="color:${s.ar>=s.tr?'var(--green)':'var(--red)'};font-size:10.5px">${fRM(s.ar-s.tr)}</td><td><span style="font-size:10px;font-weight:700;color:${p<30?'var(--red)':p<70?'var(--amber)':'var(--green)'}">${p.toFixed(0)}%</span></td></tr>`;
+    return`<tr><td style="font-weight:600">${s.p}</td><td style="text-align:center">${s.tp}</td><td>${fRM(s.pr)}</td><td>${fRM(s.tr)}</td><td style="text-align:center;font-weight:700;color:${s.ap>0?'var(--text)':'var(--muted)'}">${s.ap||'—'}</td><td style="color:var(--green);font-weight:700">${s.ar>0?fRM(s.ar):'—'}</td><td style="color:${s.ar>=s.tr?'var(--green)':'var(--red)'};font-size:10.5px">${fRM(s.ar-s.tr)}</td><td><span style="font-size:10px;font-weight:700;color:${p<30?'var(--red)':p<70?'var(--amber)':'var(--green)'}">${p.toFixed(0)}%</span></td></tr>`;
   }).join('');
-  const totAr=SBD.reduce((a,b)=>a+b.ar,0),totTr=SBD.reduce((a,b)=>a+b.tr,0);
+  const totAr=sbdLive.reduce((a,b)=>a+b.ar,0),totTr=sbdLive.reduce((a,b)=>a+b.tr,0);
   const sbFoot=document.getElementById('sb-foot');
   if(sbFoot)sbFoot.innerHTML=`<tr style="background:var(--blueB);font-weight:800"><td>TOTAL</td><td>—</td><td>—</td><td style="font-family:'Space Mono',monospace">${fRM(totTr)}</td><td style="text-align:center">—</td><td style="font-family:'Space Mono',monospace;color:var(--green)">${fRM(totAr)}</td><td style="font-family:'Space Mono',monospace;color:${totAr>=totTr?'var(--green)':'var(--red)'}">${fRM(totAr-totTr)}</td><td><span style="font-size:10px;font-weight:700;color:${totAr/totTr*100<50?'var(--red)':'var(--green)'}">${totTr>0?(totAr/totTr*100).toFixed(0):0}%</span></td></tr>`;
-  document.getElementById('strategy-remarks').innerHTML=STRATEGY.map(s=>`<div style="padding:5px 0;border-bottom:1px solid var(--border)">${s}</div>`).join('');
+  // Marketing Strategy — 可编辑，存 localStorage
+  document.getElementById('strategy-remarks').innerHTML=STRATEGY.map((s,i)=>`<div style="display:flex;align-items:center;gap:8px;padding:4px 0;border-bottom:1px solid var(--border)"><input value="${s.replace(/"/g,'&quot;')}" style="flex:1;border:none;background:transparent;font-size:12px;line-height:1.9;color:var(--text2);outline:none;font-family:inherit" onchange="STRATEGY[${i}]=this.value;save('strategy',STRATEGY)"><button onclick="STRATEGY.splice(${i},1);save('strategy',STRATEGY);renderSales()" style="background:none;border:none;color:var(--dim);cursor:pointer;font-size:11px;flex-shrink:0">✕</button></div>`).join('')+`<button onclick="STRATEGY.push('');save('strategy',STRATEGY);renderSales()" style="margin-top:8px;background:none;border:1px dashed var(--border2);border-radius:6px;padding:4px 12px;font-size:11px;color:var(--muted);cursor:pointer">+ 添加重点</button>`;
   renderMktCal();
 }
 
