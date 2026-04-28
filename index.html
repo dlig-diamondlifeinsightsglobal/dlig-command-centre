@@ -1313,16 +1313,17 @@ async function loadFromSheets(){
       try{localStorage.setItem('dlig7_rotation_data',JSON.stringify(ROTATION_DATA));}catch(e){}
     }
   }catch(e){}
-  // Sales Dashboard (read-only — user edits numbers in Sheet)
+  // Sales Dashboard — load from Sheet, fallback to localStorage
   try{
     const sres=await fetch(SHEETS_API_URL+'?sheet=sales');
     const srows=await sres.json();
     if(Array.isArray(srows)&&srows.length>0){
-      SALES=srows.map(r=>({
+      const fresh=srows.map(r=>({
         m:r.month||'',t:Number(r.target)||0,a:Number(r.actual)||0,
         n:r.note||'',x:Number(r.xd)||0,y:Number(r.ylyd)||0,
         b:Number(r.exp)||0,s:Number(r.book)||0
       })).filter(r=>r.m);
+      if(fresh.length>0){SALES=fresh;try{localStorage.setItem('dlig7_sales',JSON.stringify(SALES));}catch(e){}}
     }
   }catch(e){ok=false;}
   // Inventory（从 Admin Sheet 读取）
@@ -1537,20 +1538,20 @@ const _XD_FLOW_DEFAULT={
 let XD_FLOW=load('xd_flow',null)||JSON.parse(JSON.stringify(_XD_FLOW_DEFAULT));
 
 let DONATION_TOTAL=0; // 从 再投资捐款 tab 读取
-let SALES=[
+let SALES=load('sales',[
   {m:'Jan 2026',t:10000,a:2124,n:'广告RM200',x:12,y:0,b:0,s:0},
   {m:'Feb 2026',t:18000,a:0,n:'',x:0,y:0,b:0,s:0},
   {m:'Mar 2026',t:25000,a:2981,n:'',x:2,y:3,b:0,s:1},
   {m:'Apr 2026',t:25000,a:0,n:'',x:0,y:0,b:0,s:0},
   {m:'May 2026',t:25000,a:0,n:'',x:0,y:0,b:0,s:0},
   {m:'Jun 2026',t:22000,a:0,n:'',x:0,y:0,b:0,s:0},
-];
-const SBD=[
+]);
+let SBD=load('sbd',[
   {p:'YLYD System',tp:10,pr:988,tr:9880,ap:3,ar:2306},
   {p:'心动觉察',tp:35,pr:207,tr:7245,ap:2,ar:594},
   {p:'YLYD 体验包',tp:20,pr:177,tr:3540,ap:0,ar:0},
   {p:'设计册 Refill',tp:10,pr:81,tr:810,ap:1,ar:81},
-];
+]);
 let INV=load('inventory',[
   {n:'观测报告 cover A5',cat:'心动觉察',qty:0,min:5,s:'补货',lead:'',link:''},
   {n:'金句卡',cat:'心动觉察',qty:15,min:10,s:'充足',lead:'',link:''},
@@ -2420,15 +2421,16 @@ function renderSales(){
     mkCard('本月已达成',`${fRM(curr.a)} <span style="font-size:13px">(${cp.toFixed(1)}%)</span>`,curr.a>0?'var(--green)':'var(--muted)',cp),
     mkCard('本月 Shortfall',fRM(curr.t-curr.a),'var(--red)',null),
   ].join('');
-  document.getElementById('mo-body').innerHTML=validSalesArr.map(s=>{
-    const p=s.t>0?(s.a/s.t*100):0;const isc=s.m===curMonthStr;
-    return`<tr style="${isc?'background:var(--goldL)':''}"><td style="font-weight:600">${s.m}</td><td style="font-family:'Space Mono',monospace">${fRM(s.t)}</td><td style="font-family:'Space Mono',monospace;font-weight:700;color:${s.a>0?'var(--green)':'var(--muted)'}">${s.a>0?fRM(s.a):'—'}</td><td><span style="font-family:'Space Mono',monospace;font-size:11px;font-weight:700;color:${p<30?'var(--red)':p<70?'var(--amber)':'var(--green)'}">${p.toFixed(1)}%</span></td><td style="font-family:'Space Mono',monospace;font-size:10.5px;color:var(--red)">${s.a>0?fRM(s.a-s.t):'—'}</td><td style="text-align:center">${s.x}</td><td style="text-align:center">${s.y}</td><td style="text-align:center">${s.b}</td><td style="text-align:center">${s.s}</td><td style="font-size:10px;color:var(--muted)">${s.n}</td></tr>`;
+  const eNum=(arr,lsKey,idx,field,cur)=>`<input type="number" value="${cur}" min="0" style="width:70px;border:1px solid var(--border);border-radius:5px;padding:2px 5px;font-family:'Space Mono',monospace;font-size:11px;background:transparent;color:var(--text);text-align:right" onchange="${arr}[${idx}].${field}=Number(this.value);save('${lsKey}',${arr});renderSales();updateStats()">`;
+  document.getElementById('mo-body').innerHTML=validSalesArr.map((s,i)=>{
+    const si=SALES.indexOf(s);const p=s.t>0?(s.a/s.t*100):0;const isc=s.m===curMonthStr;
+    return`<tr style="${isc?'background:var(--goldL)':''}"><td style="font-weight:600">${s.m}</td><td style="font-family:'Space Mono',monospace">${fRM(s.t)}</td><td style="font-weight:700">${eNum('SALES','sales',si,'a',s.a)}</td><td><span style="font-family:'Space Mono',monospace;font-size:11px;font-weight:700;color:${p<30?'var(--red)':p<70?'var(--amber)':'var(--green)'}">${p.toFixed(1)}%</span></td><td style="font-family:'Space Mono',monospace;font-size:10.5px;color:var(--red)">${s.a>0?fRM(s.a-s.t):'—'}</td><td style="text-align:center">${eNum('SALES','sales',si,'x',s.x)}</td><td style="text-align:center">${eNum('SALES','sales',si,'y',s.y)}</td><td style="text-align:center">${eNum('SALES','sales',si,'b',s.b)}</td><td style="text-align:center">${eNum('SALES','sales',si,'s',s.s)}</td><td style="font-size:10px;color:var(--muted)">${s.n}</td></tr>`;
   }).join('');
   const fT=validSalesArr.reduce((a,b)=>a+b.t,0),fA=validSalesArr.reduce((a,b)=>a+b.a,0);
   document.getElementById('mo-foot').innerHTML=`<tr style="background:var(--goldL)"><td style="font-weight:800">H1 TOTAL</td><td style="font-family:'Space Mono',monospace;font-weight:700">${fRM(fT)}</td><td style="font-family:'Space Mono',monospace;font-weight:700;color:var(--green)">${fRM(fA)}</td><td style="font-family:'Space Mono',monospace;font-weight:700;color:${fT>0&&fA/fT*100<50?'var(--red)':'var(--green)'}">${fT>0?(fA/fT*100).toFixed(1):0}%</td><td style="font-family:'Space Mono',monospace;color:var(--red)">${fRM(fA-fT)}</td><td colspan="5"></td></tr>`;
-  document.getElementById('sb-body').innerHTML=SBD.map(s=>{
+  document.getElementById('sb-body').innerHTML=SBD.map((s,i)=>{
     const p=s.tr>0?(s.ar/s.tr*100):0;
-    return`<tr><td style="font-weight:600">${s.p}</td><td style="text-align:center">${s.tp}</td><td>${fRM(s.pr)}</td><td>${fRM(s.tr)}</td><td style="text-align:center;font-weight:700">${s.ap}</td><td style="color:var(--green);font-weight:700">${fRM(s.ar)}</td><td style="color:${s.ar>=s.tr?'var(--green)':'var(--red)'};font-size:10.5px">${fRM(s.ar-s.tr)}</td><td><span style="font-size:10px;font-weight:700;color:${p<30?'var(--red)':p<70?'var(--amber)':'var(--green)'}">${p.toFixed(0)}%</span></td></tr>`;
+    return`<tr><td style="font-weight:600">${s.p}</td><td style="text-align:center">${s.tp}</td><td>${fRM(s.pr)}</td><td>${fRM(s.tr)}</td><td style="text-align:center;font-weight:700">${eNum('SBD','sbd',i,'ap',s.ap)}</td><td style="color:var(--green);font-weight:700">${eNum('SBD','sbd',i,'ar',s.ar)}</td><td style="color:${s.ar>=s.tr?'var(--green)':'var(--red)'};font-size:10.5px">${fRM(s.ar-s.tr)}</td><td><span style="font-size:10px;font-weight:700;color:${p<30?'var(--red)':p<70?'var(--amber)':'var(--green)'}">${p.toFixed(0)}%</span></td></tr>`;
   }).join('');
   const totAr=SBD.reduce((a,b)=>a+b.ar,0),totTr=SBD.reduce((a,b)=>a+b.tr,0);
   const sbFoot=document.getElementById('sb-foot');
