@@ -655,6 +655,7 @@ body{background:var(--cream);color:var(--text);font-family:'Plus Jakarta Sans',s
       <div style="width:100%;display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
         <span style="font-size:11px;font-weight:700;color:var(--text2)">➕ 添加活动</span>
         <div style="display:flex;gap:6px">
+          <button onclick="save('events',EVENTS);alert('✅ 已同步 '+EVENTS.length+' 个活动到 Sheet！')" style="font-size:10px;color:var(--green);background:var(--greenB);border:1px solid rgba(26,110,66,.3);border-radius:6px;padding:3px 10px;cursor:pointer;font-weight:600">☁️ 同步到 Sheet</button>
           <a href="https://docs.google.com/spreadsheets/d/1A3g_WPDU-R4zU8gj8gGHu885z5bk4lTBBRnCfDsstDI/edit" target="_blank" style="font-size:10px;color:var(--blue);text-decoration:none;display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border:1px solid rgba(59,130,246,.3);border-radius:6px;background:var(--blueB);font-weight:600">📅 活动 Sheet ↗</a>
           <a href="https://docs.google.com/spreadsheets/d/1_6bghVk44SlC9tH9vDENcw3JeorzCINaWSbkMbMcS38/edit" target="_blank" style="font-size:10px;color:var(--muted);text-decoration:none;display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border:1px solid var(--border);border-radius:6px">📊 Operation Sheet</a>
         </div>
