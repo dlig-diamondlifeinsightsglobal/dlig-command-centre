@@ -416,28 +416,31 @@ function readEventsTab() {
     time:   find('time','时间'),
     type:   find('type','类型'),
     person: find('person','负责人','who'),
+    repeat: find('repeat','重复','循环'),
     active: find('active','是否启用','启用')
   };
 
   const g  = (row, c) => c >= 0 ? String(row[c] ?? '').trim() : '';
   const fd = (row, c) => c >= 0 ? fmtDate(row[c]) : '';
 
+  // Send ALL rows to frontend (including active=false — used as cancellation markers for repeat events)
   return data.slice(1).filter(row => {
     const d = fd(row, col.date) || g(row, col.date);
-    if (!d || !g(row, col.name)) return false;
-    if (col.active >= 0) {
-      const act = g(row, col.active).toLowerCase();
-      if (['false','no','0','✗','x','否'].includes(act)) return false;
-    }
-    return true;
-  }).map((row, idx) => ({
-    id:     'ev_s_' + (idx + 1),
-    name:   g(row, col.name),
-    date:   fd(row, col.date) || g(row, col.date),
-    time:   g(row, col.time),
-    type:   g(row, col.type) || 'meet',
-    person: g(row, col.person)
-  }));
+    return d && g(row, col.name); // only skip completely empty rows
+  }).map((row, idx) => {
+    const actRaw = g(row, col.active).toLowerCase();
+    const active = !['false','no','0','✗','x','否'].includes(actRaw);
+    return {
+      id:     'ev_s_' + (idx + 1),
+      name:   g(row, col.name),
+      date:   fd(row, col.date) || g(row, col.date),
+      time:   g(row, col.time),
+      type:   g(row, col.type) || 'meet',
+      person: g(row, col.person),
+      repeat: g(row, col.repeat).toLowerCase(),  // 'weekly', 'daily', or ''
+      active: active
+    };
+  });
 }
 
 // ─── EVENTS 活动 写入 ───────────────────────────────────────
@@ -448,7 +451,7 @@ function writeEventsTab(items) {
   if (!tab) {
     tab = ss.insertSheet(EVENTS_TAB);
   }
-  const HDR = ['date','name','time','type','person','active'];
+  const HDR = ['date','name','time','type','person','repeat','active'];
   tab.clearContents();
   tab.getRange(1, 1, 1, HDR.length).setValues([HDR])
      .setFontWeight('bold').setBackground('#e8f4fd');
@@ -459,7 +462,8 @@ function writeEventsTab(items) {
     e.time   || '',
     e.type   || 'meet',
     e.person || '',
-    'true'
+    e.repeat || '',
+    e.active === false ? 'FALSE' : 'TRUE'
   ]);
   tab.getRange(2, 1, rows.length, HDR.length).setValues(rows);
   return { ok: true, rows: rows.length };

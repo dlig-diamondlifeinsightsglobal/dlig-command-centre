@@ -637,9 +637,7 @@ body{background:var(--cream);color:var(--text);font-family:'Plus Jakarta Sans',s
       <div class="cal-filter" id="cal-filter" style="display:flex;gap:6px;flex-wrap:wrap;flex:1">
         <span class="fl">Filter：</span>
         <button class="fb on" onclick="calFilter('all',this)">All</button>
-        <button class="fb" onclick="calFilter('ylyd',this)" style="color:var(--green)">🌱 YLYD</button>
-        <button class="fb" onclick="calFilter('xindong',this)" style="color:var(--gold)">💎 心动觉察</button>
-        <button class="fb" onclick="calFilter('mkt',this)" style="color:var(--purple)">📣 Marketing</button>
+        <button class="fb" onclick="calFilter('ylyd',this)" style="color:var(--green)">🌱 YLYD & 心动觉察</button>
         <button class="fb" onclick="calFilter('meet',this)" style="color:var(--blue)">📋 会议</button>
         <button class="fb" onclick="calFilter('dlig4',this)" style="color:var(--red)">🌱 四步骤</button>
       </div>
@@ -2313,20 +2311,49 @@ function addEvent(){
 
 function buildEvMap(startOff,endOff){
   const today=new Date();
+  const today0=new Date(today.getFullYear(),today.getMonth(),today.getDate());
   const evMap={};
+  // Daily Redesign hardcoded
   for(let i=startOff;i<endOff;i++){
     const d=new Date(today.getFullYear(),today.getMonth(),today.getDate()+i);
     const ds=d.toISOString().split('T')[0];
     if(!evMap[ds])evMap[ds]=[];
-    const dow=d.getDay();
-    if(dow===4){
-      evMap[ds].push({name:'Thu Meeting',time:'8:00am',type:'meet',person:'全员',isEvent:true});
-      evMap[ds].push({name:'YLYD Realign',time:'2:00pm',type:'ylyd',person:'轮值',isEvent:true});
-    }
     evMap[ds].push({name:'Daily Redesign',time:'6:10am',type:'dr',person:'轮值',isEvent:true});
   }
-  // Tasks removed from main calendar per user request — calendar shows meetings/events only
-  EVENTS.forEach(e=>{if(!evMap[e.date])evMap[e.date]=[];evMap[e.date].push({...e,isEvent:true});});
+  // Build cancellation set (active=false rows used to cancel specific repeat occurrences)
+  const cancelled=new Set();
+  EVENTS.forEach(e=>{if(e.active===false)cancelled.add((e.name||'').toLowerCase()+'|'+e.date);});
+  // Process events: one-time and repeat
+  EVENTS.forEach(e=>{
+    if(e.active===false)return; // skip cancellation markers
+    if(!e.repeat){
+      // One-time event
+      if(!evMap[e.date])evMap[e.date]=[];
+      evMap[e.date].push({...e,isEvent:true});
+    } else if(e.repeat==='weekly'){
+      // Expand weekly — same day-of-week as start date
+      const start=new Date(e.date+'T00:00:00');
+      for(let w=-8;w<Math.ceil(endOff/7)+4;w++){
+        const occ=new Date(start);occ.setDate(start.getDate()+w*7);
+        const ds=occ.toISOString().split('T')[0];
+        const off=Math.round((occ-today0)/(864e5));
+        if(off<startOff||off>=endOff)continue;
+        if(cancelled.has((e.name||'').toLowerCase()+'|'+ds))continue;
+        if(!evMap[ds])evMap[ds]=[];
+        evMap[ds].push({...e,date:ds,isEvent:true});
+      }
+    } else if(e.repeat==='daily'){
+      const start=new Date(e.date+'T00:00:00');
+      for(let i=startOff;i<endOff;i++){
+        const d=new Date(today.getFullYear(),today.getMonth(),today.getDate()+i);
+        if(d<start)continue;
+        const ds=d.toISOString().split('T')[0];
+        if(cancelled.has((e.name||'').toLowerCase()+'|'+ds))continue;
+        if(!evMap[ds])evMap[ds]=[];
+        evMap[ds].push({...e,date:ds,isEvent:true});
+      }
+    }
+  });
   MKT_CONTENT.forEach(m=>{if(!evMap[m.date])evMap[m.date]=[];evMap[m.date].push({name:'📣 '+m.title.slice(0,10),type:'mkt',person:m.person,isEvent:true});});
   return evMap;
 }
@@ -2334,7 +2361,7 @@ function buildEvMap(startOff,endOff){
 function renderCalendar(){
   const today=new Date();
   const evMap=buildEvMap(-30, CAL_MODE==='year'?400:120);
-  const fc=(type)=>CAL_F==='all'||type===CAL_F||type==='task'||type==='dr';
+  const fc=(type)=>CAL_F==='all'||(CAL_F==='ylyd'&&(type==='ylyd'||type==='xindong'))||type===CAL_F||type==='dr';
 
   // Determine months to show
   let months=[];
@@ -2382,7 +2409,7 @@ function renderCalendar(){
           const isTask=!e.isEvent||e.type==='task';
           const bg=isTask?st.taskBg:st.bg;
           const col=isTask?'#fff':st.color;
-          const timeStr=e.time?`<div style="font-size:7px;opacity:.8;margin-bottom:1px">${e.time}</div>`:'';
+          const timeParts=e.time?e.time.split('-'):[];const timeStr=e.time?`<div style="font-size:7px;opacity:.8;margin-bottom:1px">${timeParts[0]||e.time}${timeParts[1]?' → '+timeParts[1]:''}</div>`:'';
           return`<div style="padding:3px 5px;border-radius:5px;margin-bottom:3px;overflow:hidden;background:${bg};color:${col}">
             ${timeStr}
             <div style="font-size:8.5px;font-weight:700;white-space:nowrap;text-overflow:ellipsis;overflow:hidden">${e.name.slice(0,18)}</div>
@@ -2406,7 +2433,7 @@ function showCalDetail(ds){
       <div style="width:10px;height:10px;border-radius:50%;background:${evStyle[e.type]||'var(--muted)'};flex-shrink:0"></div>
       <div style="font-size:12.5px;font-weight:700">${e.name}</div>
     </div>
-    <div style="font-size:10.5px;color:var(--muted);margin-top:3px;padding-left:18px">${e.time||''} ${e.person?'· '+e.person:''}</div>
+    <div style="font-size:10.5px;color:var(--muted);margin-top:3px;padding-left:18px">${e.time?e.time.replace('-',' → '):''} ${e.person?'· '+e.person:''}</div>
   </div>`).join(''):'<div style="color:var(--muted);font-size:12px;padding:10px 0">这天暂无活动</div>';
   document.getElementById('cal-modal').classList.add('on');
 }
