@@ -2443,7 +2443,7 @@ function showCalDetail(ds){
       <div style="width:10px;height:10px;border-radius:50%;background:${evStyle[e.type]||'var(--muted)'};flex-shrink:0"></div>
       <div style="font-size:12.5px;font-weight:700">${e.name}</div>
     </div>
-    <div style="font-size:10.5px;color:var(--muted);margin-top:3px;padding-left:18px">${e.time?e.time.replace('-',' → '):''} ${e.person?'· '+e.person:''}</div>
+    <div style="font-size:10.5px;color:var(--muted);margin-top:3px;padding-left:18px">${e.time?e.time.replace('-',' → '):''} ${e.person?'· 负责人：'+e.person:''}</div>
   </div>`).join(''):'<div style="color:var(--muted);font-size:12px;padding:10px 0">这天暂无活动</div>';
   document.getElementById('cal-modal').classList.add('on');
 }
