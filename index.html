@@ -2482,17 +2482,41 @@ function calDelEv(ei,ds){
 function calEditEv(ei,ds){
   const e=window._calDetailEvents[ei];if(!e)return;
   const isRepeat=e.repeat==='weekly'||e.repeat==='daily';
-  const label=isRepeat?'（修改这天的时间，不影响其他周）':'';
-  const newTime=prompt('修改时间'+label+'\n格式：8:00am 或 8:00am-9:00am\n\n当前：'+(e.time||'未设置'));
-  if(newTime===null)return;
+  // Show inline edit form inside modal
+  const eid='cev_'+ei;
+  const el=document.getElementById(eid);if(!el)return;
+  el.innerHTML=`
+    <div style="padding:4px 0">
+      <div style="font-size:11px;font-weight:700;color:var(--text2);margin-bottom:8px">✏️ 编辑：${e.name}${isRepeat?'<span style="font-size:9px;font-weight:400;color:var(--muted);margin-left:6px">只改这一天</span>':''}</div>
+      <div style="display:flex;flex-direction:column;gap:6px">
+        <div style="display:flex;align-items:center;gap:8px">
+          <span style="font-size:10px;color:var(--muted);width:50px">时间</span>
+          <input id="cev_time_${ei}" value="${e.time||''}" placeholder="8:00am-9:00am" style="flex:1;border:1px solid var(--border);border-radius:5px;padding:4px 8px;font-size:11px">
+        </div>
+        <div style="display:flex;align-items:center;gap:8px">
+          <span style="font-size:10px;color:var(--muted);width:50px">负责人</span>
+          <input id="cev_person_${ei}" value="${e.person||''}" placeholder="Li Joo / Roy / 全员" style="flex:1;border:1px solid var(--border);border-radius:5px;padding:4px 8px;font-size:11px">
+        </div>
+        <div style="display:flex;gap:6px;margin-top:4px">
+          <button onclick="calSaveEv(${ei},'${ds}')" style="flex:1;background:var(--gold);color:#fff;border:none;border-radius:6px;padding:5px;font-size:11px;font-weight:700;cursor:pointer">保存</button>
+          <button onclick="showCalDetail('${ds}')" style="flex:1;background:none;border:1px solid var(--border);border-radius:6px;padding:5px;font-size:11px;cursor:pointer">取消</button>
+        </div>
+      </div>
+    </div>`;
+}
+
+function calSaveEv(ei,ds){
+  const e=window._calDetailEvents[ei];if(!e)return;
+  const isRepeat=e.repeat==='weekly'||e.repeat==='daily';
+  const newTime=(document.getElementById('cev_time_'+ei)||{}).value||e.time||'';
+  const newPerson=(document.getElementById('cev_person_'+ei)||{}).value||e.person||'';
   if(isRepeat){
-    // Override just this occurrence: add a specific entry for this date
-    EVENTS.push({id:'ev_override_'+Date.now(),name:e.name,date:ds,time:newTime.trim(),type:e.type,person:e.person,repeat:'',active:true});
-    // Also cancel the repeat for this date
+    // Add override for this date, cancel the repeat for this date
+    EVENTS.push({id:'ev_override_'+Date.now(),name:e.name,date:ds,time:newTime.trim(),type:e.type,person:newPerson.trim(),repeat:'',active:true});
     EVENTS.push({id:'ev_cancel_'+Date.now(),name:e.name,date:ds,time:'',type:e.type,person:'',repeat:'',active:false});
   } else {
     const idx=EVENTS.findIndex(x=>x.id===e.id||(x.name===e.name&&x.date===e.date));
-    if(idx>=0){EVENTS[idx].time=newTime.trim();}
+    if(idx>=0){EVENTS[idx].time=newTime.trim();EVENTS[idx].person=newPerson.trim();}
   }
   quietSave('events',EVENTS);syncToSheets('events',EVENTS);
   renderCalendar();renderOverview();
