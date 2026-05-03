@@ -1303,15 +1303,20 @@ async function loadFromSheets(){
     const evDirty=parseInt(localStorage.getItem('dlig7__lt_events')||'0');
     if(Array.isArray(evrows)&&evrows.length>0){
       if(evDirty>0){
-        // 本地有未同步的改动，以本地为准，把本地推到 Sheet
         syncToSheets('events',EVENTS);
       } else {
-        // Sheet 有数据且本地无 dirty，以 Sheet 为准
-        EVENTS=evrows;
-        try{localStorage.setItem('dlig7_events',JSON.stringify(evrows));}catch(e){}
+        // Merge: Sheet data + any RECURRING_DEFAULTS missing from Sheet
+        let merged=[...evrows];
+        let needsSync=false;
+        RECURRING_DEFAULTS.forEach(def=>{
+          const inSheet=evrows.some(e=>e.name===def.name&&e.repeat==='weekly');
+          if(!inSheet){merged.push(def);needsSync=true;}
+        });
+        EVENTS=merged;
+        try{localStorage.setItem('dlig7_events',JSON.stringify(merged));}catch(e){}
+        if(needsSync)syncToSheets('events',EVENTS);
       }
     } else if(EVENTS.length>0){
-      // Sheet 是空的，自动把本地活动推上去
       syncToSheets('events',EVENTS);
     }
   }catch(e){}
@@ -1386,6 +1391,10 @@ let DEC=load('decisions',[
   {id:'d2',q:'分钱机制最终定案（贡献时间 × 价值系数）',opts:['季度结算，工时50%+任务50%','月度结算'],votes:{},comments:[],owner:'All',dl:'2026-04-05'},
   {id:'d3',q:'Affiliate 机制 — YLYD System 持续被动收入？',opts:['有被动收入，每年续费给%','只有首次成交20%'],votes:{},comments:[],owner:'Li Joo',dl:'2026-04-05'},
 ]);
+const RECURRING_DEFAULTS=[
+  {id:'ev_weekly_meet',name:'Weekly Meeting',date:'2026-05-08',time:'8:00am-9:00am',type:'meet',person:'全员',repeat:'weekly',active:true},
+  {id:'ev_ylyd_realign',name:'YLYD Realign',date:'2026-05-08',time:'2:00pm-4:00pm',type:'ylyd',person:'轮值',repeat:'weekly',active:true},
+];
 let EVENTS=load('events',[
   {id:'e1',name:'心动觉察 Day 1',date:'2026-03-28',type:'xindong',person:'All'},
   {id:'e2',name:'心动觉察 Day 2',date:'2026-03-29',type:'xindong',person:'All'},
@@ -1393,6 +1402,7 @@ let EVENTS=load('events',[
   {id:'e4',name:'心动觉察 Day 2',date:'2026-04-12',type:'xindong',person:'All'},
   {id:'e5',name:'Monthly Meeting',date:'2026-03-31',type:'meet',person:'All'},
   {id:'e6',name:'Monthly Meeting',date:'2026-04-28',type:'meet',person:'All'},
+  ...RECURRING_DEFAULTS,
 ]);
 let ROTATION=[]; // 从 Rotation 轮值 tab 读取，格式：[{date:'2026-04-03',person:'Li Joo'},...]
 let MINUTES=load('minutes',[{id:'m1',date:'2026-03-25',title:'Meeting Minutes 2026 W12',link:'https://docs.google.com/document/d/1YxXGVfEcNReIk3JBH4nPDdpkGK5l_q6Y1YtkZJFqjFg/edit',note:'分钱机制讨论'}]);
