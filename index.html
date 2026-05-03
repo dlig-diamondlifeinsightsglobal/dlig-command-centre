@@ -1302,11 +1302,18 @@ async function loadFromSheets(){
   try{
     const evres=await fetch(SHEETS_API_URL+'?sheet=events');
     const evrows=await evres.json();
+    const evDirty=parseInt(localStorage.getItem('dlig7__lt_events')||'0');
     if(Array.isArray(evrows)&&evrows.length>0){
-      EVENTS=evrows;
-      try{localStorage.setItem('dlig7_events',JSON.stringify(evrows));}catch(e){}
+      if(evDirty>0){
+        // 本地有未同步的改动，以本地为准，把本地推到 Sheet
+        syncToSheets('events',EVENTS);
+      } else {
+        // Sheet 有数据且本地无 dirty，以 Sheet 为准
+        EVENTS=evrows;
+        try{localStorage.setItem('dlig7_events',JSON.stringify(evrows));}catch(e){}
+      }
     } else if(EVENTS.length>0){
-      // Sheet 是空的，自动把本地活动同步上去（首次启用时的 bootstrap）
+      // Sheet 是空的，自动把本地活动推上去
       syncToSheets('events',EVENTS);
     }
   }catch(e){}
