@@ -1300,23 +1300,21 @@ async function loadFromSheets(){
   try{
     const evres=await fetch(SHEETS_API_URL+'?sheet=events');
     const evrows=await evres.json();
-    const evDirty=parseInt(localStorage.getItem('dlig7__lt_events')||'0');
+    // Events: Sheet is always master — clear any dirty flag, always read from Sheet
+    try{localStorage.removeItem('dlig7__lt_events');}catch(e){}
     if(Array.isArray(evrows)&&evrows.length>0){
-      if(evDirty>0){
-        syncToSheets('events',EVENTS);
-      } else {
-        // Merge: Sheet data + any RECURRING_DEFAULTS missing from Sheet
-        let merged=[...evrows];
-        let needsSync=false;
-        RECURRING_DEFAULTS.forEach(def=>{
-          const inSheet=evrows.some(e=>e.name===def.name&&e.repeat==='weekly');
-          if(!inSheet){merged.push(def);needsSync=true;}
-        });
-        EVENTS=merged;
-        try{localStorage.setItem('dlig7_events',JSON.stringify(merged));}catch(e){}
-        if(needsSync)syncToSheets('events',EVENTS);
-      }
-    } else if(EVENTS.length>0){
+      // Merge: Sheet data + any RECURRING_DEFAULTS not yet in Sheet
+      let merged=[...evrows];
+      let needsSync=false;
+      RECURRING_DEFAULTS.forEach(def=>{
+        const inSheet=evrows.some(e=>e.name===def.name&&e.repeat==='weekly');
+        if(!inSheet){merged.push(def);needsSync=true;}
+      });
+      EVENTS=merged;
+      try{localStorage.setItem('dlig7_events',JSON.stringify(merged));}catch(e){}
+      if(needsSync)syncToSheets('events',EVENTS);
+    } else {
+      // Sheet empty — push local defaults to Sheet
       syncToSheets('events',EVENTS);
     }
   }catch(e){}
@@ -2314,9 +2312,11 @@ function setCalMode(m,btn){
 function addEvent(){
   const name=document.getElementById('ev-name').value.trim();const date=document.getElementById('ev-date').value;
   if(!name||!date)return;
-  EVENTS.push({id:'e'+Date.now(),name,date,time:document.getElementById('ev-time').value.trim(),type:document.getElementById('ev-type').value,person:document.getElementById('ev-person').value});
+  EVENTS.push({id:'e'+Date.now(),name,date,time:document.getElementById('ev-time').value.trim(),type:document.getElementById('ev-type').value,person:document.getElementById('ev-person').value,repeat:'',active:true});
   document.getElementById('ev-name').value='';document.getElementById('ev-time').value='';
-  save('events',EVENTS);renderCalendar();renderOverview();
+  // Use quietSave (no dirty flag) + direct Sheet sync — Sheet is master for events
+  quietSave('events',EVENTS);syncToSheets('events',EVENTS);
+  renderCalendar();renderOverview();
 }
 
 function buildEvMap(startOff,endOff){
