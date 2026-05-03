@@ -2438,14 +2438,65 @@ function showCalDetail(ds){
   const events=(evMap[ds]||[]).filter(e=>e.type!=='dr');
   const evStyle={meet:'var(--blue)',ylyd:'var(--green)',xindong:'var(--gold)',mkt:'var(--purple)',dlig4:'var(--red)',task:'var(--text)',dr:'var(--muted)'};
   document.getElementById('cal-modal-title').textContent='📅 '+ds;
-  document.getElementById('cal-modal-body').innerHTML=events.length?events.map(e=>`<div style="padding:8px 0;border-bottom:1px solid var(--border)">
-    <div style="display:flex;align-items:center;gap:8px">
-      <div style="width:10px;height:10px;border-radius:50%;background:${evStyle[e.type]||'var(--muted)'};flex-shrink:0"></div>
-      <div style="font-size:12.5px;font-weight:700">${e.name}</div>
-    </div>
-    <div style="font-size:10.5px;color:var(--muted);margin-top:3px;padding-left:18px">${e.time?e.time.replace('-',' → '):''} ${e.person?'· 负责人：'+e.person:''}</div>
-  </div>`).join(''):'<div style="color:var(--muted);font-size:12px;padding:10px 0">这天暂无活动</div>';
+  const renderModal=()=>{
+    document.getElementById('cal-modal-body').innerHTML=events.length?events.map((e,ei)=>{
+      const isRepeat=e.repeat==='weekly'||e.repeat==='daily';
+      const eid='cev_'+ei;
+      return`<div id="${eid}" style="padding:10px 0;border-bottom:1px solid var(--border)">
+        <div style="display:flex;align-items:center;gap:8px">
+          <div style="width:10px;height:10px;border-radius:50%;background:${evStyle[e.type]||'var(--muted)'};flex-shrink:0"></div>
+          <div style="font-size:12.5px;font-weight:700;flex:1">${e.name}${isRepeat?'<span style="font-size:9px;color:var(--muted);margin-left:6px;font-weight:400">每周</span>':''}</div>
+          <button onclick="calEditEv(${ei},'${ds}')" style="background:none;border:1px solid var(--border);border-radius:5px;padding:2px 8px;font-size:10px;color:var(--blue);cursor:pointer">✏️ 编辑</button>
+          <button onclick="calDelEv(${ei},'${ds}')" style="background:none;border:1px solid var(--border);border-radius:5px;padding:2px 8px;font-size:10px;color:var(--red);cursor:pointer">🗑</button>
+        </div>
+        <div style="font-size:10.5px;color:var(--muted);margin-top:3px;padding-left:18px">${e.time?e.time.replace('-',' → '):''} ${e.person?'· 负责人：'+e.person:''}</div>
+      </div>`;
+    }).join(''):'<div style="color:var(--muted);font-size:12px;padding:10px 0">这天暂无活动</div>';
+  };
+  renderModal();
   document.getElementById('cal-modal').classList.add('on');
+
+  window._calDetailEvents=events;
+  window._calDetailDs=ds;
+  window._calDetailRender=renderModal;
+}
+
+function calDelEv(ei,ds){
+  const e=window._calDetailEvents[ei];if(!e)return;
+  const isRepeat=e.repeat==='weekly'||e.repeat==='daily';
+  if(isRepeat){
+    // Cancel this specific occurrence: add active=false marker
+    if(!confirm('只取消 '+ds+' 这一天的「'+e.name+'」吗？'))return;
+    EVENTS.push({id:'ev_cancel_'+Date.now(),name:e.name,date:ds,time:'',type:e.type,person:'',repeat:'',active:false});
+  } else {
+    if(!confirm('确定删除「'+e.name+'」吗？'))return;
+    const idx=EVENTS.findIndex(x=>x.id===e.id||(x.name===e.name&&x.date===e.date));
+    if(idx>=0)EVENTS.splice(idx,1);
+  }
+  quietSave('events',EVENTS);syncToSheets('events',EVENTS);
+  window._calDetailEvents.splice(ei,1);
+  window._calDetailRender();
+  renderCalendar();renderOverview();
+}
+
+function calEditEv(ei,ds){
+  const e=window._calDetailEvents[ei];if(!e)return;
+  const isRepeat=e.repeat==='weekly'||e.repeat==='daily';
+  const label=isRepeat?'（修改这天的时间，不影响其他周）':'';
+  const newTime=prompt('修改时间'+label+'\n格式：8:00am 或 8:00am-9:00am\n\n当前：'+(e.time||'未设置'));
+  if(newTime===null)return;
+  if(isRepeat){
+    // Override just this occurrence: add a specific entry for this date
+    EVENTS.push({id:'ev_override_'+Date.now(),name:e.name,date:ds,time:newTime.trim(),type:e.type,person:e.person,repeat:'',active:true});
+    // Also cancel the repeat for this date
+    EVENTS.push({id:'ev_cancel_'+Date.now(),name:e.name,date:ds,time:'',type:e.type,person:'',repeat:'',active:false});
+  } else {
+    const idx=EVENTS.findIndex(x=>x.id===e.id||(x.name===e.name&&x.date===e.date));
+    if(idx>=0){EVENTS[idx].time=newTime.trim();}
+  }
+  quietSave('events',EVENTS);syncToSheets('events',EVENTS);
+  renderCalendar();renderOverview();
+  document.getElementById('cal-modal').classList.remove('on');
 }
 
 // ═══════════════════════════════════════
