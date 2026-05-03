@@ -2365,6 +2365,18 @@ function buildEvMap(startOff,endOff){
     }
   });
   MKT_CONTENT.forEach(m=>{if(!evMap[m.date])evMap[m.date]=[];evMap[m.date].push({name:'📣 '+m.title.slice(0,10),type:'mkt',person:m.person,isEvent:true});});
+  // Auto-fill person from Rotation if person='轮值' — both systems work together
+  // ROTATION_DATA.wr: [{date, person, theme}] for YLYD Realign
+  // ROTATION_DATA.dr: [{month, mon,tue,...}] for Daily Redesign
+  if(ROTATION_DATA){
+    const wrMap={};
+    (ROTATION_DATA.wr||[]).forEach(r=>{if(r.date&&r.person)wrMap[r.date]=r.person;});
+    Object.values(evMap).forEach(evs=>evs.forEach(ev=>{
+      if(ev.person==='轮值'||!ev.person){
+        if(wrMap[ev.date])ev.person=wrMap[ev.date];
+      }
+    }));
+  }
   return evMap;
 }
 
