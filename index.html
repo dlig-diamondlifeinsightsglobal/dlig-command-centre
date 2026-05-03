@@ -654,7 +654,10 @@ body{background:var(--cream);color:var(--text);font-family:'Plus Jakarta Sans',s
     <div style="display:flex;gap:8px;margin-bottom:14px;align-items:flex-end;flex-wrap:wrap;background:var(--white);border:1.5px solid var(--border);border-radius:var(--r);padding:14px;box-shadow:var(--sh)">
       <div style="width:100%;display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
         <span style="font-size:11px;font-weight:700;color:var(--text2)">➕ 添加活动</span>
-        <a href="https://docs.google.com/spreadsheets/d/1_6bghVk44SlC9tH9vDENcw3JeorzCINaWSbkMbMcS38/edit" target="_blank" style="font-size:10px;color:var(--muted);text-decoration:none;display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border:1px solid var(--border);border-radius:6px">📊 Operation Sheet</a>
+        <div style="display:flex;gap:6px">
+          <a href="https://docs.google.com/spreadsheets/d/1A3g_WPDU-R4zU8gj8gGHu885z5bk4lTBBRnCfDsstDI/edit" target="_blank" style="font-size:10px;color:var(--blue);text-decoration:none;display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border:1px solid rgba(59,130,246,.3);border-radius:6px;background:var(--blueB);font-weight:600">📅 活动 Sheet ↗</a>
+          <a href="https://docs.google.com/spreadsheets/d/1_6bghVk44SlC9tH9vDENcw3JeorzCINaWSbkMbMcS38/edit" target="_blank" style="font-size:10px;color:var(--muted);text-decoration:none;display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border:1px solid var(--border);border-radius:6px">📊 Operation Sheet</a>
+        </div>
       </div>
       <div class="ff" style="flex:1;min-width:140px"><div class="fl2">活动名称</div><input class="fi" id="ev-name" placeholder="活动名称"></div>
       <div class="ff"><div class="fl2">日期</div><input class="fi" id="ev-date" type="date" style="width:150px"></div>
@@ -1232,7 +1235,7 @@ function calcEffDL(dl,done){if(!dl||!done)return null;try{const d=Math.floor((ne
 // ═══════════════════════════════════════
 const SHEETS_API_URL = 'https://script.google.com/macros/s/AKfycbxD9lCg_7WC69Wzq-HBK4tSQPJv4f_cpV-73-GRP8duy2JhwO7-NVetJnam4KPPSUXz/exec';
 
-const SHEET_KEY_MAP = {'tasks':'tasks','mkt_content':'mkt','gdc_tasks':'gdc','logs':'logs','decisions':'decisions','special_meetings':'special_meetings','attendance':'attendance','sb_records':'sb_records','au_records':'au_records','xd_roles':'xd_roles','xd_flow':'xd_flow','xd_cl_data':'xd_cl_data','gdc_notes':'gdc_notes'};
+const SHEET_KEY_MAP = {'tasks':'tasks','mkt_content':'mkt','gdc_tasks':'gdc','events':'events','logs':'logs','decisions':'decisions','special_meetings':'special_meetings','attendance':'attendance','sb_records':'sb_records','au_records':'au_records','xd_roles':'xd_roles','xd_flow':'xd_flow','xd_cl_data':'xd_cl_data','gdc_notes':'gdc_notes'};
 
 let _syncTimer=null;
 function showSyncStatus(success){

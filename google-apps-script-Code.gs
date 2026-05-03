@@ -440,6 +440,31 @@ function readEventsTab() {
   }));
 }
 
+// ─── EVENTS 活动 写入 ───────────────────────────────────────
+
+function writeEventsTab(items) {
+  const ss  = SpreadsheetApp.openById(SHEET_IDS.tasks);
+  let tab   = ss.getSheetByName(EVENTS_TAB);
+  if (!tab) {
+    tab = ss.insertSheet(EVENTS_TAB);
+  }
+  const HDR = ['date','name','time','type','person','active'];
+  tab.clearContents();
+  tab.getRange(1, 1, 1, HDR.length).setValues([HDR])
+     .setFontWeight('bold').setBackground('#e8f4fd');
+  if (!Array.isArray(items) || items.length === 0) return { ok: true, rows: 0 };
+  const rows = items.map(e => [
+    e.date   || '',
+    e.name   || '',
+    e.time   || '',
+    e.type   || 'meet',
+    e.person || '',
+    'true'
+  ]);
+  tab.getRange(2, 1, rows.length, HDR.length).setValues(rows);
+  return { ok: true, rows: rows.length };
+}
+
 // ─── ROTATION 轮值 写入 ──────────────────────────────────────
 
 function writeRotationTab(items) {
@@ -970,6 +995,7 @@ function doPost(e) {
     if (type === 'tasks')    return respond(writeTaskBoard(Array.isArray(data) ? data : []));
     if (type === 'mkt')      return respond(writeMarketingContent(Array.isArray(data) ? data : []));
     if (type === 'gdc')      return respond(writeGDCJobs(Array.isArray(data) ? data : []));
+    if (type === 'events')   return respond(writeEventsTab(Array.isArray(data) ? data : []));
     if (type === 'rotation') return respond(writeRotationTab(Array.isArray(data) ? data : []));
     if (type === 'logs')             return respond(writeLogs(Array.isArray(data) ? data : []));
     if (type === 'decisions')        return respond(writeDecisions(Array.isArray(data) ? data : []));
