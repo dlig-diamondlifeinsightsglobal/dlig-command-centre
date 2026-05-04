@@ -1251,7 +1251,11 @@ function syncToSheets(key,data){
   const el=document.getElementById('sheets-status');
   if(el)el.innerHTML='<span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--amber);animation:pulse 2s infinite"></span>&nbsp;正在同步…';
   fetch(SHEETS_API_URL+'?sheet='+type,{method:'POST',body:JSON.stringify(data),headers:{'Content-Type':'text/plain'}})
-    .then(()=>{try{localStorage.removeItem('dlig7__lt_'+key);}catch(e){}showSyncStatus(true);}).catch(()=>showSyncStatus(false));
+    .then(r=>r.json()).then(j=>{
+      const success=j&&(j.ok===true||j.count>=0||j.rows>=0);
+      if(success){try{localStorage.removeItem('dlig7__lt_'+key);}catch(e){}}
+      showSyncStatus(success);
+    }).catch(()=>showSyncStatus(false));
 }
 
 async function loadFromSheets(){
