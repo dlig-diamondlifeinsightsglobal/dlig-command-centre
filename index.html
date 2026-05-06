@@ -763,8 +763,8 @@ body{background:var(--cream);color:var(--text);font-family:'Plus Jakarta Sans',s
     <div class="yvc-grid" id="yvc-wrap"></div>
     <div style="background:var(--goldG);border-radius:12px;padding:16px 20px;color:#fff;margin-bottom:16px;">
       <div style="font-size:10px;font-weight:800;letter-spacing:1.5px;margin-bottom:5px;opacity:.85">YLYD SYSTEM 总市值</div>
-      <div style="font-family:'Space Mono',monospace;font-size:28px;font-weight:700;margin-bottom:4px;">RM 5,268+</div>
-      <div style="font-size:12.5px;opacity:.9">活动当天会员价 <strong>RM 1,288</strong> · 含 1对1 咨询 + 送 心动觉察 ×2（RM1,144）</div>
+      <div style="font-family:'Space Mono',monospace;font-size:28px;font-weight:700;margin-bottom:4px;">RM 3,551+</div>
+      <div style="font-size:12.5px;opacity:.9">首发优惠价 <strong>RM 1,288</strong>（-RM300）· 正价 RM 1,588/year</div>
     </div>
   </div>
 
@@ -784,7 +784,7 @@ body{background:var(--cream);color:var(--text);font-family:'Plus Jakarta Sans',s
 
   <!-- ══ 心动觉察 ══ -->
   <div class="page" id="p-xindong">
-    <div class="ib ib-gold"><b>💎 心动觉察 — 入口产品</b>让人看见自己需要系统 · 把人送进 YLYD · 会员价：双人RM227 / 单人RM257</div>
+    <div class="ib ib-gold"><b>💎 心动觉察 — 入口产品</b>让人看见自己需要系统 · 把人送进 YLYD · RM557/人（DLIG Space）· RM607/人（JB外部场）· RM717/人（外州）· 私人场 min 6pax</div>
     <div class="ptabs">
       <button class="pt-btn on" onclick="sProj('xd','cl',this)">✅ Checklist</button>
       <button class="pt-btn" onclick="sProj('xd','flow',this)">📋 活动流程</button>
@@ -905,7 +905,7 @@ body{background:var(--cream);color:var(--text);font-family:'Plus Jakarta Sans',s
 
   <!-- ══ YLYD SYSTEM ══ -->
   <div class="page" id="p-ylyd">
-    <div class="ib ib-green"><b>🌱 YLYD System — 核心产品（唯一长期经营）</b>不是课程，是12个月人生运行系统 · RM1,588/year · 活动当天 RM1,288</div>
+    <div class="ib ib-green"><b>🌱 YLYD System — 核心产品（唯一长期经营）</b>不是课程，是12个月人生运行系统 · 正价 RM1,588/year（RM132/月）· 首发优惠 RM1,288（-RM300）· 总市值 RM3,551+</div>
     <div class="env-tabs">
       <button class="env-tab on" onclick="sEnv('dr',this)">☀️ Daily Redesign</button>
       <button class="env-tab" onclick="sEnv('wr',this)">🌱 Weekly Realign</button>
@@ -1634,11 +1634,12 @@ let INV=load('inventory',[
   {n:'Nametag 纸',cat:'迎宾',qty:0,min:50,s:'补货',lead:'',link:''},
 ]);
 const PRODS=[
-  {tier:'入口 1',n:'心动觉察（Bukit Impian）',p:'让人看见自己需要系统',price:'双人RM227 / 单人RM257',orig:'RM557',note:'最低RM207/最高RM297 | 合作/特惠RM177'},
-  {tier:'入口 1',n:'心动觉察（Outstation）',p:'外州场',price:'双人RM337 / 单人RM377',orig:'RM717',note:'最低RM337 | min RM2000'},
-  {tier:'入口 2',n:'YLYD 体验包',p:'体验YLYD + 现金流辅助',price:'RM177',orig:'RM408',note:'含3mth设计册+终身会员+Realign票+目标设计营'},
+  {tier:'入口 1',n:'心动觉察（DLIG Space · Bukit Impian）',p:'让人看见自己需要系统',price:'RM557/人',orig:'RM557',note:'私人场：min 6pax RM3,000（每增1人+RM500）· 12pax RM5,000 | Affiliate 7% / 15%'},
+  {tier:'入口 1',n:'心动觉察（JB Non-DLIG Space）',p:'JB 外部场地',price:'RM607/人',orig:'RM607',note:'私人场：min 6pax RM3,300（每增1人+RM550）· 12pax RM5,500 | Affiliate 7% / 15%'},
+  {tier:'入口 1',n:'心动觉察（Outstation · West Malaysia）',p:'外州场',price:'RM717/人',orig:'RM717',note:'私人场：min 6pax RM4,200（每增1人+RM700）· 12pax RM7,000 | Affiliate 7% / 15%'},
+  {tier:'入口 2',n:'YLYD 体验包',p:'体验YLYD + 现金流辅助',price:'RM177',orig:'RM331',note:'含：3mth设计册 + YLYD终身会员 + 线下Weekly Realign'},
   {tier:'入口 3',n:'YLYD 目标设计一日营',p:'Q2/Q3 筹备中',price:'待定',orig:'—',note:'价格可调整'},
-  {tier:'核心',n:'YLYD System（12个月全套）',p:'让人不原地踏步',price:'RM1,588/year',orig:'RM5,268+',note:'活动当天RM1,288 + 1对1 + 送×2心动觉察'},
+  {tier:'核心',n:'YLYD System（12个月全套）',p:'让人不原地踏步',price:'RM1,588/year',orig:'RM3,551+',note:'首发优惠 RM1,288（-RM300）· RM132/月'},
   {tier:'散卖',n:'设计册 Refill 3mth',p:'现金流辅助',price:'RM27',orig:'RM37',note:''},
   {tier:'散卖',n:'设计册 Refill 12mth',p:'现金流辅助',price:'RM81',orig:'RM148',note:''},
   {tier:'散卖',n:'好种子库 Refill',p:'',price:'RM15',orig:'RM22',note:'5类别+50内页'},
@@ -1646,10 +1647,11 @@ const PRODS=[
   {tier:'散卖',n:'心动手册',p:'',price:'RM77',orig:'RM107',note:''},
   {tier:'散卖',n:'YLYD Shirt',p:'品牌',price:'RM49',orig:'RM69',note:'后续重新设计（目标 oversize 潮服 RM100+）'},
   {tier:'散卖',n:'单次 Realign（仅YLYD会员）',p:'',price:'RM77',orig:'RM177',note:''},
+  {tier:'散卖',n:'六小时书',p:'',price:'RM37',orig:'RM37',note:''},
 ];
 const YLYD_V=[
   {n:'☀️ Daily Redesign Space',f:'每天 6:10–7:20am · 365天',v:'无价',r:'每天有一个有方向的开始。靠结构，不靠感觉。是整个系统的底层习惯建立器。'},
-  {n:'🌱 Weekly Realign（含沙盘推演×8）',f:'每周四 · 4周循环 · Unlimited',v:'RM3,080',r:'每周有人帮你停下来检视：你有没有在走你要走的路？跑偏了就调整，再出发。'},
+  {n:'🌱 Weekly Realign',f:'每周四 · 4周循环 · Unlimited',v:'RM1,540',r:'每周有人帮你停下来检视：你有没有在走你要走的路？跑偏了就调整，再出发。'},
   {n:'🎮 沙盘推演',f:'8次/年 · Realign 第2&4周',v:'RM1,576',r:'用游戏化的方式看见自己做决策的模式。改变从觉察开始，不靠硬撑。'},
   {n:'📔 YLYD 设计册',f:'每3个月一册 · 共4册/年',v:'RM158',r:'把笔的故事四步骤落实在每一天里。有结构的每日行动载体。'},
   {n:'🎥 视频工具包',f:'预播课 · 随时看',v:'RM277',r:'人生设计工具包，配合设计册使用，让系统自动化运作。'},
@@ -1771,13 +1773,19 @@ const POLICIES=[
     {k:'创办人',v:'Li Joo · Jasper · Roy · Stella'},
     {k:'更新日',v:'12 March 2026 · 产品价格冻结至 30/6/2026'},
   ]},
+  {title:'💰 佣金结构 Commission',items:[
+    {k:'创办人直销',v:'15%（累计达RM30,000后22%）（累计达RM100,000后30%）'},
+    {k:'DLIG Ambassador（YLYD会员）',v:'任何产品 7%'},
+    {k:'Partner / Dealer',v:'15% 或 批发价'},
+    {k:'GDC Course Affiliate',v:'版权 15% · GMR 10% · 训练营报名 8%'},
+    {k:'KK Ong System',v:'USD 1,197 的 40%'},
+  ]},
   {title:'💰 分钱机制',items:[
     {k:'Donation',v:'直接销售5% + 季度总利润2.5% ALL + 2.5% DLIG Charity'},
     {k:'Task Subsidy',v:'Sales/Marketing 按价目表 · Operation Fixed Rate · 月底 payout'},
     {k:'效率系数',v:'提前2天以上×1.5 · 准时×1.0 · 延迟1-3天×0.5 · 超过3天未完成×0'},
     {k:'贡献值公式',v:'贡献值 = 时间 × 系数（Sales=3, Mktg=2, Sys=2, Ops=1, Admin=1）'},
-    {k:'DLIG Sales Affiliate',v:'合作方 15% · 客户 7%'},
-    {k:'Cofounders 分红',v:'季度结算 · 按贡献值比例'},
+    {k:'Cofounders 分红',v:'季度结算 · 按贡献值比例 · 利润25%按贡献分 + 10%员工/志愿者认可'},
   ]},
 ];
 const POL_OPS={items:[
