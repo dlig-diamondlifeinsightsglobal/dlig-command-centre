@@ -1348,18 +1348,11 @@ async function loadFromSheets(){
     // Events: Sheet is always master — clear any dirty flag, always read from Sheet
     try{localStorage.removeItem('dlig7__lt_events');}catch(e){}
     if(Array.isArray(evrows)&&evrows.length>0){
-      // Merge: Sheet data + any RECURRING_DEFAULTS not yet in Sheet
-      let merged=[...evrows];
-      let needsSync=false;
-      RECURRING_DEFAULTS.forEach(def=>{
-        const inSheet=evrows.some(e=>e.name===def.name&&e.repeat==='weekly');
-        if(!inSheet){merged.push(def);needsSync=true;}
-      });
-      EVENTS=merged;
-      try{localStorage.setItem('dlig7_events',JSON.stringify(merged));}catch(e){}
-      if(needsSync)syncToSheets('events',EVENTS);
+      // Sheet is master — use exactly what Sheet gives us, no auto-merge
+      EVENTS=evrows;
+      try{localStorage.setItem('dlig7_events',JSON.stringify(evrows));}catch(e){}
     } else {
-      // Sheet empty — push local defaults to Sheet
+      // Sheet empty — push local defaults to Sheet to bootstrap
       syncToSheets('events',EVENTS);
     }
   }catch(e){}
@@ -2372,6 +2365,21 @@ function addEvent(){
   renderCalendar();renderOverview();
 }
 
+// Return the date of the Nth occurrence of a day-of-week in a given month
+// dow: 0=Sun,1=Mon..6=Sat  n: 1–5 = nth occurrence, -1 = last occurrence
+function getNthDOWInMonth(year,month,dow,n){
+  if(n>0){
+    const first=new Date(year,month,1).getDay();
+    const firstOcc=(dow-first+7)%7+1;
+    const d=new Date(year,month,firstOcc+(n-1)*7);
+    return d.getMonth()===month?d:null; // null if e.g. 5th Saturday doesn't exist
+  } else { // last (-1)
+    const last=new Date(year,month+1,0);
+    const diff=(last.getDay()-dow+7)%7;
+    return new Date(year,month,last.getDate()-diff);
+  }
+}
+
 function buildEvMap(startOff,endOff){
   const today=new Date();
   const today0=new Date(today.getFullYear(),today.getMonth(),today.getDate());
@@ -2391,31 +2399,75 @@ function buildEvMap(startOff,endOff){
   // Process events: one-time and repeat
   EVENTS.forEach(e=>{
     if(e.active===false)return; // skip cancellation markers
-    if(!e.repeat){
+    const rep=(e.repeat||'').toLowerCase().trim();
+    const ek=(e.name||'').toLowerCase();
+    if(!rep){
       // One-time event
       if(!evMap[e.date])evMap[e.date]=[];
       evMap[e.date].push({...e,isEvent:true});
-    } else if(e.repeat==='weekly'){
-      // Expand weekly — same day-of-week as start date
+    } else if(rep==='weekly'){
+      // Every week — same day-of-week as start date
       const start=new Date(e.date+'T00:00:00');
       for(let w=-8;w<Math.ceil(endOff/7)+4;w++){
         const occ=new Date(start);occ.setDate(start.getDate()+w*7);
         const ds=toDS(occ);
         const off=Math.round((occ-today0)/(864e5));
         if(off<startOff||off>=endOff)continue;
-        if(cancelled.has((e.name||'').toLowerCase()+'|'+ds))continue;
+        if(cancelled.has(ek+'|'+ds))continue;
         if(!evMap[ds])evMap[ds]=[];
         evMap[ds].push({...e,date:ds,isEvent:true});
       }
-    } else if(e.repeat==='daily'){
+    } else if(rep==='every2weeks'||rep==='every 2 weeks'||rep==='biweekly'||rep==='bi-weekly'){
+      // Every 2 weeks — same day-of-week as start date, every 14 days
+      const start=new Date(e.date+'T00:00:00');
+      for(let w=-8;w<Math.ceil(endOff/14)+4;w++){
+        const occ=new Date(start);occ.setDate(start.getDate()+w*14);
+        const ds=toDS(occ);
+        const off=Math.round((occ-today0)/(864e5));
+        if(off<startOff||off>=endOff)continue;
+        if(cancelled.has(ek+'|'+ds))continue;
+        if(!evMap[ds])evMap[ds]=[];
+        evMap[ds].push({...e,date:ds,isEvent:true});
+      }
+    } else if(rep==='daily'){
       const start=new Date(e.date+'T00:00:00');
       for(let i=startOff;i<endOff;i++){
         const d=new Date(today.getFullYear(),today.getMonth(),today.getDate()+i);
         if(d<start)continue;
         const ds=toDS(d);
-        if(cancelled.has((e.name||'').toLowerCase()+'|'+ds))continue;
+        if(cancelled.has(ek+'|'+ds))continue;
         if(!evMap[ds])evMap[ds]=[];
         evMap[ds].push({...e,date:ds,isEvent:true});
+      }
+    } else {
+      // Try "every Nth dayname" or "every last dayname" pattern
+      // e.g. "every 2nd saturday" / "every last tuesday" / "every 4th saturday"
+      const m=rep.match(/every\s+(1st|2nd|3rd|4th|5th|last)\s+(monday|tuesday|wednesday|thursday|friday|saturday|sunday)/);
+      if(m){
+        const ordMap={'1st':1,'2nd':2,'3rd':3,'4th':4,'5th':5,'last':-1};
+        const dowMap={sunday:0,monday:1,tuesday:2,wednesday:3,thursday:4,friday:5,saturday:6};
+        const n=ordMap[m[1]], dow=dowMap[m[2]];
+        // Iterate over all months in the window
+        const winStart=new Date(today.getFullYear(),today.getMonth(),today.getDate()+startOff);
+        const winEnd=new Date(today.getFullYear(),today.getMonth(),today.getDate()+endOff-1);
+        let yr=winStart.getFullYear(), mo=winStart.getMonth();
+        while(new Date(yr,mo,1)<=winEnd){
+          const occ=getNthDOWInMonth(yr,mo,dow,n);
+          if(occ){
+            const ds=toDS(occ);
+            const off=Math.round((occ-today0)/(864e5));
+            if(off>=startOff&&off<endOff&&!cancelled.has(ek+'|'+ds)){
+              if(!evMap[ds])evMap[ds]=[];
+              evMap[ds].push({...e,date:ds,isEvent:true});
+            }
+          }
+          mo++;if(mo>11){mo=0;yr++;}
+        }
+      }
+      // unknown repeat pattern → treat as one-time
+      else {
+        if(!evMap[e.date])evMap[e.date]=[];
+        evMap[e.date].push({...e,isEvent:true});
       }
     }
   });
