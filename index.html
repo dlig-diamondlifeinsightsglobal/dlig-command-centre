@@ -2375,11 +2375,13 @@ function addEvent(){
 function buildEvMap(startOff,endOff){
   const today=new Date();
   const today0=new Date(today.getFullYear(),today.getMonth(),today.getDate());
+  // Always use LOCAL date string — toISOString() gives UTC which is off by 1 day in UTC+8
+  const toDS=d=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
   const evMap={};
   // Daily Redesign hardcoded
   for(let i=startOff;i<endOff;i++){
     const d=new Date(today.getFullYear(),today.getMonth(),today.getDate()+i);
-    const ds=d.toISOString().split('T')[0];
+    const ds=toDS(d);
     if(!evMap[ds])evMap[ds]=[];
     evMap[ds].push({name:'Daily Redesign',time:'6:10am',type:'dr',person:'轮值',isEvent:true});
   }
@@ -2398,7 +2400,7 @@ function buildEvMap(startOff,endOff){
       const start=new Date(e.date+'T00:00:00');
       for(let w=-8;w<Math.ceil(endOff/7)+4;w++){
         const occ=new Date(start);occ.setDate(start.getDate()+w*7);
-        const ds=occ.toISOString().split('T')[0];
+        const ds=toDS(occ);
         const off=Math.round((occ-today0)/(864e5));
         if(off<startOff||off>=endOff)continue;
         if(cancelled.has((e.name||'').toLowerCase()+'|'+ds))continue;
@@ -2410,7 +2412,7 @@ function buildEvMap(startOff,endOff){
       for(let i=startOff;i<endOff;i++){
         const d=new Date(today.getFullYear(),today.getMonth(),today.getDate()+i);
         if(d<start)continue;
-        const ds=d.toISOString().split('T')[0];
+        const ds=toDS(d);
         if(cancelled.has((e.name||'').toLowerCase()+'|'+ds))continue;
         if(!evMap[ds])evMap[ds]=[];
         evMap[ds].push({...e,date:ds,isEvent:true});
