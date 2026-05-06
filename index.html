@@ -440,6 +440,7 @@ body{background:var(--cream);color:var(--text);font-family:'Plus Jakarta Sans',s
 
     <div class="ns">Sales · Marketing · Admin</div>
     <div class="ni" onclick="go('sales')"><span class="ni-icon">💰</span>Sales & Marketing</div>
+    <div class="ni" onclick="go('pay')"><span class="ni-icon">💸</span>分钱汇总</div>
     <div class="ni" onclick="go('products')"><span class="ni-icon">🎁</span>产品 &amp; 价格</div>
     <div class="ni" onclick="go('admin')"><span class="ni-icon">📦</span>Inventory &amp; Admin</div>
 
@@ -1207,6 +1208,46 @@ body{background:var(--cream);color:var(--text);font-family:'Plus Jakarta Sans',s
     <div class="files-grid" id="files-wrap"></div>
   </div>
 
+  <!-- ══ 分钱汇总 ══ -->
+  <div class="page" id="p-pay">
+    <div class="ib ib-gold"><b>💸 分钱汇总 — Task Pay Calculator</b>
+      <div style="font-size:11px;margin-top:4px;color:var(--text2)">根据各成员完成的任务、MKT Content 及 GDC 任务自动计算应得费用。<b>Fee RM</b> = 固定金额（按任务类型自动对应单价）；<b>贡献点</b> = 工时 × 价值系数 × 效率系数（留待季度结算）；<b>GDC%</b> = 需输入客户费用后点击计算。</div>
+    </div>
+    <!-- Period filter -->
+    <div style="display:flex;gap:6px;align-items:center;margin-bottom:18px;flex-wrap:wrap">
+      <span style="font-size:10px;font-weight:700;color:var(--muted)">结算周期：</span>
+      <button class="fb pay-pb on" onclick="setPayPeriod('month',this)">本月</button>
+      <button class="fb pay-pb" onclick="setPayPeriod('last',this)">上月</button>
+      <button class="fb pay-pb" onclick="setPayPeriod('quarter',this)">本季</button>
+      <button class="fb pay-pb" onclick="setPayPeriod('all',this)">全部记录</button>
+      <span id="pay-period-label" style="font-size:10px;color:var(--muted);font-family:'Space Mono',monospace"></span>
+    </div>
+    <!-- Summary table -->
+    <div id="pay-summary"></div>
+    <!-- GDC Revenue calc -->
+    <div class="card" style="padding:14px;margin-bottom:18px">
+      <div class="sl" style="margin-top:0;margin-bottom:10px;font-size:10px">🎨 GDC 客户收入分配（输入客户总费用后计算各成员 RM）</div>
+      <div style="display:flex;gap:8px;align-items:flex-end;flex-wrap:wrap">
+        <div class="ff" style="flex:1;min-width:180px"><div class="fl2">客户名称 / 项目</div><input class="fi" id="gdc-client-name" placeholder="e.g. Jenny 老师 GDC"></div>
+        <div class="ff"><div class="fl2">客户总费用 (RM)</div><input class="fi" id="gdc-client-amt" type="number" min="0" step="100" placeholder="e.g. 5000" style="width:140px"></div>
+        <button class="add-btn" onclick="calcGDCPay()">💰 计算分成</button>
+      </div>
+      <div id="gdc-pay-result" style="margin-top:12px"></div>
+    </div>
+    <!-- Per-person detail -->
+    <div id="pay-detail"></div>
+    <div class="ib ib-blue" style="margin-top:12px">
+      <b>📋 单价对照</b>
+      <div style="font-size:11px;margin-top:6px;color:var(--text2);line-height:2">
+        视频文案 RM2.5/篇 &nbsp;·&nbsp; 信息文案模版 RM2.5/篇 &nbsp;·&nbsp; Post/图文 RM15 &nbsp;·&nbsp; 海报 RM15 &nbsp;·&nbsp;
+        视频脚本 RM5 &nbsp;·&nbsp; 短视频剪辑（一键）RM20 &nbsp;·&nbsp; 短视频剪辑 RM50 &nbsp;·&nbsp;
+        YouTube剪辑 RM100 &nbsp;·&nbsp; Landing Page文案 RM50 &nbsp;·&nbsp; Landing Page制作 RM150<br>
+        线下活动带领（半天）RM50 &nbsp;·&nbsp; 副村长 RM30 &nbsp;·&nbsp; Crew RM20<br>
+        <span style="color:var(--muted)">GDC: Li Joo对接15% · 方案讨论20% · 视频文案10%/15个 · 图文文案10%/15个 · 短视频剪辑10%/支 · DLIG留存20%</span>
+      </div>
+    </div>
+  </div>
+
 </div><!-- end main -->
 </div><!-- end shell -->
 
@@ -1365,7 +1406,7 @@ async function loadFromSheets(){
     if(el)el.innerHTML='<span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--red)"></span>&nbsp;连接失败，使用本地数据';
   }
   // 注意：TASKS/MKT_CONTENT/GDC_TASKS 已经在上面从 Sheet 直接赋值，不再从 localStorage 加载（避免硬编码数据覆盖）
-  renderTasks();renderMktCal();renderGDC();renderOverview();renderSales();updateStats();renderRotation();renderYLYD();renderDecisions();renderSpecialMeeting();renderAdmin();
+  renderTasks();renderMktCal();renderGDC();renderOverview();renderSales();updateStats();renderRotation();renderYLYD();renderDecisions();renderSpecialMeeting();renderAdmin();renderPay();
 }
 const COEF={'Sales':3,'Marketing':2,'System':2,'GDC':2,'Operation':1,'Admin':1};
 const PAY_SM_DATA=[{t:'✍ 视频文案（2篇）',v:'RM5'},{t:'✍ 信息文案模版（2篇）',v:'RM5'},{t:'📣 制作 Post 图+文案',v:'RM15'},{t:'🖼 制作海报（1张）',v:'RM15'},{t:'📝 视频脚本（1支）',v:'RM5'},{t:'📱 剪辑短视频-一键成片（1min内）',v:'RM20'},{t:'📱 剪辑短视频（1min内）',v:'RM50'},{t:'🎬 剪辑YouTube（25min内）',v:'RM100'},{t:'🧠 Landing Page 文案',v:'RM50'},{t:'🖥 Landing Page 制作',v:'RM150'}];
@@ -3199,6 +3240,232 @@ function renderPolicy(){
 }
 
 // ═══════════════════════════════════════
+// 分钱汇总  PAY SUMMARY
+// ═══════════════════════════════════════
+let PAY_PERIOD='month';
+
+// GDC category → share percentage
+const GDC_CAT_TO_PCT={
+  'GDC 短视频剪辑':10,'GDC 视频文案':10,'GDC 文案书写':10,'GDC 图文文案':10,
+  'GDC 视频脚本':2,'GDC 视频拍摄':3,'GDC 金句图文':5,'GDC 讨论方案':20
+};
+
+// Guess RM rate from MKT content category / title keywords
+function guessMktRate(cat,title){
+  const s=((cat||'')+(title||'')).toLowerCase();
+  if(s.includes('youtube')||s.includes('长视频'))return 100;
+  if(s.includes('landing page')&&s.includes('制作'))return 150;
+  if(s.includes('landing page'))return 50;
+  if(s.includes('一键成片'))return 20;
+  if(s.includes('短视频剪辑')||s.includes('剪辑短视频')||s.includes('短视频'))return 50;
+  if(s.includes('视频脚本')||s.includes('脚本'))return 5;
+  if(s.includes('视频文案')||s.includes('信息文案'))return 2.5;
+  if(s.includes('海报'))return 15;
+  return 15; // default: post/图文
+}
+
+// Guess RM rate from fee-type task name
+function guessTaskRate(taskName){
+  const t=(taskName||'').toLowerCase();
+  if(t.includes('youtube'))return 100;
+  if(t.includes('landing page')&&t.includes('制作'))return 150;
+  if(t.includes('landing page')&&t.includes('文案'))return 50;
+  if(t.includes('landing page'))return 100;
+  if(t.includes('一键成片'))return 20;
+  if(t.includes('剪辑')&&!t.includes('youtube'))return 50;
+  if(t.includes('短视频'))return 50;
+  if(t.includes('视频脚本')||t.includes('脚本'))return 5;
+  if(t.includes('视频文案')||t.includes('信息文案'))return 5;
+  if(t.includes('post')||t.includes('海报')||t.includes('图文'))return 15;
+  if(t.includes('文案'))return 5;
+  // operation task rates
+  if(t.includes('带领')||t.includes('线下活动'))return 50;
+  if(t.includes('副村长'))return 30;
+  if(t.includes('crew'))return 20;
+  return 0;
+}
+
+function payPeriodDates(){
+  const n=new Date(),y=n.getFullYear(),m=n.getMonth();
+  if(PAY_PERIOD==='month')return{start:`${y}-${String(m+1).padStart(2,'0')}-01`,end:new Date(y,m+1,0).toISOString().slice(0,10)};
+  if(PAY_PERIOD==='last'){const pm=m===0?11:m-1,py=m===0?y-1:y;return{start:`${py}-${String(pm+1).padStart(2,'0')}-01`,end:new Date(py,pm+1,0).toISOString().slice(0,10)};}
+  if(PAY_PERIOD==='quarter'){const q=Math.floor(m/3);return{start:`${y}-${String(q*3+1).padStart(2,'0')}-01`,end:new Date(y,q*3+3,0).toISOString().slice(0,10)};}
+  return{start:'2020-01-01',end:'2099-12-31'};
+}
+function inPayPeriod(d){if(!d)return false;const{start,end}=payPeriodDates();return d>=start&&d<=end;}
+
+function setPayPeriod(p,btn){
+  PAY_PERIOD=p;
+  document.querySelectorAll('.pay-pb').forEach(b=>b.classList.remove('on'));
+  if(btn)btn.classList.add('on');
+  renderPay();
+}
+
+function renderPay(){
+  const MEMBERS=['Li Joo','Jasper','Roy','Stella'];
+  const fee={},mkt={},gdc={},contrib={};
+  MEMBERS.forEach(p=>{fee[p]=[];mkt[p]=[];gdc[p]=[];contrib[p]=[];});
+
+  // Determine reference date for tasks (doneDate preferred, else deadline)
+  TASKS.filter(t=>t.status==='已完成'&&inPayPeriod(t.doneDate||t.deadline)).forEach(t=>{
+    const p=t.person;if(!MEMBERS.includes(p))return;
+    if(t.type==='fee'){
+      const rate=guessTaskRate(t.task);
+      fee[p].push({label:t.task,rate,date:t.doneDate||t.deadline});
+    } else {
+      const eff=calcEff(t);
+      const hrs=parseFloat(t.actual||t.est||0);
+      const coeff=t.cat==='Marketing'?1.5:1.0;
+      if(hrs>0&&eff!==null){
+        const pts=parseFloat((hrs*coeff*eff).toFixed(1));
+        contrib[p].push({label:t.task,hrs,coeff,eff,pts,date:t.doneDate||t.deadline});
+      }
+    }
+  });
+
+  MKT_CONTENT.filter(m=>m.status==='已发布'&&inPayPeriod(m.doneDate||m.date)).forEach(m=>{
+    const p=m.person;if(!MEMBERS.includes(p))return;
+    const rate=guessMktRate(m.cat,m.title);
+    mkt[p].push({label:m.title,cat:m.cat,rate,date:m.doneDate||m.date});
+  });
+
+  GDC_TASKS.filter(g=>g.status==='已完成'&&inPayPeriod(g.doneDate||g.date)).forEach(g=>{
+    const p=g.pic||g.who;if(!MEMBERS.includes(p))return;
+    const pct=GDC_CAT_TO_PCT[g.cat]||null;
+    gdc[p].push({label:g.task,cat:g.cat,pct,date:g.doneDate||g.date});
+  });
+
+  // Update period label
+  const{start,end}=payPeriodDates();
+  const pl=document.getElementById('pay-period-label');
+  if(pl)pl.textContent=PAY_PERIOD==='all'?'（全部记录）':`（${start} → ${end}）`;
+
+  // Summary table
+  const totals=MEMBERS.map(p=>({
+    p,
+    feeTot:fee[p].reduce((s,x)=>s+x.rate,0),
+    mktTot:mkt[p].reduce((s,x)=>s+x.rate,0),
+    contribTot:contrib[p].reduce((s,x)=>s+x.pts,0),
+    gdcCnt:gdc[p].length
+  }));
+
+  const summaryEl=document.getElementById('pay-summary');if(!summaryEl)return;
+  summaryEl.innerHTML=`
+    <div class="sl" style="margin-top:0">📊 各成员汇总</div>
+    <div style="overflow-x:auto;margin-bottom:18px">
+    <table class="pay-table" style="min-width:520px">
+    <thead><tr>
+      <th>成员</th>
+      <th>💰 Fee RM</th>
+      <th>📝 MKT RM</th>
+      <th style="background:var(--goldL);color:var(--gold)">合计 RM</th>
+      <th>⏱ 贡献点</th>
+      <th>🎨 GDC项数</th>
+    </tr></thead>
+    <tbody>
+    ${totals.map(t=>{
+      const tot=t.feeTot+t.mktTot;
+      return`<tr>
+        <td style="font-weight:700">${ptag(t.p)} ${t.p}</td>
+        <td style="color:var(--green);font-weight:700">${t.feeTot>0?'RM '+t.feeTot.toFixed(0):'—'}</td>
+        <td style="color:var(--blue);font-weight:700">${t.mktTot>0?'RM '+t.mktTot.toFixed(2):'—'}</td>
+        <td style="color:var(--gold);font-weight:800;font-size:13px;background:var(--goldL)">${tot>0?'RM '+tot.toFixed(0):'—'}</td>
+        <td style="color:var(--amber);font-weight:700">${t.contribTot>0?t.contribTot.toFixed(1)+' pts':'—'}</td>
+        <td style="color:var(--purple);font-weight:700">${t.gdcCnt>0?t.gdcCnt+' 项':'—'}</td>
+      </tr>`;
+    }).join('')}
+    </tbody></table></div>`;
+
+  // Per-person breakdown
+  const detailEl=document.getElementById('pay-detail');if(!detailEl)return;
+  detailEl.innerHTML=MEMBERS.map(p=>{
+    const fi=fee[p],mi=mkt[p],gi=gdc[p],ci=contrib[p];
+    if(!fi.length&&!mi.length&&!gi.length&&!ci.length)return`<div class="card" style="padding:12px;margin-bottom:8px;opacity:.5"><span style="font-weight:700">${ptag(p)} ${p}</span> — 本期暂无已完成记录</div>`;
+    const rmTot=fi.reduce((s,x)=>s+x.rate,0)+mi.reduce((s,x)=>s+x.rate,0);
+    return`
+    <div style="margin-bottom:20px">
+      <div class="sl" style="margin-top:8px">${ptag(p)} ${p}</div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:10px">
+        ${fi.length?`<div class="card" style="padding:12px">
+          <div style="font-size:9px;font-weight:800;color:var(--green);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px">💰 Fee Tasks</div>
+          ${fi.map(x=>`<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px dashed var(--border);font-size:11.5px">
+            <span style="flex:1;color:var(--text2)">${x.label}</span>
+            <span style="font-weight:700;color:${x.rate>0?'var(--green)':'var(--red)'};white-space:nowrap;margin-left:8px">${x.rate>0?'RM '+x.rate:'⚠ 未对应'}</span>
+          </div>`).join('')}
+          <div style="text-align:right;margin-top:8px;font-weight:800;color:var(--green)">小计 RM ${fi.reduce((s,x)=>s+x.rate,0).toFixed(0)}</div>
+        </div>`:''}
+        ${mi.length?`<div class="card" style="padding:12px">
+          <div style="font-size:9px;font-weight:800;color:var(--blue);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px">📝 MKT Content（已发布）</div>
+          ${mi.map(x=>`<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px dashed var(--border);font-size:11.5px">
+            <div style="flex:1"><div style="color:var(--text2)">${x.label}</div><div style="font-size:9.5px;color:var(--muted)">${x.cat||''}</div></div>
+            <span style="font-weight:700;color:var(--blue);white-space:nowrap;margin-left:8px">RM ${x.rate}</span>
+          </div>`).join('')}
+          <div style="text-align:right;margin-top:8px;font-weight:800;color:var(--blue)">小计 RM ${mi.reduce((s,x)=>s+x.rate,0).toFixed(2)}</div>
+        </div>`:''}
+        ${ci.length?`<div class="card" style="padding:12px">
+          <div style="font-size:9px;font-weight:800;color:var(--amber);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px">⏱ 贡献型任务（贡献点数）</div>
+          ${ci.map(x=>`<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px dashed var(--border);font-size:11.5px">
+            <div style="flex:1"><div style="color:var(--text2)">${x.label}</div><div style="font-size:9.5px;color:var(--muted)">${x.hrs}h × ${x.coeff===1.5?'1.5（营销）':'1.0'} × eff${x.eff}</div></div>
+            <span style="font-weight:700;color:var(--amber);white-space:nowrap;margin-left:8px">${x.pts} pts</span>
+          </div>`).join('')}
+          <div style="text-align:right;margin-top:8px;font-weight:800;color:var(--amber)">合计 ${ci.reduce((s,x)=>s+x.pts,0).toFixed(1)} pts</div>
+        </div>`:''}
+        ${gi.length?`<div class="card" style="padding:12px">
+          <div style="font-size:9px;font-weight:800;color:var(--purple);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px">🎨 GDC Tasks（% 待结算）</div>
+          ${gi.map(x=>`<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px dashed var(--border);font-size:11.5px">
+            <div style="flex:1"><div style="color:var(--text2)">${x.label}</div><div style="font-size:9.5px;color:var(--muted)">${x.cat||''}</div></div>
+            <span style="font-weight:700;color:var(--purple);white-space:nowrap;margin-left:8px">${x.pct!=null?x.pct+'%':'—'}</span>
+          </div>`).join('')}
+          <div style="text-align:right;margin-top:8px;font-size:10.5px;color:var(--muted)">RM = % × 客户费用（上方输入计算）</div>
+        </div>`:''}
+      </div>
+      ${rmTot>0?`<div style="text-align:right;padding:8px 12px;background:var(--goldL);border:1.5px solid var(--border2);border-radius:8px;margin-top:6px;font-weight:800;font-size:13px;color:var(--gold)">💰 ${p} 本期应得：RM ${rmTot.toFixed(0)}</div>`:''}
+    </div>`;
+  }).join('');
+}
+
+function calcGDCPay(){
+  const amt=parseFloat(document.getElementById('gdc-client-amt')?.value||0);
+  const name=(document.getElementById('gdc-client-name')?.value||'').trim()||'GDC 项目';
+  const el=document.getElementById('gdc-pay-result');if(!el)return;
+  if(!amt||amt<=0){el.innerHTML='<div style="color:var(--red);font-size:11.5px;padding:6px 0">请输入客户总费用金额</div>';return;}
+
+  // Base fixed allocations
+  const breakdown=[
+    {role:'Li Joo 对接 + comm',pct:15,who:'Li Joo'},
+    {role:'DLIG 公司留存',pct:20,who:'DLIG'},
+  ];
+  // Add from completed GDC tasks in period
+  GDC_TASKS.filter(g=>g.status==='已完成'&&inPayPeriod(g.doneDate||g.date)).forEach(g=>{
+    const pct=GDC_CAT_TO_PCT[g.cat];
+    if(pct)breakdown.push({role:g.task,pct,who:g.pic||g.who||'—',cat:g.cat});
+  });
+
+  const totalPct=breakdown.reduce((s,x)=>s+x.pct,0);
+  el.innerHTML=`
+    <div style="font-size:10.5px;font-weight:700;color:var(--muted);margin-bottom:8px">📊 ${name} — 客户费用 RM${amt.toFixed(0)} 分配明细</div>
+    <table class="pay-table" style="margin-bottom:8px">
+      <thead><tr><th>角色 / 任务</th><th>负责人</th><th>%</th><th>RM 金额</th></tr></thead>
+      <tbody>
+        ${breakdown.map(b=>`<tr>
+          <td>${b.role}</td>
+          <td>${b.who&&b.who!=='DLIG'?ptag(b.who)+' '+b.who:b.who||'—'}</td>
+          <td style="font-weight:700;color:var(--purple)">${b.pct}%</td>
+          <td style="font-weight:700;color:var(--green)">RM ${(amt*b.pct/100).toFixed(2)}</td>
+        </tr>`).join('')}
+        <tr style="background:var(--s3)">
+          <td colspan="2" style="font-weight:800">已分配合计</td>
+          <td style="font-weight:800;color:${totalPct>100?'var(--red)':'var(--gold)'}">${totalPct}%</td>
+          <td style="font-weight:800;color:var(--gold)">RM ${(amt*totalPct/100).toFixed(2)}</td>
+        </tr>
+      </tbody>
+    </table>
+    ${totalPct<100?`<div style="color:var(--amber);font-size:10.5px;padding:5px 0">⚠ 剩余 ${100-totalPct}%（RM ${(amt*(100-totalPct)/100).toFixed(2)}）未分配 → 请确认所有 GDC 任务是否已录入完成</div>`:''}
+    ${totalPct>100?`<div style="color:var(--red);font-size:10.5px;padding:5px 0">⚠ 分配超出 100%！请检查是否有重复录入任务</div>`:''}
+  `;
+}
+
+// ═══════════════════════════════════════
 // MEETING
 // ═══════════════════════════════════════
 let SPECIAL_MEETINGS=load('special_meetings',[]);
@@ -3500,7 +3767,7 @@ function addFileItem(){const n=document.getElementById('fitem-name').value.trim(
 // ═══════════════════════════════════════
 // NAV
 // ═══════════════════════════════════════
-const PT={overview:'🏠 公司总览',tasks:'🗂 Task Board',calendar:'📅 日历 & 轮值',sales:'💰 Sales & Marketing',products:'🎁 产品 & 价格',admin:'📦 Inventory & Admin',xindong:'💎 心动觉察',ylyd:'🌱 YLYD System',gdc:'🎨 GDC Marketing Job',policy:'📜 Company Policy',meeting:'📋 会议 & 记录',decisions:'⚡ 待决策',files:'📁 文件索引'};
+const PT={overview:'🏠 公司总览',tasks:'🗂 Task Board',calendar:'📅 日历 & 轮值',sales:'💰 Sales & Marketing',pay:'💸 分钱汇总',products:'🎁 产品 & 价格',admin:'📦 Inventory & Admin',xindong:'💎 心动觉察',ylyd:'🌱 YLYD System',gdc:'🎨 GDC Marketing Job',policy:'📜 Company Policy',meeting:'📋 会议 & 记录',decisions:'⚡ 待决策',files:'📁 文件索引'};
 function go(id){
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('on'));
   document.querySelectorAll('.ni').forEach(n=>n.classList.remove('on'));
@@ -3572,7 +3839,7 @@ function renderClean(){
   </tr>`).join(''):'<tr><td colspan="5" style="text-align:center;color:var(--muted);padding:16px">暂无记录</td></tr>';
 }
 renderOverview();renderTasks();renderCalendar();renderSales();renderMktCal();renderProducts();renderClean();renderRotation();renderYLYD();
-renderAdmin();renderXindong();renderYLYD();renderGDC();renderPolicy();
+renderAdmin();renderXindong();renderYLYD();renderGDC();renderPolicy();renderPay();
 renderMeeting();renderDecisions();renderFiles();renderMktCal();updateStats();
 // 强制确保 Task Board 初始为列表视图（无论其他代码状态）
 (function(){
