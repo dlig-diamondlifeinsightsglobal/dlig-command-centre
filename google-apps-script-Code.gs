@@ -965,41 +965,26 @@ function readInventory() {
 
 // ─── 书影充电站 (Operation Sheet) ────────────────────────────
 const OPS_SHEET_ID  = '1_6bghVk44SlC9tH9vDENcw3JeorzCINaWSbkMbMcS38';
-const BS_SET_TAB    = '📚 设置';
 const BS_FLOW_TAB   = '📋 流程表';
 const BS_ROT_TAB    = '👤 轮值';
 
 function getOpsSS() { return SpreadsheetApp.openById(OPS_SHEET_ID); }
 
-function readBSSettings() {
-  const ss = getOpsSS();
-  let tab = ss.getSheetByName(BS_SET_TAB);
-  if (!tab) {
-    tab = ss.insertSheet(BS_SET_TAB);
-    tab.getRange(1,1,1,2).setValues([['key','value']]).setFontWeight('bold').setBackground('#e8f4fd');
-    tab.getRange(2,1,7,2).setValues([
-      ['zoom_link','https://us06web.zoom.us/j/7707709233'],
-      ['zoom_id','7707709233'],
-      ['zoom_passcode','DLIG'],
-      ['zoom_host_key','779233'],
-      ['ppt_link','https://canva.link/ylydwisdomrechargesat'],
-      ['wisdomlib_link','https://diamondlifeinsightsglobal.app.clientclub.net/courses/products/4a1a5ae9-69c5-4c22-825f-b2dd26402a1a?source=courses'],
-      ['other_info','']
-    ]);
-    return {zoom_link:'https://us06web.zoom.us/j/7707709233',zoom_id:'7707709233',zoom_passcode:'DLIG',zoom_host_key:'779233',ppt_link:'https://canva.link/ylydwisdomrechargesat',wisdomlib_link:'https://diamondlifeinsightsglobal.app.clientclub.net/courses/products/4a1a5ae9-69c5-4c22-825f-b2dd26402a1a?source=courses',other_info:''};
-  }
-  const data = tab.getDataRange().getValues();
-  const result = {};
-  data.slice(1).forEach(r => { if(r[0]) result[String(r[0]).trim()] = String(r[1]||'').trim(); });
-  return result;
-}
-
-function readBSFlow() {
+// Combined tab: top section = settings (key|value), blank row, then flow table header + rows
+function readBSCombined() {
   const ss = getOpsSS();
   let tab = ss.getSheetByName(BS_FLOW_TAB);
   if (!tab) {
     tab = ss.insertSheet(BS_FLOW_TAB);
-    const rows = [
+    const allRows = [
+      ['zoom_link',   'https://us06web.zoom.us/j/7707709233', '', ''],
+      ['zoom_id',     '7707709233', '', ''],
+      ['zoom_passcode','DLIG', '', ''],
+      ['zoom_host_key','779233', '', ''],
+      ['ppt_link',    'https://canva.link/ylydwisdomrechargesat', '', ''],
+      ['wisdomlib_link','https://diamondlifeinsightsglobal.app.clientclub.net/courses/products/4a1a5ae9-69c5-4c22-825f-b2dd26402a1a?source=courses', '', ''],
+      ['other_info',  '', '', ''],
+      ['', '', '', ''],
       ['时间','时长','环节','说明'],
       ['2:30 PM','15min','开场 & 充电模式','开场 & 自我介绍在 chatbox'],
       ['2:45 PM','45min','📚 书影分享 / Lucky draw','video / 《超凡的智慧4问题》 / 《爱种子问题》· 模式1—Q&A 或 模式2—见证分享（5min分享 + 10min拆解：总结2个 action keypoint，分享可变成广告）'],
@@ -1008,15 +993,30 @@ function readBSFlow() {
       ['3:55 PM','5min','集体乐咖','好种子库 ❤'],
       ['4:00 PM','—','END','带着智慧，回归生活']
     ];
-    tab.getRange(1,1,rows.length,4).setValues(rows);
-    tab.getRange(1,1,1,4).setFontWeight('bold').setBackground('#e8f4fd');
-    return rows.slice(1).map(r=>({time:r[0],duration:r[1],section:r[2],desc:r[3]}));
+    tab.getRange(1,1,allRows.length,4).setValues(allRows);
+    tab.getRange(1,1,7,1).setFontWeight('bold').setFontColor('#7c3aed');
+    tab.getRange(9,1,1,4).setFontWeight('bold').setBackground('#e8f4fd');
+    tab.setColumnWidth(1,150); tab.setColumnWidth(2,60); tab.setColumnWidth(3,180); tab.setColumnWidth(4,400);
+    return {
+      settings:{zoom_link:'https://us06web.zoom.us/j/7707709233',zoom_id:'7707709233',zoom_passcode:'DLIG',zoom_host_key:'779233',ppt_link:'https://canva.link/ylydwisdomrechargesat',wisdomlib_link:'https://diamondlifeinsightsglobal.app.clientclub.net/courses/products/4a1a5ae9-69c5-4c22-825f-b2dd26402a1a?source=courses',other_info:''},
+      flow:[{time:'2:30 PM',duration:'15min',section:'开场 & 充电模式',desc:'开场 & 自我介绍在 chatbox'},{time:'2:45 PM',duration:'45min',section:'📚 书影分享 / Lucky draw',desc:'video / 《超凡的智慧4问题》'},{time:'3:30 PM',duration:'10min',section:'Q&A 或见证分享、合照',desc:'复盘 & 拆解 keypoints'},{time:'3:40 PM',duration:'15min',section:'Me Time 复盘',desc:'YLYD 设计册'},{time:'3:55 PM',duration:'5min',section:'集体乐咖',desc:'好种子库 ❤'},{time:'4:00 PM',duration:'—',section:'END',desc:'带着智慧，回归生活'}]
+    };
   }
   const data = tab.getDataRange().getValues();
-  if (data.length < 2) return [];
-  return data.slice(1).filter(r=>r[0]).map(r=>({
-    time:String(r[0]||''), duration:String(r[1]||''), section:String(r[2]||''), desc:String(r[3]||'')
-  }));
+  const settingsKeys = ['zoom_link','zoom_id','zoom_passcode','zoom_host_key','ppt_link','wisdomlib_link','other_info'];
+  const settings = {};
+  let flowStartRow = -1;
+  const tz = Session.getScriptTimeZone();
+  for (let i = 0; i < data.length; i++) {
+    const key = String(data[i][0]||'').trim();
+    if (settingsKeys.includes(key)) { settings[key] = String(data[i][1]||'').trim(); }
+    if (key === '时间') { flowStartRow = i + 1; }
+  }
+  const flow = flowStartRow >= 0 ? data.slice(flowStartRow).filter(r=>r[0]).map(r=>({
+    time: r[0] instanceof Date ? Utilities.formatDate(r[0], tz, 'h:mm a') : String(r[0]||''),
+    duration: String(r[1]||''), section: String(r[2]||''), desc: String(r[3]||'')
+  })) : [];
+  return { settings, flow };
 }
 
 function readBSRotation() {
@@ -1045,7 +1045,8 @@ function writeBSRotation(items) {
 }
 
 function readBSAll() {
-  return {settings:readBSSettings(), flow:readBSFlow(), rotation:readBSRotation()};
+  const combined = readBSCombined();
+  return {settings:combined.settings, flow:combined.flow, rotation:readBSRotation()};
 }
 
 // ─── doGet ───────────────────────────────────────────────────
