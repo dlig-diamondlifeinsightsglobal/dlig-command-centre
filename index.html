@@ -3036,7 +3036,9 @@ function renderBSPage(){
   if(iw){
     const s=BS_DATA.settings;
     const zl=s.zoom_link||'';const pl=s.ppt_link||'';const wl=s.wisdomlib_link||'';const oi=s.other_info||'';
-    let h=`<div style="display:flex;flex-direction:column;gap:8px;max-width:560px">`;
+    let h=`<div style="display:flex;gap:16px;align-items:flex-start;flex-wrap:wrap">`;
+    h+=`<img src="bs-vb.png" alt="书影充电站" style="width:260px;border-radius:12px;box-shadow:var(--sh);flex-shrink:0;object-fit:cover">`;
+    h+=`<div style="display:flex;flex-direction:column;gap:8px;flex:1;min-width:260px">`;
     h+=`<div style="background:var(--white);border:1.5px solid var(--border);border-radius:10px;padding:10px 14px;box-shadow:var(--sh)">
       <div style="display:flex;align-items:center;gap:10px">
         <span style="font-size:11px;font-weight:700;color:var(--blue);min-width:80px;flex-shrink:0">🔗 Zoom Link</span>
@@ -3058,7 +3060,7 @@ function renderBSPage(){
     </div>`;
     if(oi)h+=`<div style="background:var(--white);border:1.5px solid var(--border);border-radius:10px;padding:10px 14px;box-shadow:var(--sh)"><span style="font-size:11px;font-weight:700;color:var(--text2);display:block;margin-bottom:4px">📝 Other Info</span><span style="font-size:11px;color:var(--text2);white-space:pre-line">${oi}</span></div>`;
     h+=`<div style="display:flex;justify-content:flex-end"><a href="https://docs.google.com/spreadsheets/d/1_6bghVk44SlC9tH9vDENcw3JeorzCINaWSbkMbMcS38/edit" target="_blank" style="font-size:10px;color:var(--muted);text-decoration:none;display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border:1px solid var(--border);border-radius:6px;background:var(--white)">📊 在 Spreadsheet 编辑链接 & 信息 ↗</a></div>`;
-    h+=`</div>`;iw.innerHTML=h;
+    h+=`</div></div>`;iw.innerHTML=h;
   }
   // 流程表
   const fb=document.getElementById('bs-flow-body');
