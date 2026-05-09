@@ -444,8 +444,9 @@ body{background:var(--cream);color:var(--text);font-family:'Plus Jakarta Sans',s
     <div class="ni" onclick="go('admin')"><span class="ni-icon">📦</span>Inventory &amp; Admin</div>
 
     <div class="ns">Operation</div>
-    <div class="ni" onclick="go('xindong')"><span class="ni-icon">💎</span>心动觉察</div>
     <div class="ni" onclick="go('ylyd')"><span class="ni-icon">🌱</span>YLYD System</div>
+    <div class="ni" onclick="go('bs')"><span class="ni-icon">📚</span>YLYD 会员</div>
+    <div class="ni" onclick="go('xindong')"><span class="ni-icon">💎</span>心动觉察</div>
     <div class="ni" onclick="go('gdc')"><span class="ni-icon">🎨</span>GDC Marketing Job</div>
 
     <div class="ns">Others</div>
@@ -935,6 +936,51 @@ body{background:var(--cream);color:var(--text);font-family:'Plus Jakarta Sans',s
     </div>
   </div>
 
+  <!-- ══ 书影充电站 ══ -->
+  <div class="page" id="p-bs">
+    <div class="ib ib-blue"><b>📚 书影充电站 — YLYD 终身会员专属福利</b>每月 Week 2 &amp; 4 周六 2:30–4:00pm · 线上 Zoom · 即使 System 结束也继续享有</div>
+
+    <div class="sl">🔗 链接</div>
+    <div style="display:flex;flex-direction:column;gap:8px;max-width:560px">
+      <div style="display:flex;align-items:center;gap:8px;background:var(--white);border:1.5px solid var(--border);border-radius:10px;padding:9px 14px;box-shadow:var(--sh)">
+        <span style="font-size:11px;font-weight:700;color:var(--blue);min-width:80px;flex-shrink:0">🔗 Zoom Link</span>
+        <input class="fi" id="bs-zoom-input" style="flex:1;margin-bottom:0" placeholder="贴上 Zoom 链接" oninput="BS_LINKS.zoom=this.value;save('bs_links',BS_LINKS)">
+        <button class="fb" style="color:var(--blue);white-space:nowrap;flex-shrink:0" onclick="const v=document.getElementById('bs-zoom-input').value;if(v)window.open(v,'_blank')">↗ 开启</button>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;background:var(--white);border:1.5px solid var(--border);border-radius:10px;padding:9px 14px;box-shadow:var(--sh)">
+        <span style="font-size:11px;font-weight:700;color:var(--purple);min-width:80px;flex-shrink:0">🎨 PPT Link</span>
+        <input class="fi" id="bs-ppt-input" style="flex:1;margin-bottom:0" placeholder="贴上 Canva / PPT 链接" oninput="BS_LINKS.ppt=this.value;save('bs_links',BS_LINKS)">
+        <button class="fb" style="color:var(--purple);white-space:nowrap;flex-shrink:0" onclick="const v=document.getElementById('bs-ppt-input').value;if(v)window.open(v,'_blank')">↗ 开启</button>
+      </div>
+    </div>
+
+    <div class="sl" style="margin-top:20px">📋 活动流程</div>
+    <div class="card" style="overflow-x:auto;padding:14px">
+      <table class="pt">
+        <thead><tr><th style="width:80px">时间</th><th style="width:55px">时长</th><th style="width:170px">环节</th><th>说明</th></tr></thead>
+        <tbody>
+          <tr><td style="font-family:'DM Sans',sans-serif;font-weight:700">2:30 PM</td><td>15min</td><td>开场 &amp; 充电模式</td><td>开场 &amp; 自我介绍在 chatbox</td></tr>
+          <tr><td style="font-family:'DM Sans',sans-serif;font-weight:700">2:45 PM</td><td>45min</td><td>📚 书影分享 / Lucky draw</td><td>video / 《超凡的智慧4问题》 / 《爱种子问题》</td></tr>
+          <tr style="background:var(--s2)"><td></td><td></td><td style="font-size:10px;color:var(--muted)">两种模式选其一</td><td style="font-size:10.5px;color:var(--text2)">模式1 — Q&amp;A &nbsp;·&nbsp; 模式2 — 见证分享（5min分享 + 10min拆解：总结2个 action keypoint，分享可变成广告）</td></tr>
+          <tr><td style="font-family:'DM Sans',sans-serif;font-weight:700">3:30 PM</td><td>10min</td><td>Q&amp;A 或见证分享、合照</td><td>复盘 &amp; 拆解 keypoints</td></tr>
+          <tr><td style="font-family:'DM Sans',sans-serif;font-weight:700">3:40 PM</td><td>15min</td><td>Me Time 复盘</td><td>YLYD 设计册 · 偶尔提 Why Me Time ❤</td></tr>
+          <tr><td style="font-family:'DM Sans',sans-serif;font-weight:700">3:55 PM</td><td>5min</td><td>集体乐咖</td><td>好种子库 ❤</td></tr>
+          <tr style="background:var(--blueB)"><td style="font-family:'DM Sans',sans-serif;font-weight:700;color:var(--blue)">4:00 PM</td><td style="color:var(--blue)">—</td><td style="font-weight:700;color:var(--blue)">END</td><td style="color:var(--blue);font-style:italic">带着智慧，回归生活</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="sl" style="margin-top:20px">👤 轮值负责人</div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap;gap:8px">
+      <span style="font-size:10.5px;color:var(--muted)">每月 Week 2 &amp; 4 周六 · 在日历页管理轮值</span>
+      <button class="fb" style="color:var(--blue);font-size:10px" onclick="go('calendar');setTimeout(()=>{const b=document.getElementById('rot-bs-btn');if(b)showRotTab('bs',b)},150)">📅 前往日历管理 →</button>
+    </div>
+    <div id="bs-page-rota"></div>
+
+    <div class="sl" style="margin-top:18px">✅ Checklist</div>
+    <div id="bs-page-cl"></div>
+  </div>
+
   <!-- ══ GDC MARKETING JOB ══ -->
   <div class="page" id="p-gdc">
     <div class="ib" style="background:var(--purpleB);border:1.5px solid rgba(106,58,150,.25)">
@@ -1359,7 +1405,7 @@ async function loadFromSheets(){
     if(el)el.innerHTML='<span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--red)"></span>&nbsp;连接失败，使用本地数据';
   }
   // 注意：TASKS/MKT_CONTENT/GDC_TASKS 已经在上面从 Sheet 直接赋值，不再从 localStorage 加载（避免硬编码数据覆盖）
-  renderTasks();renderMktCal();renderGDC();renderOverview();renderSales();updateStats();renderRotation();renderYLYD();renderDecisions();renderSpecialMeeting();renderAdmin();
+  renderTasks();renderMktCal();renderGDC();renderOverview();renderSales();updateStats();renderRotation();renderYLYD();renderBSPage();renderDecisions();renderSpecialMeeting();renderAdmin();
 }
 const COEF={'Sales':3,'Marketing':2,'System':2,'GDC':2,'Operation':1,'Admin':1};
 const PAY_SM_DATA=[{t:'✍ 视频文案（2篇）',v:'RM5'},{t:'✍ 信息文案模版（2篇）',v:'RM5'},{t:'📣 制作 Post 图+文案',v:'RM15'},{t:'🖼 制作海报（1张）',v:'RM15'},{t:'📝 视频脚本（1支）',v:'RM5'},{t:'📱 剪辑短视频-一键成片（1min内）',v:'RM20'},{t:'📱 剪辑短视频（1min内）',v:'RM50'},{t:'🎬 剪辑YouTube（25min内）',v:'RM100'},{t:'🧠 Landing Page 文案',v:'RM50'},{t:'🖥 Landing Page 制作',v:'RM150'}];
@@ -1703,6 +1749,7 @@ function saveRotationToSheet(){
 const DR_CL=['Polling 确认出席者（2-3天前）','开始前5分钟 Start Zoom','准时 6:10 开始','分享每日主题 / 笔的故事四步骤','主持结束 7:20','记录出席人数'];
 const WR_CL=['Polling 确认出席者（2-3天前）','Send Zoom link / 确认地点','准备当周主题 & 内容','准时 2pm 开始','主持整场 1-2小时','拍照 & Post 活动花絮'];
 const BS_CL=['Polling 确认出席者（2-3天前）','Send Zoom link','准备当月书/影选题','准时 2:30pm 开始','主持分享 & 讨论（1.5小时）','Post 精华 Social Media'];
+let BS_LINKS=load('bs_links',{zoom:'',ppt:''});
 const MO_AGENDA=[
   {t:'开场',title:'🙏 DLIG 开场定调',desc:'发愿 + 感恩彼此（每人1句） + 读使命',o:'全体',expand:true},
   {t:'+10m',title:'📊 目标回顾',desc:'上月 KPI 复盘 · 本月目标确认',o:'Li Joo'},
@@ -2915,6 +2962,26 @@ function renderRotBS(){
   el.innerHTML=html;
 }
 
+function renderBSPage(){
+  const zi=document.getElementById('bs-zoom-input');
+  const pi=document.getElementById('bs-ppt-input');
+  if(zi)zi.value=BS_LINKS.zoom||'';
+  if(pi)pi.value=BS_LINKS.ppt||'';
+  const rw=document.getElementById('bs-page-rota');
+  if(rw){
+    const today=new Date().toISOString().split('T')[0];
+    let html=`<div class="dc" style="max-width:450px"><div class="dc-title">轮值表</div>`;
+    if(ROTATION_DATA.bs.length===0)html+=`<div style="color:var(--muted);font-size:11px;padding:10px 0">暂无轮值记录，请前往日历添加</div>`;
+    ROTATION_DATA.bs.forEach(r=>{
+      const past=r.date<today;
+      html+=`<div class="dr-row" style="${past?'opacity:0.45':''}"><span class="dw">${fmtD(r.date)}</span><span>${ptag(r.person)||'<span style="color:var(--muted);font-size:10px">待定</span>'} <span style="font-size:9.5px;color:var(--muted)">${r.notes||''}</span></span></div>`;
+    });
+    html+=`</div>`;
+    rw.innerHTML=html;
+  }
+  const cl=document.getElementById('bs-page-cl');
+  if(cl)cl.innerHTML=BS_CL.map(i=>`<div class="cli"><input type="checkbox" style="accent-color:var(--blue)"><span class="cli-text">${i}</span></div>`).join('');
+}
 function renderRotClean(){
   const el=document.getElementById('rot-clean-panel');if(!el)return;
   const today=new Date().toISOString().split('T')[0];
@@ -3571,7 +3638,7 @@ function addFileItem(){const n=document.getElementById('fitem-name').value.trim(
 // ═══════════════════════════════════════
 // NAV
 // ═══════════════════════════════════════
-const PT={overview:'🏠 公司总览',tasks:'🗂 Task Board',calendar:'📅 日历 & 轮值',sales:'💰 Sales & Marketing',products:'🎁 产品 & 价格',admin:'📦 Inventory & Admin',xindong:'💎 心动觉察',ylyd:'🌱 YLYD System',gdc:'🎨 GDC Marketing Job',policy:'📜 Company Policy',meeting:'📋 会议 & 记录',decisions:'⚡ 待决策',files:'📁 文件索引'};
+const PT={overview:'🏠 公司总览',tasks:'🗂 Task Board',calendar:'📅 日历 & 轮值',sales:'💰 Sales & Marketing',products:'🎁 产品 & 价格',admin:'📦 Inventory & Admin',ylyd:'🌱 YLYD System',bs:'📚 YLYD 会员',xindong:'💎 心动觉察',gdc:'🎨 GDC Marketing Job',policy:'📜 Company Policy',meeting:'📋 会议 & 记录',decisions:'⚡ 待决策',files:'📁 文件索引'};
 function go(id){
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('on'));
   document.querySelectorAll('.ni').forEach(n=>n.classList.remove('on'));
@@ -3642,7 +3709,7 @@ function renderClean(){
     <td><button class="tc-btn" onclick="CLEAN.splice(CLEAN.indexOf(sorted[${i}]),1);save('clean7',CLEAN);renderClean()" style="color:var(--red);font-size:10px">删</button></td>
   </tr>`).join(''):'<tr><td colspan="5" style="text-align:center;color:var(--muted);padding:16px">暂无记录</td></tr>';
 }
-renderOverview();renderTasks();renderCalendar();renderSales();renderMktCal();renderProducts();renderClean();renderRotation();renderYLYD();
+renderOverview();renderTasks();renderCalendar();renderSales();renderMktCal();renderProducts();renderClean();renderRotation();renderYLYD();renderBSPage();
 renderAdmin();renderXindong();renderYLYD();renderGDC();renderPolicy();
 renderMeeting();renderDecisions();renderFiles();renderMktCal();updateStats();
 // 强制确保 Task Board 初始为列表视图（无论其他代码状态）
