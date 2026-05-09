@@ -961,6 +961,69 @@ body{background:var(--cream);color:var(--text);font-family:'Plus Jakarta Sans',s
 
     <div class="sl" style="margin-top:18px">✅ Checklist</div>
     <div id="bs-page-cl"></div>
+
+    <div class="sl" style="margin-top:22px">📣 Reminder 文案</div>
+    <div style="display:flex;flex-direction:column;gap:12px">
+
+      <!-- 几天前 -->
+      <div class="card" style="padding:16px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+          <span style="font-size:12px;font-weight:700;color:var(--blue)">📅 几天前 Reminder</span>
+          <button onclick="copyBS('bs-pre')" style="background:var(--blueB);border:1px solid rgba(59,130,246,.3);border-radius:7px;padding:4px 12px;font-size:11px;font-weight:600;color:var(--blue);cursor:pointer">📋 复制</button>
+        </div>
+        <pre id="bs-pre" style="font-family:'Plus Jakarta Sans',sans-serif;font-size:11.5px;line-height:1.75;white-space:pre-wrap;color:var(--text);margin:0;background:var(--cream);border-radius:8px;padding:12px">*🔋 YLYD 书影充电站 🔋*
+
+忙忙碌碌的生活里，
+别忘了给自己一些时间停下来 ☕️
+
+这个星期六，
+我们的「书影充电站」又来啦 ✨
+
+一起暂时放下忙碌，
+进入属于你的充电时间 🌿
+
+不知道这次会抽到什么书影主题 👀
+老师这次又会带来什么新的智慧与启发呢 ✨
+
+很期待和大家一起边听、边聊、边充电 🌙🤍
+
+📅 Every 2nd &amp; 4th Saturday
+⏰ 2:45 – 4:00PM
+💻 Zoom Online
+
+记得先把时间留给自己 ✨
+Zoom link 会在活动当天发布在群组里 🤍</pre>
+      </div>
+
+      <!-- 当天 -->
+      <div class="card" style="padding:16px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+          <span style="font-size:12px;font-weight:700;color:var(--green)">🔔 当天 Reminder</span>
+          <button onclick="copyBS('bs-day')" style="background:var(--greenB);border:1px solid rgba(26,110,66,.25);border-radius:7px;padding:4px 12px;font-size:11px;font-weight:600;color:var(--green);cursor:pointer">📋 复制</button>
+        </div>
+        <pre id="bs-day" style="font-family:'Plus Jakarta Sans',sans-serif;font-size:11.5px;line-height:1.75;white-space:pre-wrap;color:var(--text);margin:0;background:var(--cream);border-radius:8px;padding:12px">🔋 又到了我们每个月 2 次的
+*「YLYD 书影充电站」时间啦 🤩*
+
+今天下午 2:45PM，
+*一起上线充电 ✨*
+
+这次又会抽到什么问题或视频呢？
+老师今天又会带给我们什么智慧与启发呢 🌙
+
+一起留一点时间给自己，
+慢下来，
+透过书籍、影片与交流，
+好好整理最近的自己 🤍
+
+*⏰ 今天 2:45 – 4:00PM*
+*💻 Zoom Online*
+Join Here: https://us06web.zoom.us/j/7707709233
+Passcode: DLIG
+
+等下见 ✨</pre>
+      </div>
+
+    </div>
   </div>
 
   <!-- ══ GDC MARKETING JOB ══ -->
@@ -3033,6 +3096,7 @@ function renderBSRot(){
 function editBSRot(date,field,val){const r=ROTATION_DATA.bs.find(x=>x.date===date);if(r){r[field]=val;save('rotation_data',ROTATION_DATA);syncBSRot();renderBSRot();renderRotBS();renderYLYD();}}
 function addBSRot2(){const date=document.getElementById('add-bs2-date').value;if(!date)return;if(!ROTATION_DATA.bs.find(r=>r.date===date)){ROTATION_DATA.bs.push({date,person:document.getElementById('add-bs2-person').value,notes:document.getElementById('add-bs2-notes').value});ROTATION_DATA.bs.sort((a,b)=>a.date.localeCompare(b.date));save('rotation_data',ROTATION_DATA);syncBSRot();}document.getElementById('add-bs2-date').value='';document.getElementById('add-bs2-notes').value='';renderBSRot();renderRotBS();renderYLYD();}
 function delBSRot(date){ROTATION_DATA.bs=ROTATION_DATA.bs.filter(x=>x.date!==date);save('rotation_data',ROTATION_DATA);syncBSRot();renderBSRot();renderRotBS();renderYLYD();}
+function copyBS(id){const el=document.getElementById(id);if(!el)return;const txt=el.textContent;navigator.clipboard.writeText(txt).then(()=>{const btns=el.closest('.card').querySelectorAll('button');btns.forEach(b=>{const orig=b.textContent;b.textContent='✅ 已复制！';setTimeout(()=>b.textContent=orig,1800);});}).catch(()=>{});}
 function syncBSRot(){if(!SHEETS_API_URL)return;fetch(SHEETS_API_URL+'?sheet=bs_rotation',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(ROTATION_DATA.bs.map(r=>({date:r.date,person:r.person||'',notes:r.notes||''})))}).catch(()=>{});}
 async function loadBSFromSheet(){if(!SHEETS_API_URL)return;try{const res=await fetch(SHEETS_API_URL+'?sheet=bs_all');if(!res.ok)return;const d=await res.json();if(!d||d.error)return;if(d.settings)BS_DATA.settings=d.settings;if(d.flow&&d.flow.length)BS_DATA.flow=d.flow;if(d.rotation&&d.rotation.length){ROTATION_DATA.bs=d.rotation.map(r=>({date:r.date,person:r.person||'',notes:r.notes||''}));save('rotation_data',ROTATION_DATA);}renderBSPage();}catch(e){}}
 function renderRotClean(){
