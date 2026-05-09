@@ -963,6 +963,91 @@ function readInventory() {
     }));
 }
 
+// ─── 书影充电站 (Operation Sheet) ────────────────────────────
+const OPS_SHEET_ID  = '1_6bghVk44SlC9tH9vDENcw3JeorzCINaWSbkMbMcS38';
+const BS_SET_TAB    = '📚 设置';
+const BS_FLOW_TAB   = '📋 流程表';
+const BS_ROT_TAB    = '👤 轮值';
+
+function getOpsSS() { return SpreadsheetApp.openById(OPS_SHEET_ID); }
+
+function readBSSettings() {
+  const ss = getOpsSS();
+  let tab = ss.getSheetByName(BS_SET_TAB);
+  if (!tab) {
+    tab = ss.insertSheet(BS_SET_TAB);
+    tab.getRange(1,1,1,2).setValues([['key','value']]).setFontWeight('bold').setBackground('#e8f4fd');
+    tab.getRange(2,1,7,2).setValues([
+      ['zoom_link','https://us06web.zoom.us/j/7707709233'],
+      ['zoom_id','7707709233'],
+      ['zoom_passcode','DLIG'],
+      ['zoom_host_key','779233'],
+      ['ppt_link','https://canva.link/ylydwisdomrechargesat'],
+      ['wisdomlib_link','https://diamondlifeinsightsglobal.app.clientclub.net/courses/products/4a1a5ae9-69c5-4c22-825f-b2dd26402a1a?source=courses'],
+      ['other_info','']
+    ]);
+    return {zoom_link:'https://us06web.zoom.us/j/7707709233',zoom_id:'7707709233',zoom_passcode:'DLIG',zoom_host_key:'779233',ppt_link:'https://canva.link/ylydwisdomrechargesat',wisdomlib_link:'https://diamondlifeinsightsglobal.app.clientclub.net/courses/products/4a1a5ae9-69c5-4c22-825f-b2dd26402a1a?source=courses',other_info:''};
+  }
+  const data = tab.getDataRange().getValues();
+  const result = {};
+  data.slice(1).forEach(r => { if(r[0]) result[String(r[0]).trim()] = String(r[1]||'').trim(); });
+  return result;
+}
+
+function readBSFlow() {
+  const ss = getOpsSS();
+  let tab = ss.getSheetByName(BS_FLOW_TAB);
+  if (!tab) {
+    tab = ss.insertSheet(BS_FLOW_TAB);
+    const rows = [
+      ['时间','时长','环节','说明'],
+      ['2:30 PM','15min','开场 & 充电模式','开场 & 自我介绍在 chatbox'],
+      ['2:45 PM','45min','📚 书影分享 / Lucky draw','video / 《超凡的智慧4问题》 / 《爱种子问题》· 模式1—Q&A 或 模式2—见证分享（5min分享 + 10min拆解：总结2个 action keypoint，分享可变成广告）'],
+      ['3:30 PM','10min','Q&A 或见证分享、合照','复盘 & 拆解 keypoints'],
+      ['3:40 PM','15min','Me Time 复盘','YLYD 设计册 · 偶尔提 Why Me Time ❤'],
+      ['3:55 PM','5min','集体乐咖','好种子库 ❤'],
+      ['4:00 PM','—','END','带着智慧，回归生活']
+    ];
+    tab.getRange(1,1,rows.length,4).setValues(rows);
+    tab.getRange(1,1,1,4).setFontWeight('bold').setBackground('#e8f4fd');
+    return rows.slice(1).map(r=>({time:r[0],duration:r[1],section:r[2],desc:r[3]}));
+  }
+  const data = tab.getDataRange().getValues();
+  if (data.length < 2) return [];
+  return data.slice(1).filter(r=>r[0]).map(r=>({
+    time:String(r[0]||''), duration:String(r[1]||''), section:String(r[2]||''), desc:String(r[3]||'')
+  }));
+}
+
+function readBSRotation() {
+  const ss = getOpsSS();
+  const tab = ss.getSheetByName(BS_ROT_TAB);
+  if (!tab) return [];
+  const data = tab.getDataRange().getValues();
+  if (data.length < 2) return [];
+  return data.slice(1).filter(r=>r[0]).map(r=>({
+    date: fmtDate(r[0])||String(r[0]||''), person:String(r[1]||''), notes:String(r[2]||'')
+  }));
+}
+
+function writeBSRotation(items) {
+  const ss = getOpsSS();
+  let tab = ss.getSheetByName(BS_ROT_TAB);
+  if (!tab) {
+    tab = ss.insertSheet(BS_ROT_TAB);
+    tab.getRange(1,1,1,3).setValues([['date','person','notes']]).setFontWeight('bold').setBackground('#f0fdf4');
+  }
+  const lastRow = tab.getLastRow();
+  if (lastRow > 1) tab.getRange(2,1,lastRow-1,3).clearContent();
+  if (!items.length) return {ok:true,count:0};
+  tab.getRange(2,1,items.length,3).setValues(items.map(r=>[r.date||'',r.person||'',r.notes||'']));
+  return {ok:true,count:items.length};
+}
+
+function readBSAll() {
+  return {settings:readBSSettings(), flow:readBSFlow(), rotation:readBSRotation()};
+}
+
 // ─── doGet ───────────────────────────────────────────────────
 
 function doGet(e) {
@@ -984,6 +1069,7 @@ function doGet(e) {
     if (type === 'au_records')        return respond(readAuRecords());
     if (type === 'xd_roles')          return respond(readXdRoles());
     if (type === 'inventory')         return respond(readInventory());
+    if (type === 'bs_all')            return respond(readBSAll());
     return respond({ error: 'Unknown sheet: ' + type });
   } catch(err) {
     return respond({ error: err.message });
@@ -1009,6 +1095,7 @@ function doPost(e) {
     if (type === 'sb_records')       return respond(writeSbRecords(Array.isArray(data) ? data : []));
     if (type === 'au_records')       return respond(writeAuRecords(Array.isArray(data) ? data : []));
     if (type === 'xd_roles')         return respond(writeXdRoles(data||{}));
+    if (type === 'bs_rotation')      return respond(writeBSRotation(Array.isArray(data)?data:[]));
     if (type === 'pay') {
       return respond(writePaySheet(data.tasks, data.mkt, data.gdc));
     }
