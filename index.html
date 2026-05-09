@@ -3674,17 +3674,18 @@ function addFileItem(){const n=document.getElementById('fitem-name').value.trim(
 // NAV
 // ═══════════════════════════════════════
 const PT={overview:'🏠 公司总览',tasks:'🗂 Task Board',calendar:'📅 日历 & 轮值',sales:'💰 Sales & Marketing',products:'🎁 产品 & 价格',admin:'📦 Inventory & Admin',ylyd:'🌱 YLYD System',bs:'📚 YLYD 会员',xindong:'💎 心动觉察',gdc:'🎨 GDC Marketing Job',policy:'📜 Company Policy',meeting:'📋 会议 & 记录',decisions:'⚡ 待决策',files:'📁 文件索引'};
-function go(id){
+function go(id,skipHash){
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('on'));
   document.querySelectorAll('.ni').forEach(n=>n.classList.remove('on'));
   const pg=document.getElementById('p-'+id);if(pg)pg.classList.add('on');
   const nis=document.querySelectorAll('.ni');const ord=Object.keys(PT);const idx=ord.indexOf(id);if(nis[idx])nis[idx].classList.add('on');
   document.getElementById('pg-title').textContent=PT[id]||id;
   document.getElementById('tb-pills').style.display=id==='tasks'?'flex':'none';
-  // 进入 Task Board 时强制还原列表视图
   if(id==='tasks'){TV='list';renderTasks();}
+  if(!skipHash)history.replaceState(null,'','#'+id);
   window.scrollTo(0,0);
 }
+window.addEventListener('hashchange',()=>{const id=location.hash.slice(1);if(id&&PT[id])go(id,true);});
 function smeet(s,btn){document.querySelectorAll('.ms-tab').forEach(x=>x.classList.remove('on'));document.querySelectorAll('.mtabs .mt').forEach(b=>b.classList.remove('on'));document.getElementById('ms-'+s).classList.add('on');btn.classList.add('on');}
 function sProj(prefix,sec,btn){const pg=btn.closest('.page');pg.querySelectorAll('.ps').forEach(x=>x.classList.remove('on'));pg.querySelectorAll('.ptabs .pt-btn').forEach(b=>b.classList.remove('on'));document.getElementById(prefix+'-'+sec).classList.add('on');btn.classList.add('on');}
 
@@ -3761,6 +3762,8 @@ renderMeeting();renderDecisions();renderFiles();renderMktCal();updateStats();
   renderTasks();
 })();
 loadFromSheets(); // 从 Google Sheets 拉取最新数据（异步）
+// 启动时读取 URL hash，跳转到对应页面
+(function(){const id=location.hash.slice(1);if(id&&PT[id])go(id,true);else history.replaceState(null,'','#overview');})();
 </script>
 </body>
 </html>
