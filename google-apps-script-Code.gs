@@ -417,7 +417,9 @@ function readEventsTab() {
     type:   find('type','类型'),
     person: find('person','负责人','who'),
     repeat: find('repeat','重复','循环'),
-    active: find('active','是否启用','启用')
+    active: find('active','是否启用','启用'),
+    mode:   find('mode','形式','online/physical'),
+    loc:    find('loc','location','地点','链接')
   };
 
   const g  = (row, c) => c >= 0 ? String(row[c] ?? '').trim() : '';
@@ -437,8 +439,10 @@ function readEventsTab() {
       time:   g(row, col.time),
       type:   g(row, col.type) || 'meet',
       person: g(row, col.person),
-      repeat: g(row, col.repeat).toLowerCase(),  // 'weekly', 'daily', or ''
-      active: active
+      repeat: g(row, col.repeat).toLowerCase(),
+      active: active,
+      mode:   g(row, col.mode).toLowerCase(),
+      loc:    g(row, col.loc)
     };
   });
 }
@@ -451,7 +455,7 @@ function writeEventsTab(items) {
   if (!tab) {
     tab = ss.insertSheet(EVENTS_TAB);
   }
-  const HDR = ['date','name','time','type','person','repeat','active'];
+  const HDR = ['date','name','time','type','person','repeat','active','mode','loc'];
   tab.clearContents();
   tab.getRange(1, 1, 1, HDR.length).setValues([HDR])
      .setFontWeight('bold').setBackground('#e8f4fd');
@@ -463,7 +467,9 @@ function writeEventsTab(items) {
     e.type   || 'meet',
     e.person || '',
     e.repeat || '',
-    e.active === false ? 'FALSE' : 'TRUE'
+    e.active === false ? 'FALSE' : 'TRUE',
+    e.mode   || '',
+    e.loc    || ''
   ]);
   tab.getRange(2, 1, rows.length, HDR.length).setValues(rows);
   return { ok: true, rows: rows.length };
