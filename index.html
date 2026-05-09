@@ -662,6 +662,8 @@ body{background:var(--cream);color:var(--text);font-family:'Plus Jakarta Sans',s
       <div class="ff"><div class="fl2">日期</div><input class="fi" id="ev-date" type="date" style="width:150px"></div>
       <div class="ff"><div class="fl2">时间（可选）</div><input class="fi" id="ev-time" placeholder="e.g. 9:30am" style="width:120px"></div>
       <div class="ff"><div class="fl2">类型</div><select class="fs" id="ev-type" style="width:140px"><option value="ylyd">YLYD System</option><option value="xindong">心动觉察</option><option value="mkt">Marketing</option><option value="meet">会议</option><option value="dlig4">DLIG 四步骤种种子</option></select></div>
+      <div class="ff"><div class="fl2">形式</div><select class="fs" id="ev-mode" style="width:100px"><option value="">—</option><option value="online">🌐 Online</option><option value="physical">📍 Physical</option></select></div>
+      <div class="ff"><div class="fl2">地点 / 链接</div><input class="fi" id="ev-loc" placeholder="Zoom / 地址" style="width:140px"></div>
       <div class="ff"><div class="fl2">负责人</div><select class="fs" id="ev-person" style="width:110px"><option>全员</option><option>Li Joo</option><option>Jasper</option><option>Stella</option><option>Roy</option></select></div>
       <button class="add-btn" onclick="addEvent()">+ 添加活动</button>
     </div>
@@ -2359,8 +2361,8 @@ function setCalMode(m,btn){
 function addEvent(){
   const name=document.getElementById('ev-name').value.trim();const date=document.getElementById('ev-date').value;
   if(!name||!date)return;
-  EVENTS.push({id:'e'+Date.now(),name,date,time:document.getElementById('ev-time').value.trim(),type:document.getElementById('ev-type').value,person:document.getElementById('ev-person').value,repeat:'',active:true});
-  document.getElementById('ev-name').value='';document.getElementById('ev-time').value='';
+  EVENTS.push({id:'e'+Date.now(),name,date,time:document.getElementById('ev-time').value.trim(),type:document.getElementById('ev-type').value,person:document.getElementById('ev-person').value,mode:document.getElementById('ev-mode').value,loc:document.getElementById('ev-loc').value.trim(),repeat:'',active:true});
+  document.getElementById('ev-name').value='';document.getElementById('ev-time').value='';document.getElementById('ev-loc').value='';
   // Use quietSave (no dirty flag) + direct Sheet sync — Sheet is master for events
   quietSave('events',EVENTS);syncToSheets('events',EVENTS);
   renderCalendar();renderOverview();
@@ -2488,6 +2490,7 @@ function buildEvMap(startOff,endOff){
   return evMap;
 }
 
+function parseTimeMin(t){if(!t)return 9999;const s=(t.split('-')[0]||'').trim().toLowerCase();const m=s.match(/(\d+)(?::(\d+))?\s*(am|pm)/);if(!m)return 9999;let h=parseInt(m[1]),mn=parseInt(m[2]||0);if(m[3]==='pm'&&h!==12)h+=12;if(m[3]==='am'&&h===12)h=0;return h*60+mn;}
 function renderCalendar(){
   const today=new Date();
   const evMap=buildEvMap(-30, CAL_MODE==='year'?400:120);
@@ -2531,16 +2534,18 @@ function renderCalendar(){
       const iT=day===today.getDate()&&isCurrMo;
       const ds=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
       const dayEv=(evMap[ds]||[]).filter(e=>fc(e.type));
-      const visible=dayEv.filter(e=>e.type!=='dr');
+      const visible=dayEv.filter(e=>e.type!=='dr').sort((a,b)=>parseTimeMin(a.time)-parseTimeMin(b.time));
       calHtml+=`<div class="cal-cell${iT?' today':''}" onclick="showCalDetail('${ds}')">
         <div class="cal-date">${day}</div>
         ${visible.slice(0,3).map(e=>{
           const st=evStyle[e.type]||evStyle.meet;
+          const isOnline=e.mode==='online';
           const isTask=!e.isEvent||e.type==='task';
-          const bg=isTask?st.taskBg:st.bg;
-          const col=isTask?'#fff':st.color;
+          const bg=(isTask||isOnline)?st.taskBg:st.bg;
+          const col=(isTask||isOnline)?'#fff':st.color;
           const timeParts=e.time?e.time.split('-'):[];const timeStr=e.time?`<div style="font-size:7px;opacity:.8;margin-bottom:1px">${timeParts[0]||e.time}${timeParts[1]?' → '+timeParts[1]:''}</div>`:'';
-          return`<div style="padding:3px 5px;border-radius:5px;margin-bottom:3px;overflow:hidden;background:${bg};color:${col}">
+          const tooltip=`${e.name}${e.time?' · '+e.time:''}${e.loc?' · '+e.loc:e.mode?' · '+(e.mode==='online'?'🌐 Online':'📍 Physical'):''}`;
+          return`<div title="${tooltip}" style="padding:3px 5px;border-radius:5px;margin-bottom:3px;overflow:hidden;background:${bg};color:${col}">
             ${timeStr}
             <div style="font-size:8.5px;font-weight:700;white-space:nowrap;text-overflow:ellipsis;overflow:hidden">${e.name.slice(0,18)}</div>
           </div>`;
@@ -2569,7 +2574,7 @@ function showCalDetail(ds){
           <button onclick="calEditEv(${ei},'${ds}')" style="background:none;border:1px solid var(--border);border-radius:5px;padding:2px 8px;font-size:10px;color:var(--blue);cursor:pointer">✏️ 编辑</button>
           <button onclick="calDelEv(${ei},'${ds}')" style="background:none;border:1px solid var(--border);border-radius:5px;padding:2px 8px;font-size:10px;color:var(--red);cursor:pointer">🗑</button>
         </div>
-        <div style="font-size:10.5px;color:var(--muted);margin-top:3px;padding-left:18px">${e.time?e.time.replace('-',' → '):''} ${e.person?'· 负责人：'+e.person:''}</div>
+        <div style="font-size:10.5px;color:var(--muted);margin-top:3px;padding-left:18px">${e.time?e.time.replace('-',' → '):''} ${e.person?'· 负责人：'+e.person:''}${e.mode?` · ${e.mode==='online'?'🌐 Online':'📍 Physical'}${e.loc?' ('+e.loc+')':''}`:e.loc?' · '+e.loc:''}</div>
       </div>`;
     }).join(''):'<div style="color:var(--muted);font-size:12px;padding:10px 0">这天暂无活动</div>';
   };
@@ -2617,6 +2622,18 @@ function calEditEv(ei,ds){
           <span style="font-size:10px;color:var(--muted);width:50px">负责人</span>
           <input id="cev_person_${ei}" value="${e.person||''}" placeholder="Li Joo / Roy / 全员" style="flex:1;border:1px solid var(--border);border-radius:5px;padding:4px 8px;font-size:11px">
         </div>
+        <div style="display:flex;align-items:center;gap:8px">
+          <span style="font-size:10px;color:var(--muted);width:50px">形式</span>
+          <select id="cev_mode_${ei}" style="flex:1;border:1px solid var(--border);border-radius:5px;padding:4px 8px;font-size:11px">
+            <option value="" ${!e.mode?'selected':''}>—</option>
+            <option value="online" ${e.mode==='online'?'selected':''}>🌐 Online</option>
+            <option value="physical" ${e.mode==='physical'?'selected':''}>📍 Physical</option>
+          </select>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px">
+          <span style="font-size:10px;color:var(--muted);width:50px">地点</span>
+          <input id="cev_loc_${ei}" value="${e.loc||''}" placeholder="Zoom / 地址" style="flex:1;border:1px solid var(--border);border-radius:5px;padding:4px 8px;font-size:11px">
+        </div>
         <div style="display:flex;gap:6px;margin-top:4px">
           <button onclick="calSaveEv(${ei},'${ds}')" style="flex:1;background:var(--gold);color:#fff;border:none;border-radius:6px;padding:5px;font-size:11px;font-weight:700;cursor:pointer">保存</button>
           <button onclick="showCalDetail('${ds}')" style="flex:1;background:none;border:1px solid var(--border);border-radius:6px;padding:5px;font-size:11px;cursor:pointer">取消</button>
@@ -2630,13 +2647,14 @@ function calSaveEv(ei,ds){
   const isRepeat=e.repeat==='weekly'||e.repeat==='daily';
   const newTime=(document.getElementById('cev_time_'+ei)||{}).value||e.time||'';
   const newPerson=(document.getElementById('cev_person_'+ei)||{}).value||e.person||'';
+  const newMode=(document.getElementById('cev_mode_'+ei)||{}).value??e.mode??'';
+  const newLoc=(document.getElementById('cev_loc_'+ei)||{}).value??e.loc??'';
   if(isRepeat){
-    // Add override for this date, cancel the repeat for this date
-    EVENTS.push({id:'ev_override_'+Date.now(),name:e.name,date:ds,time:newTime.trim(),type:e.type,person:newPerson.trim(),repeat:'',active:true});
+    EVENTS.push({id:'ev_override_'+Date.now(),name:e.name,date:ds,time:newTime.trim(),type:e.type,person:newPerson.trim(),mode:newMode,loc:newLoc.trim(),repeat:'',active:true});
     EVENTS.push({id:'ev_cancel_'+Date.now(),name:e.name,date:ds,time:'',type:e.type,person:'',repeat:'',active:false});
   } else {
     const idx=EVENTS.findIndex(x=>x.id===e.id||(x.name===e.name&&x.date===e.date));
-    if(idx>=0){EVENTS[idx].time=newTime.trim();EVENTS[idx].person=newPerson.trim();}
+    if(idx>=0){EVENTS[idx].time=newTime.trim();EVENTS[idx].person=newPerson.trim();EVENTS[idx].mode=newMode;EVENTS[idx].loc=newLoc.trim();}
   }
   quietSave('events',EVENTS);syncToSheets('events',EVENTS);
   renderCalendar();renderOverview();
