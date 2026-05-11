@@ -1708,6 +1708,7 @@ const YLYD_V=[
   {n:'🎥 视频工具包',f:'预播课 · 随时看',v:'RM277',r:'人生设计工具包，配合设计册使用，让系统自动化运作。'},
   {n:'📚 YLYD 终身会员（书影充电站）',f:'每月2次 · 线上 · 永久',v:'RM177',r:'即使System结束也继续享有。每月有新视角输入，持续升级思维。'},
   {n:'🎯 目标设计营',f:'8场/年 · 12个月内',v:'无价',r:'当你卡住、需要重新校准方向时，有专属空间帮你看清楚下一步。'},
+  {n:'🏕️ 人生设计体验营',f:'年度专属体验',v:'加料',r:'专为 YLYD System 成员设计的沉浸式体验营，深化人生设计。',link:'https://docs.google.com/document/d/1YN2lyvMrHVTtEGtsgb5zIWzrLIZrw_58m2aoORZMFzc/edit?usp=sharing'},
 ];
 const TEAM=[
   {p:'Li Joo',role:'💰 Sales',color:'#c84010',loc:'The Seed · 拜二+拜五',resp:['达成月 Sales Target','客户关系 & Closing','心动觉察 Facilitator','Donation 跟进']},
@@ -2781,7 +2782,7 @@ function renderProducts(){
     const tc=p.tier==='核心'?'tc2':p.tier.startsWith('入口')?'ti':p.tier==='散卖'?'ta':'ta';
     return`<tr><td><span class="tbadge ${tc}">${p.tier}</span></td><td style="font-weight:600">${p.n}</td><td style="font-size:10.5px;color:var(--muted)">${p.p}</td><td><span class="price-g">${p.price}</span></td><td><span class="orig">${p.orig}</span></td><td style="font-size:10.5px;color:var(--muted)">${p.note}</td></tr>`;
   }).join('');
-  document.getElementById('yvc-wrap').innerHTML=YLYD_V.map(v=>`<div class="yvc"><div class="yvc-name">${v.n}</div><div class="yvc-reason">${v.r}</div><div class="yvc-freq">${v.f}</div><div class="yvc-val">${v.v}</div></div>`).join('');
+  document.getElementById('yvc-wrap').innerHTML=YLYD_V.map(v=>`<div class="yvc"><div class="yvc-name">${v.n}</div><div class="yvc-reason">${v.r}</div><div class="yvc-freq">${v.f}</div><div class="yvc-val">${v.v}</div>${v.link?`<a href="${v.link}" target="_blank" style="display:inline-block;margin-top:7px;font-size:10px;color:var(--blue);text-decoration:none;background:var(--blueB);border:1px solid var(--blue);border-radius:5px;padding:2px 8px;font-weight:600">🔗 查看详情</a>`:''}</div>`).join('');
 }
 
 // ═══════════════════════════════════════
