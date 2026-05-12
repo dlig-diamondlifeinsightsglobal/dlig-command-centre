@@ -1400,8 +1400,9 @@ async function loadFromSheets(){
     try{localStorage.removeItem('dlig7__lt_events');}catch(e){}
     if(Array.isArray(evrows)&&evrows.length>0){
       // Sheet is master — use exactly what Sheet gives us, no auto-merge
-      EVENTS=evrows;
-      try{localStorage.setItem('dlig7_events',JSON.stringify(evrows));}catch(e){}
+      // Normalize legacy type names (dlig4 → dligspace4)
+      EVENTS=evrows.map(e=>({...e,type:e.type==='dlig4'?'dligspace4':e.type}));
+      try{localStorage.setItem('dlig7_events',JSON.stringify(EVENTS));}catch(e){}
     } else {
       // Sheet empty — push local defaults to Sheet to bootstrap
       syncToSheets('events',EVENTS);
@@ -2586,7 +2587,13 @@ function renderCalendar(){
   let calHtml='';
   months.forEach(d=>{
     const isCurrMo=d.getMonth()===today.getMonth()&&d.getFullYear()===today.getFullYear();
-    calHtml+=`<div class="cal-month-head">${d.toLocaleDateString('zh-CN',{year:'numeric',month:'long'})}</div><div class="cal-grid">`;
+    calHtml+=`<div class="cal-month-head" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px">
+      <span>${d.toLocaleDateString('zh-CN',{year:'numeric',month:'long'})}</span>
+      <span style="display:flex;align-items:center;gap:8px;font-size:9px;font-weight:400">
+        <span style="display:flex;align-items:center;gap:4px"><span style="display:inline-block;width:32px;height:13px;border-radius:3px;background:#1a4f8a"></span><span style="color:var(--muted)">Online</span></span>
+        <span style="display:flex;align-items:center;gap:4px"><span style="display:inline-block;width:32px;height:13px;border-radius:3px;background:var(--greenB);border:1px solid #c8e0cc"></span><span style="color:var(--muted)">Physical</span></span>
+      </span>
+    </div><div class="cal-grid">`;
     ['一','二','三','四','五','六','日'].forEach(h=>{calHtml+=`<div class="cal-head">${h}</div>`;});
     const fd=(new Date(d.getFullYear(),d.getMonth(),1).getDay()+6)%7;
     const dim=new Date(d.getFullYear(),d.getMonth()+1,0).getDate();
@@ -2600,7 +2607,7 @@ function renderCalendar(){
         <div class="cal-date">${day}</div>
         ${visible.slice(0,3).map(e=>{
           const st=evStyle[e.type]||evStyle.meet;
-          const isOnline=e.mode==='online';
+          const isOnline=e.mode==='online'||(!e.mode&&/\bonline\b/i.test(e.name));
           const isTask=!e.isEvent||e.type==='task';
           const bg=(isTask||isOnline)?st.taskBg:st.bg;
           const col=(isTask||isOnline)?'#fff':st.color;
