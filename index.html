@@ -622,16 +622,7 @@ body{background:var(--cream);color:var(--text);font-family:'Plus Jakarta Sans',s
   <div class="page" id="p-calendar">
     <div class="sl" style="margin-top:0">🔄 活动轮值管理</div>
     <div style="background:var(--white);border:1.5px solid var(--border);border-radius:var(--r);padding:14px;margin-bottom:18px;box-shadow:var(--sh)">
-      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px">
-        <button class="fb on" id="rot-dr-btn" onclick="showRotTab('dr',this)">☀️ Daily Redesign</button>
-        <button class="fb" id="rot-wr-btn" onclick="showRotTab('wr',this)">🌱 Weekly Realign</button>
-        <button class="fb" id="rot-bs-btn" onclick="showRotTab('bs',this)">📚 书影充电站</button>
-        <button class="fb" id="rot-clean-btn" onclick="showRotTab('clean',this)">🧹 Office 打扫</button>
-      </div>
-      <div id="rot-dr-panel"></div>
-      <div id="rot-wr-panel" style="display:none"></div>
-      <div id="rot-bs-panel" style="display:none"></div>
-      <div id="rot-clean-panel" style="display:none"></div>
+      <div id="rot-clean-panel"></div>
     </div>
     <div class="sl">📅 活动日历</div>
     <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:14px">
@@ -2972,8 +2963,7 @@ let ROT_TAB='dr';
 function showRotTab(t,btn){
   ROT_TAB=t;
   document.querySelectorAll('[id^="rot-"][id$="-btn"]').forEach(b=>b.classList.remove('on'));
-  btn.classList.add('on');
-  ['dr','wr','bs','clean'].forEach(k=>{document.getElementById('rot-'+k+'-panel').style.display=k===t?'':'none';});
+  if(btn)btn.classList.add('on');
 }
 
 function renderRotation(){
@@ -3116,7 +3106,7 @@ function copyBS(id){const el=document.getElementById(id);if(!el)return;const txt
 function syncBSRot(){if(!SHEETS_API_URL)return;fetch(SHEETS_API_URL+'?sheet=bs_rotation',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(ROTATION_DATA.bs.map(r=>({date:r.date,person:r.person||'',notes:r.notes||''})))}).catch(()=>{});}
 async function loadBSFromSheet(){if(!SHEETS_API_URL)return;try{const res=await fetch(SHEETS_API_URL+'?sheet=bs_all');if(!res.ok)return;const d=await res.json();if(!d||d.error)return;if(d.settings&&typeof d.settings==='object'){Object.entries(d.settings).forEach(([k,v])=>{if(v!==undefined&&v!==null&&v!=='')BS_DATA.settings[k]=v;});}if(d.flow&&d.flow.length)BS_DATA.flow=d.flow;if(d.rotation&&d.rotation.length){ROTATION_DATA.bs=d.rotation.map(r=>({date:r.date,person:r.person||'',notes:r.notes||''}));save('rotation_data',ROTATION_DATA);}renderBSPage();}catch(e){}}
 const CLEAN_SCHED=[
-  {week:'Week 1',isSpecial:true,note:'🧹 Cleaner 来打扫 2 小时'},
+  {week:'Week 1',isSpecial:true,note:'安排 Cleaner 来打扫2小时（上个月的admin安排）'},
   {week:'Week 2',sweep:'Li Joo', mop:'Roy',     stairs:'Shiw Wei',toilet:'Jasper'},
   {week:'Week 3',sweep:'Jasper', mop:'Li Joo',  stairs:'Roy',     toilet:'Shiw Wei'},
   {week:'Week 4',sweep:'Roy',    mop:'Shiw Wei', stairs:'Jasper',  toilet:'Li Joo'},
@@ -3136,36 +3126,44 @@ function renderRotClean(){
   const cleanDone=load('clean_done',{});
   const ds=d=>`${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}`;
   const MON=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-  let html=`<div style="font-size:11px;color:var(--muted);margin-bottom:12px">🧹 每月固定排班 · 显示拜一至礼拜 · 已完成打勾</div>`;
-  for(let mo=0;mo<3;mo++){
-    const d=new Date(now.getFullYear(),now.getMonth()+mo,1);
-    if(d<new Date(2026,4,1))continue;
-    const y=d.getFullYear(),m=d.getMonth();
-    html+=`<div style="font-size:11px;font-weight:800;color:var(--gold);margin:${mo>0?'20px':0} 0 6px">${MON[m]} ${y}</div>`;
-    html+=`<div style="overflow-x:auto"><table class="pt"><thead><tr>
-      <th style="width:58px">周次</th>
-      <th style="width:128px">日期</th>
-      <th>扫地<div style="font-weight:400;font-size:9px;color:var(--muted)">大房·Office·pantry</div></th>
-      <th>抹地<div style="font-weight:400;font-size:9px;color:var(--muted)">大房·Office·pantry</div></th>
-      <th>扫&amp;抹楼梯口<div style="font-weight:400;font-size:9px;color:var(--muted)">+抹桌子</div></th>
-      <th>洗厕所+补货<div style="font-weight:400;font-size:9px;color:var(--muted)">厕所&amp;pantry stock</div></th>
-      <th style="width:38px">✓</th>
-    </tr></thead><tbody>`;
-    getCleanWeeks(y,m).forEach((w,i)=>{
-      const s=CLEAN_SCHED[i];
-      const key=`${y}-${String(m+1).padStart(2,'0')}-W${i+1}`;
-      const done=cleanDone[key]||false;
-      const isPast=w.sun<now,isCurr=w.mon<=now&&now<=w.sun;
-      const rowSt=done?'background:var(--greenB)':isPast?'opacity:0.4':isCurr?'background:var(--goldL)':'';
-      const dr=`${ds(w.mon)} – ${ds(w.sun)}`;
-      if(s.isSpecial){
-        html+=`<tr style="${rowSt}"><td style="font-weight:700;color:var(--gold)">${s.week}</td><td style="font-size:10.5px;color:var(--muted)">${dr}</td><td colspan="4" style="color:var(--muted);font-style:italic;font-size:11px">${s.note}</td><td><input type="checkbox" ${done?'checked':''} style="accent-color:var(--green)" onchange="toggleCleanDone('${key}',this.checked)"></td></tr>`;
-      } else {
-        html+=`<tr style="${rowSt}"><td style="font-weight:700">${s.week}</td><td style="font-size:10.5px;color:var(--muted)">${dr}</td><td>${ptag(s.sweep)} ${s.sweep}</td><td>${ptag(s.mop)} ${s.mop}</td><td>${ptag(s.stairs)} ${s.stairs}</td><td>${ptag(s.toilet)} ${s.toilet}</td><td><input type="checkbox" ${done?'checked':''} style="accent-color:var(--green)" onchange="toggleCleanDone('${key}',this.checked)"></td></tr>`;
-      }
-    });
-    html+=`</tbody></table></div>`;
-  }
+  const tasks=['sweep','mop','stairs','toilet'];
+  // Show only current month
+  const y=now.getFullYear(),m=now.getMonth();
+  if(new Date(y,m,1)<new Date(2026,4,1)){el.innerHTML='';return;}
+  let html=`<div style="font-size:11px;font-weight:800;color:var(--gold);margin-bottom:8px">${MON[m]} ${y}</div>`;
+  html+=`<div style="overflow-x:auto"><table class="pt"><thead><tr>
+    <th style="width:80px;white-space:nowrap">周次</th>
+    <th style="width:120px">日期</th>
+    <th>扫地<div style="font-weight:400;font-size:9px;color:var(--muted)">大房·Office·pantry</div></th>
+    <th>抹地<div style="font-weight:400;font-size:9px;color:var(--muted)">大房·Office·pantry</div></th>
+    <th>扫&amp;抹楼梯口<div style="font-weight:400;font-size:9px;color:var(--muted)">+抹桌子</div></th>
+    <th>洗厕所+补货<div style="font-weight:400;font-size:9px;color:var(--muted)">厕所&amp;pantry stock</div></th>
+  </tr></thead><tbody>`;
+  getCleanWeeks(y,m).forEach((w,i)=>{
+    const s=CLEAN_SCHED[i];
+    const baseKey=`${y}-${String(m+1).padStart(2,'0')}-W${i+1}`;
+    const isPast=w.sun<now,isCurr=w.mon<=now&&now<=w.sun;
+    const rowSt=isPast?'opacity:0.45':isCurr?'background:var(--goldL)':'';
+    const dr=`${ds(w.mon)} – ${ds(w.sun)}`;
+    const chk=(k)=>{const done=cleanDone[k]||false;return`<input type="checkbox" ${done?'checked':''} style="accent-color:var(--green);margin-top:4px;display:block" onchange="toggleCleanDone('${k}',this.checked)" title="标记完成">`; };
+    if(s.isSpecial){
+      const k=`${baseKey}-admin`;
+      const done=cleanDone[k]||false;
+      html+=`<tr style="${done?'background:var(--greenB)':rowSt}"><td style="font-weight:600;white-space:nowrap">${s.week}</td><td style="font-size:10.5px;color:var(--muted)">${dr}</td><td colspan="3" style="color:var(--muted);font-style:italic;font-size:11px">${s.note}</td><td style="text-align:center">${chk(k)}</td></tr>`;
+    } else {
+      const cellDone=t=>cleanDone[`${baseKey}-${t}`]||false;
+      const allDone=tasks.every(t=>cellDone(t));
+      html+=`<tr style="${allDone?'background:var(--greenB)':rowSt}">
+        <td style="font-weight:700;white-space:nowrap">${s.week}</td>
+        <td style="font-size:10.5px;color:var(--muted)">${dr}</td>
+        <td style="text-align:center">${ptag(s.sweep)}<br>${chk(baseKey+'-sweep')}</td>
+        <td style="text-align:center">${ptag(s.mop)}<br>${chk(baseKey+'-mop')}</td>
+        <td style="text-align:center">${ptag(s.stairs)}<br>${chk(baseKey+'-stairs')}</td>
+        <td style="text-align:center">${ptag(s.toilet)}<br>${chk(baseKey+'-toilet')}</td>
+      </tr>`;
+    }
+  });
+  html+=`</tbody></table></div>`;
   el.innerHTML=html;
 }
 function toggleCleanDone(key,val){const cd=load('clean_done',{});cd[key]=val;save('clean_done',cd);renderRotClean();}
