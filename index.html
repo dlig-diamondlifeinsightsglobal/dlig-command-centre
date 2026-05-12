@@ -2781,23 +2781,36 @@ function renderSales(){
 // PRODUCTS
 // ═══════════════════════════════════════
 function renderProducts(){
+  // Consistent column widths across all 3 tables (follow 心动觉察 layout)
+  const CG=`<colgroup><col style="width:30%"><col style="width:14%"><col style="width:26%"><col style="width:17%"><col style="width:13%"></colgroup>`;
+  const CG_AC=`<colgroup><col style="width:44%"><col style="width:26%"><col style="width:17%"><col style="width:13%"></colgroup>`;
+  const oSt='font-size:10.5px;color:#777';  // orig: darker, no strikethrough
+  const mSt='font-size:10.5px;color:var(--muted)';
+  // 心动觉察 price: "6人 RM3,000 · 每加1人 +RM500 · 12人 RM5,000" → multi-line
+  const fmtP=s=>{const p=s.split(' · ');return p.length===3?`<span class="price-g" style="font-size:12px">${p[0]}</span><br><span style="font-size:9px;color:var(--muted)">（${p[1]}）</span><br><span class="price-g" style="font-size:12px">${p[2]}</span>`:`<span class="price-g">${s}</span>`;};
+  // 心动觉察 orig: "6人 RM3,000 · 12人 RM5,000" → 2 lines
+  const fmtO=s=>{const p=s.split(' · ');return p.length>=2?p.map(x=>`<span style="${oSt}">${x}</span>`).join('<br>'):`<span style="${oSt}">${s}</span>`;};
   const sections=[
-    {id:'ylyd',label:'🌱 YLYD',color:'var(--green)',xd:false},
-    {id:'xd',  label:'💎 心动觉察',color:'var(--gold)',xd:true},
-    {id:'ac',  label:'🛒 À la carte',color:'var(--blue)',xd:false},
+    {id:'ylyd',label:'🌱 YLYD',      color:'var(--green)',bg:'var(--greenB)',bd:'rgba(26,110,66,.18)'},
+    {id:'xd',  label:'💎 心动觉察',  color:'var(--gold)', bg:'var(--goldL)', bd:'rgba(184,114,10,.22)'},
+    {id:'ac',  label:'🛒 À la carte',color:'var(--blue)', bg:'var(--blueB)', bd:'rgba(26,79,138,.18)'},
   ];
   let html='';
   sections.forEach(g=>{
     const items=PRODS.filter(p=>p.group===g.id);if(!items.length)return;
-    html+=`<div style="font-size:12px;font-weight:800;color:${g.color};margin-bottom:6px;margin-top:${html?'20px':'0'}">${g.label}</div>`;
-    if(g.xd){
-      html+=`<table class="pt" style="width:100%"><thead><tr><th>产品</th><th>场地类型</th><th style="white-space:nowrap">单场价格（6 – 12人）</th><th style="white-space:nowrap">原价（6 – 12人）</th><th>备注</th></tr></thead><tbody>`;
-      items.forEach(p=>{html+=`<tr><td style="font-weight:600">${p.n}</td><td style="font-size:10.5px;color:var(--muted)">${p.p}</td><td><span class="price-g">${p.price}</span></td><td><span class="orig">${p.orig}</span></td><td style="font-size:10.5px;color:var(--muted)">${p.note}</td></tr>`;});
+    html+=`<div style="background:${g.bg};border:1.5px solid ${g.bd};border-radius:10px;padding:14px;margin-top:${html?'14px':'0'}"><div style="font-size:12px;font-weight:800;color:${g.color};margin-bottom:10px">${g.label}</div>`;
+    if(g.id==='xd'){
+      html+=`<table class="pt" style="width:100%;table-layout:fixed">${CG}<thead><tr><th>产品</th><th>场地类型</th><th>单场价格（6–12人）</th><th>原价（6–12人）</th><th>备注</th></tr></thead><tbody>`;
+      items.forEach(p=>{html+=`<tr><td style="font-weight:600">${p.n}</td><td style="${mSt}">${p.p}</td><td style="line-height:1.75">${fmtP(p.price)}</td><td style="line-height:1.75">${fmtO(p.orig)}</td><td style="${mSt}">${p.note}</td></tr>`;});
+    }else if(g.id==='ylyd'){
+      html+=`<table class="pt" style="width:100%;table-layout:fixed">${CG}<thead><tr><th>产品</th><th>目的</th><th>会员价</th><th>原价</th><th>备注</th></tr></thead><tbody>`;
+      items.forEach(p=>{html+=`<tr><td style="font-weight:600">${p.n}</td><td style="${mSt}">${p.p}</td><td><span class="price-g">${p.price}</span></td><td style="${oSt}">${p.orig}</td><td style="${mSt}">${p.note}</td></tr>`;});
     }else{
-      html+=`<table class="pt" style="width:100%"><thead><tr><th>产品</th><th>目的</th><th style="white-space:nowrap">会员价</th><th>原价</th><th>备注</th></tr></thead><tbody>`;
-      items.forEach(p=>{html+=`<tr><td style="font-weight:600">${p.n}</td><td style="font-size:10.5px;color:var(--muted)">${p.p}</td><td><span class="price-g">${p.price}</span></td><td><span class="orig">${p.orig}</span></td><td style="font-size:10.5px;color:var(--muted)">${p.note}</td></tr>`;});
+      // à la carte: no 目的 column
+      html+=`<table class="pt" style="width:100%;table-layout:fixed">${CG_AC}<thead><tr><th>产品</th><th>会员价</th><th>原价</th><th>备注</th></tr></thead><tbody>`;
+      items.forEach(p=>{html+=`<tr><td style="font-weight:600">${p.n}</td><td><span class="price-g">${p.price}</span></td><td style="${oSt}">${p.orig}</td><td style="${mSt}">${p.note}</td></tr>`;});
     }
-    html+=`</tbody></table>`;
+    html+=`</tbody></table></div>`;
   });
   document.getElementById('prod-wrap').innerHTML=html;
   document.getElementById('yvc-wrap').innerHTML=YLYD_V.map(v=>`<div class="yvc"><div class="yvc-name">${v.n}</div><div class="yvc-reason">${v.r}</div><div class="yvc-freq">${v.f}</div><div class="yvc-val">${v.v}</div>${v.link?`<a href="${v.link}" target="_blank" style="display:inline-block;margin-top:7px;font-size:10px;color:var(--blue);text-decoration:none;background:var(--blueB);border:1px solid var(--blue);border-radius:5px;padding:2px 8px;font-weight:600">🔗 查看详情</a>`:''}</div>`).join('');
