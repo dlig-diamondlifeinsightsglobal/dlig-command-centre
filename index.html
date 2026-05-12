@@ -651,7 +651,7 @@ body{background:var(--cream);color:var(--text);font-family:'Plus Jakarta Sans',s
       <div class="ff" style="flex:1;min-width:140px"><div class="fl2">活动名称</div><input class="fi" id="ev-name" placeholder="活动名称"></div>
       <div class="ff"><div class="fl2">日期</div><input class="fi" id="ev-date" type="date" style="width:150px"></div>
       <div class="ff"><div class="fl2">时间（可选）</div><input class="fi" id="ev-time" placeholder="e.g. 9:30am" style="width:120px"></div>
-      <div class="ff"><div class="fl2">类型</div><select class="fs" id="ev-type" style="width:160px"><option value="ylyd">🌱 YLYD System</option><option value="xindong">💎 心动觉察</option><option value="steps">🌿 DLIG 四步骤活动</option><option value="dlig4">📍 四步骤 - 场地</option><option value="meet">📋 会议</option><option value="mkt">📣 Marketing</option></select></div>
+      <div class="ff"><div class="fl2">类型</div><select class="fs" id="ev-type" style="width:160px"><option value="ylyd">🌱 YLYD System</option><option value="xindong">💎 心动觉察</option><option value="steps">🌿 DLIG 四步骤活动</option><option value="dligspace4">📍 四步骤 - 场地</option><option value="meet">📋 会议</option><option value="mkt">📣 Marketing</option></select></div>
       <div class="ff"><div class="fl2">形式</div><select class="fs" id="ev-mode" style="width:100px"><option value="">—</option><option value="online">🌐 Online</option><option value="physical">📍 Physical</option></select></div>
       <div class="ff"><div class="fl2">地点 / 链接</div><input class="fi" id="ev-loc" placeholder="Zoom / 地址" style="width:140px"></div>
       <div class="ff"><div class="fl2">负责人</div><select class="fs" id="ev-person" style="width:110px"><option>全员</option><option>Li Joo</option><option>Jasper</option><option>Stella</option><option>Roy</option></select></div>
@@ -1491,6 +1491,8 @@ let EVENTS=load('events',[
   {id:'e6',name:'Monthly Meeting',date:'2026-04-28',type:'meet',person:'All'},
   ...RECURRING_DEFAULTS,
 ]);
+// Migrate old dlig4 type → dligspace4
+(()=>{let changed=false;EVENTS.forEach(e=>{if(e.type==='dlig4'){e.type='dligspace4';changed=true;}});if(changed)quietSave('events',EVENTS);})();
 let ROTATION=[]; // 从 Rotation 轮值 tab 读取，格式：[{date:'2026-04-03',person:'Li Joo'},...]
 let MINUTES=load('minutes',[{id:'m1',date:'2026-03-25',title:'Meeting Minutes 2026 W12',link:'https://docs.google.com/document/d/1YxXGVfEcNReIk3JBH4nPDdpkGK5l_q6Y1YtkZJFqjFg/edit',note:'分钱机制讨论'}]);
 let ATTENDANCE=load('attendance',{});
@@ -1963,8 +1965,8 @@ function renderOverview(){
     if(evs.length)byDate[ds]=evs.sort((a,b)=>parseTimeMin(a.time)-parseTimeMin(b.time));
   }
   const dates=Object.keys(byDate).sort();
-  const evColor={xindong:'#b8720a',meet:'#1a4f8a',ylyd:'#1a6e42',mkt:'#6a3a96',dlig4:'#c84010',gdc:'#0d3060'};
-  const evBg={xindong:'var(--goldL)',meet:'var(--blueB)',ylyd:'var(--greenB)',mkt:'var(--purpleB)',dlig4:'var(--redB)',gdc:'var(--blueB)'};
+  const evColor={xindong:'#b8720a',meet:'#1a4f8a',ylyd:'#1a6e42',mkt:'#6a3a96',dligspace4:'#c84010',gdc:'#0d3060'};
+  const evBg={xindong:'var(--goldL)',meet:'var(--blueB)',ylyd:'var(--greenB)',mkt:'var(--purpleB)',dligspace4:'var(--redB)',gdc:'var(--blueB)'};
 
   document.getElementById('ov-upcoming').innerHTML=dates.length?`<div style="display:flex;flex-direction:column;gap:8px">${dates.map(ds=>{
     const evs=byDate[ds];
@@ -2552,7 +2554,7 @@ function parseTimeMin(t){if(!t)return 9999;const s=(t.split('-')[0]||'').trim().
 function renderCalendar(){
   const today=new Date();
   const evMap=buildEvMap(-30, CAL_MODE==='year'?400:120);
-  const fc=(type)=>CAL_F==='all'||(CAL_F==='dlig'&&(type==='ylyd'||type==='xindong'||type==='steps'))||(CAL_F==='venue'&&type==='dlig4')||type==='dr';
+  const fc=(type)=>CAL_F==='all'||(CAL_F==='dlig'&&(type==='ylyd'||type==='xindong'||type==='steps'||type==='meet'))||(CAL_F==='venue'&&type==='dligspace4')||type==='dr';
 
   // Determine months to show
   let months=[];
@@ -2575,7 +2577,7 @@ function renderCalendar(){
     xindong:{bg:'var(--goldL)',color:'var(--gold)',taskBg:'#b8720a'},
     steps:{bg:'#ede9fe',color:'#6d28d9',taskBg:'#6d28d9'},
     mkt:{bg:'#6a3a96',color:'#fff',taskBg:'#6a3a96'},
-    dlig4:{bg:'var(--redB)',color:'var(--red)',taskBg:'#be3a2a'},
+    dligspace4:{bg:'var(--redB)',color:'var(--red)',taskBg:'#be3a2a'},
     gdc:{bg:'var(--blueB)',color:'var(--blue)',taskBg:'#0d3060'},
     dr:{bg:'var(--s2)',color:'var(--muted)',taskBg:'var(--dim)'},
     task:{bg:'#1a4f8a',color:'#fff',taskBg:'#1a4f8a'},
@@ -2620,7 +2622,7 @@ function renderCalendar(){
 function showCalDetail(ds){
   const evMap=buildEvMap(-30,120);
   const events=(evMap[ds]||[]).filter(e=>e.type!=='dr');
-  const evStyle={meet:'var(--blue)',ylyd:'var(--green)',xindong:'var(--gold)',mkt:'var(--purple)',dlig4:'var(--red)',task:'var(--text)',dr:'var(--muted)'};
+  const evStyle={meet:'var(--blue)',ylyd:'var(--green)',xindong:'var(--gold)',mkt:'var(--purple)',dligspace4:'var(--red)',task:'var(--text)',dr:'var(--muted)'};
   document.getElementById('cal-modal-title').textContent='📅 '+ds;
   const renderModal=()=>{
     document.getElementById('cal-modal-body').innerHTML=events.length?events.map((e,ei)=>{
