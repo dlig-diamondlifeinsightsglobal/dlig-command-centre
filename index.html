@@ -749,7 +749,7 @@ body{background:var(--cream);color:var(--text);font-family:'Plus Jakarta Sans',s
   <div class="page" id="p-products">
     <div class="ib ib-gold"><b>⚠️ 产品价格冻结至 2026年6月30日（入口3除外）· 更改费RM100/次（3个月内再改 RM400/次）</b></div>
     <div class="sl">① 全部产品价格（含 Ala-Carte）</div>
-    <div class="card" style="overflow-x:auto;padding:14px;"><table class="pt"><thead><tr><th>层级</th><th>产品</th><th>目的</th><th>会员价</th><th>原价</th><th>备注</th></tr></thead><tbody id="prod-tbl"></tbody></table></div>
+    <div class="card" style="overflow-x:auto;padding:14px;" id="prod-wrap"></div>
     <div class="sl" style="margin-top:20px">② YLYD System — 价值拆解 &amp; 存在原因</div>
     <div class="ib ib-gold"><b>💎 RM1,588/year = RM132/月 · 「YLYD 不是帮你变厉害，是帮你不要再原地打转。」</b></div>
     <div class="yvc-grid" id="yvc-wrap"></div>
@@ -1688,20 +1688,22 @@ let INV=load('inventory',[
   {n:'Nametag 纸',cat:'迎宾',qty:0,min:50,s:'补货',lead:'',link:''},
 ]);
 const PRODS=[
-  {tier:'入口 1',n:'心动觉察（DLIG Space · Bukit Impian）',p:'让人看见自己需要系统',price:'RM557/人',orig:'RM557',note:'私人场：min 6pax RM3,000（每增1人+RM500）· 12pax RM5,000 | Affiliate 7% / 15%'},
-  {tier:'入口 1',n:'心动觉察（JB Non-DLIG Space）',p:'JB 外部场地',price:'RM607/人',orig:'RM607',note:'私人场：min 6pax RM3,300（每增1人+RM550）· 12pax RM5,500 | Affiliate 7% / 15%'},
-  {tier:'入口 1',n:'心动觉察（Outstation · West Malaysia）',p:'外州场',price:'RM717/人',orig:'RM717',note:'私人场：min 6pax RM4,200（每增1人+RM700）· 12pax RM7,000 | Affiliate 7% / 15%'},
-  {tier:'入口 2',n:'YLYD 体验包',p:'体验YLYD + 现金流辅助',price:'RM177',orig:'RM331',note:'含：3mth设计册 + YLYD终身会员 + 线下Weekly Realign'},
-  {tier:'入口 3',n:'YLYD 目标设计一日营',p:'Q2/Q3 筹备中',price:'待定',orig:'—',note:'价格可调整'},
-  {tier:'核心',n:'YLYD System（12个月全套）',p:'让人不原地踏步',price:'RM1,588/year',orig:'RM3,551+',note:'首发优惠 RM1,288（-RM300）· RM132/月'},
-  {tier:'散卖',n:'设计册 Refill 3mth',p:'现金流辅助',price:'RM27',orig:'RM37',note:''},
-  {tier:'散卖',n:'设计册 Refill 12mth',p:'现金流辅助',price:'RM81',orig:'RM148',note:''},
-  {tier:'散卖',n:'好种子库 Refill',p:'',price:'RM15',orig:'RM22',note:'5类别+50内页'},
-  {tier:'散卖',n:'好花朵朵开 Refill',p:'',price:'RM15',orig:'RM22',note:'5类别+50内页'},
-  {tier:'散卖',n:'心动手册',p:'',price:'RM77',orig:'RM107',note:''},
-  {tier:'散卖',n:'YLYD Shirt',p:'品牌',price:'RM49',orig:'RM69',note:'后续重新设计（目标 oversize 潮服 RM100+）'},
-  {tier:'散卖',n:'单次 Realign（仅YLYD会员）',p:'',price:'RM77',orig:'RM177',note:''},
-  {tier:'散卖',n:'六小时书',p:'',price:'RM37',orig:'RM37',note:''},
+  // ── YLYD
+  {group:'ylyd',n:'YLYD 体验包',p:'体验YLYD + 现金流辅助',price:'RM177',orig:'RM331',note:'含：3mth设计册 + YLYD终身会员 + 线下Weekly Realign'},
+  {group:'ylyd',n:'YLYD 目标设计一日营',p:'Q2/Q3 筹备中',price:'待定',orig:'—',note:'价格可调整'},
+  {group:'ylyd',n:'YLYD System（12个月全套）',p:'让人不原地踏步',price:'RM1,588/year',orig:'RM3,551+',note:'首发优惠 RM1,288（-RM300）· RM132/月'},
+  // ── 心动觉察
+  {group:'xd',n:'心动觉察（DLIG Space · Bukit Impian）',p:'DLIG 自有场地',price:'RM3,000 – RM5,000',orig:'RM3,000 – RM5,000',note:'min 6pax · 每增1人 +RM500 · Affiliate 7% / 15%'},
+  {group:'xd',n:'心动觉察（JB Non-DLIG Space）',p:'JB 外部场地',price:'RM3,300 – RM5,500',orig:'RM3,300 – RM5,500',note:'min 6pax · 每增1人 +RM550 · Affiliate 7% / 15%'},
+  {group:'xd',n:'心动觉察（Outstation · West Malaysia）',p:'外州场',price:'RM4,200 – RM7,000',orig:'RM4,200 – RM7,000',note:'min 6pax · 每增1人 +RM700 · Affiliate 7% / 15%'},
+  // ── À la carte
+  {group:'ac',n:'设计册 Refill 3mth',p:'现金流辅助',price:'RM27',orig:'RM37',note:''},
+  {group:'ac',n:'设计册 Refill 12mth',p:'现金流辅助',price:'RM81',orig:'RM148',note:''},
+  {group:'ac',n:'好种子库 Refill',p:'',price:'RM15',orig:'RM22',note:'5类别+50内页'},
+  {group:'ac',n:'好花朵朵开 Refill',p:'',price:'RM15',orig:'RM22',note:'5类别+50内页'},
+  {group:'ac',n:'心动手册',p:'',price:'RM77',orig:'RM107',note:''},
+  {group:'ac',n:'YLYD Shirt',p:'品牌',price:'RM49',orig:'RM69',note:'后续重新设计（目标 oversize 潮服 RM100+）'},
+  {group:'ac',n:'六小时书',p:'',price:'RM37',orig:'RM37',note:''},
 ];
 const YLYD_V=[
   {n:'☀️ Daily Redesign Space',f:'每天 6:10–7:20am · 365天',v:'无价',r:'每天有一个有方向的开始。靠结构，不靠感觉。是整个系统的底层习惯建立器。'},
@@ -2782,10 +2784,25 @@ function renderSales(){
 // PRODUCTS
 // ═══════════════════════════════════════
 function renderProducts(){
-  document.getElementById('prod-tbl').innerHTML=PRODS.map(p=>{
-    const tc=p.tier==='核心'?'tc2':p.tier.startsWith('入口')?'ti':p.tier==='散卖'?'ta':'ta';
-    return`<tr><td><span class="tbadge ${tc}">${p.tier}</span></td><td style="font-weight:600">${p.n}</td><td style="font-size:10.5px;color:var(--muted)">${p.p}</td><td><span class="price-g">${p.price}</span></td><td><span class="orig">${p.orig}</span></td><td style="font-size:10.5px;color:var(--muted)">${p.note}</td></tr>`;
-  }).join('');
+  const sections=[
+    {id:'ylyd',label:'🌱 YLYD',color:'var(--green)',xd:false},
+    {id:'xd',  label:'💎 心动觉察',color:'var(--gold)',xd:true},
+    {id:'ac',  label:'🛒 À la carte',color:'var(--blue)',xd:false},
+  ];
+  let html='';
+  sections.forEach(g=>{
+    const items=PRODS.filter(p=>p.group===g.id);if(!items.length)return;
+    html+=`<div style="font-size:12px;font-weight:800;color:${g.color};margin-bottom:6px;margin-top:${html?'20px':'0'}">${g.label}</div>`;
+    if(g.xd){
+      html+=`<table class="pt" style="width:100%"><thead><tr><th>产品</th><th>场地类型</th><th style="white-space:nowrap">单场价格（6 – 12人）</th><th style="white-space:nowrap">原价（6 – 12人）</th><th>备注</th></tr></thead><tbody>`;
+      items.forEach(p=>{html+=`<tr><td style="font-weight:600">${p.n}</td><td style="font-size:10.5px;color:var(--muted)">${p.p}</td><td><span class="price-g">${p.price}</span></td><td><span class="orig">${p.orig}</span></td><td style="font-size:10.5px;color:var(--muted)">${p.note}</td></tr>`;});
+    }else{
+      html+=`<table class="pt" style="width:100%"><thead><tr><th>产品</th><th>目的</th><th style="white-space:nowrap">会员价</th><th>原价</th><th>备注</th></tr></thead><tbody>`;
+      items.forEach(p=>{html+=`<tr><td style="font-weight:600">${p.n}</td><td style="font-size:10.5px;color:var(--muted)">${p.p}</td><td><span class="price-g">${p.price}</span></td><td><span class="orig">${p.orig}</span></td><td style="font-size:10.5px;color:var(--muted)">${p.note}</td></tr>`;});
+    }
+    html+=`</tbody></table>`;
+  });
+  document.getElementById('prod-wrap').innerHTML=html;
   document.getElementById('yvc-wrap').innerHTML=YLYD_V.map(v=>`<div class="yvc"><div class="yvc-name">${v.n}</div><div class="yvc-reason">${v.r}</div><div class="yvc-freq">${v.f}</div><div class="yvc-val">${v.v}</div>${v.link?`<a href="${v.link}" target="_blank" style="display:inline-block;margin-top:7px;font-size:10px;color:var(--blue);text-decoration:none;background:var(--blueB);border:1px solid var(--blue);border-radius:5px;padding:2px 8px;font-weight:600">🔗 查看详情</a>`:''}</div>`).join('');
 }
 
