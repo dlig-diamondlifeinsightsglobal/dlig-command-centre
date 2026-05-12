@@ -3126,10 +3126,10 @@ function renderRotClean(){
   const colW='width:16%;min-width:80px';
   const tdSt='padding:5px 8px!important';
   let html=`<div style="font-size:11px;font-weight:800;color:var(--gold);margin-bottom:4px">${MON[m]} ${y}</div>`;
-  html+=`<div style="font-size:10px;color:var(--muted);margin-bottom:8px;font-style:italic">如有 Week 5，休息一周 ☕️</div>`;
+  html+=`<div style="font-size:10px;color:var(--muted);margin-bottom:8px;font-style:italic">完成后请打勾☑️｜如有 Week 5，休息一周 ☕️</div>`;
   html+=`<div style="overflow-x:auto"><table class="pt" style="table-layout:fixed;width:100%"><thead><tr>
-    <th style="width:58px;white-space:nowrap;padding:5px 8px">周次</th>
-    <th style="width:88px;padding:5px 8px">日期</th>
+    <th style="width:52px;white-space:nowrap;padding:5px 8px">周次</th>
+    <th style="width:52px;padding:5px 8px">日期</th>
     <th style="${colW};padding:5px 8px">扫地<div style="font-weight:400;font-size:9px;color:var(--muted)">活动厅·Office·Pantry</div></th>
     <th style="${colW};padding:5px 8px">抹地<div style="font-weight:400;font-size:9px;color:var(--muted)">活动厅·Office·Pantry</div></th>
     <th style="${colW};padding:5px 8px">扫、抹楼梯口<div style="font-weight:400;font-size:9px;color:var(--muted)">+抹桌子</div></th>
@@ -3144,20 +3144,20 @@ function renderRotClean(){
     const chk=(k)=>{const done=cleanDone[k]||false;return`<input type="checkbox" ${done?'checked':''} style="accent-color:var(--green);vertical-align:middle;margin-left:5px;cursor:pointer" onchange="toggleCleanDone('${k}',this.checked)" title="标记完成">`;};
     if(s.isSpecial){
       const k=`${baseKey}-admin`;const done=cleanDone[k]||false;
-      html+=`<tr style="${done?'background:var(--greenB)':rowSt}"><td style="font-weight:600;white-space:nowrap;font-size:11px;${tdSt}">${s.week}</td><td style="font-size:10px;color:var(--muted);white-space:nowrap;${tdSt}">${dr}</td><td colspan="3" style="color:var(--muted);font-style:italic;font-size:11px;${tdSt}">${s.note}</td><td style="text-align:center;${tdSt}">${chk(k)}</td></tr>`;
+      html+=`<tr style="${done?'background:var(--greenB)':rowSt}"><td style="font-weight:600;white-space:nowrap;font-size:11px;${tdSt}">${s.week}</td><td style="font-size:10px;color:var(--muted);white-space:nowrap;${tdSt}">${dr}</td><td colspan="4" style="${tdSt}"><div style="display:flex;justify-content:space-between;align-items:center"><span style="color:var(--muted);font-style:italic;font-size:11px">${s.note}</span>${chk(k)}</div></td></tr>`;
     } else {
       const cellDone=t=>cleanDone[`${baseKey}-${t}`]||false;const allDone=tasks.every(t=>cellDone(t));
       html+=`<tr style="${allDone?'background:var(--greenB)':rowSt}">
         <td style="font-weight:700;white-space:nowrap;font-size:11px;${tdSt}">${s.week}</td>
         <td style="font-size:10px;color:var(--muted);white-space:nowrap;${tdSt}">${dr}</td>
-        <td style="${tdSt}">${ptag(s.sweep)}${chk(baseKey+'-sweep')}</td>
-        <td style="${tdSt}">${ptag(s.mop)}${chk(baseKey+'-mop')}</td>
-        <td style="${tdSt}">${ptag(s.stairs)}${chk(baseKey+'-stairs')}</td>
-        <td style="${tdSt}">${ptag(s.toilet)}${chk(baseKey+'-toilet')}</td>
+        <td style="${tdSt}"><div style="display:flex;justify-content:space-between;align-items:center">${ptag(s.sweep)}${chk(baseKey+'-sweep')}</div></td>
+        <td style="${tdSt}"><div style="display:flex;justify-content:space-between;align-items:center">${ptag(s.mop)}${chk(baseKey+'-mop')}</div></td>
+        <td style="${tdSt}"><div style="display:flex;justify-content:space-between;align-items:center">${ptag(s.stairs)}${chk(baseKey+'-stairs')}</div></td>
+        <td style="${tdSt}"><div style="display:flex;justify-content:space-between;align-items:center">${ptag(s.toilet)}${chk(baseKey+'-toilet')}</div></td>
       </tr>`;
     }
   });
-  html+=`</tbody></table></div><div style="margin-top:6px;font-size:10px;color:var(--muted)">✅ 勾选后自动同步给所有人 · 数据存 Google Sheet</div>`;
+  html+=`</tbody></table></div>`;
   el.innerHTML=html;
 }
 function toggleCleanDone(key,val){
