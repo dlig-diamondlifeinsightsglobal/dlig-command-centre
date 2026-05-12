@@ -1403,6 +1403,9 @@ async function loadFromSheets(){
       // Normalize legacy type names (dlig4 → dligspace4)
       EVENTS=evrows.map(e=>({...e,type:e.type==='dlig4'?'dligspace4':e.type}));
       try{localStorage.setItem('dlig7_events',JSON.stringify(EVENTS));}catch(e){}
+      // If Sheet doesn't have mode column yet (all mode empty), write back once to create the column
+      const needsModeCol=evrows.every(e=>!e.mode);
+      if(needsModeCol)syncToSheets('events',EVENTS);
     } else {
       // Sheet empty — push local defaults to Sheet to bootstrap
       syncToSheets('events',EVENTS);
@@ -1693,9 +1696,9 @@ const PRODS=[
   {group:'ylyd',n:'YLYD 目标设计一日营',p:'Q2/Q3 筹备中',price:'待定',orig:'—',note:'价格可调整'},
   {group:'ylyd',n:'YLYD System（12个月全套）',p:'让人不原地踏步',price:'RM1,588/year',orig:'RM3,551+',note:'首发优惠 RM1,288（-RM300）· RM132/月'},
   // ── 心动觉察
-  {group:'xd',n:'心动觉察（DLIG Space · Bukit Impian）',p:'DLIG 自有场地',price:'RM3,000 – RM5,000',orig:'RM3,000 – RM5,000',note:'min 6pax · 每增1人 +RM500 · Affiliate 7% / 15%'},
-  {group:'xd',n:'心动觉察（JB Non-DLIG Space）',p:'JB 外部场地',price:'RM3,300 – RM5,500',orig:'RM3,300 – RM5,500',note:'min 6pax · 每增1人 +RM550 · Affiliate 7% / 15%'},
-  {group:'xd',n:'心动觉察（Outstation · West Malaysia）',p:'外州场',price:'RM4,200 – RM7,000',orig:'RM4,200 – RM7,000',note:'min 6pax · 每增1人 +RM700 · Affiliate 7% / 15%'},
+  {group:'xd',n:'心动觉察（DLIG Space · Bukit Impian）',p:'DLIG 自有场地',price:'6人 RM3,000 · 每加1人 +RM500 · 12人 RM5,000',orig:'6人 RM3,000 · 12人 RM5,000',note:'Affiliate 7% / 15%'},
+  {group:'xd',n:'心动觉察（JB Non-DLIG Space）',p:'JB 外部场地',price:'6人 RM3,300 · 每加1人 +RM550 · 12人 RM5,500',orig:'6人 RM3,300 · 12人 RM5,500',note:'Affiliate 7% / 15%'},
+  {group:'xd',n:'心动觉察（Outstation · West Malaysia）',p:'外州场',price:'6人 RM4,200 · 每加1人 +RM700 · 12人 RM7,000',orig:'6人 RM4,200 · 12人 RM7,000',note:'Affiliate 7% / 15%'},
   // ── À la carte
   {group:'ac',n:'设计册 Refill 3mth',p:'现金流辅助',price:'RM27',orig:'RM37',note:''},
   {group:'ac',n:'设计册 Refill 12mth',p:'现金流辅助',price:'RM81',orig:'RM148',note:''},
@@ -1703,7 +1706,7 @@ const PRODS=[
   {group:'ac',n:'好花朵朵开 Refill',p:'',price:'RM15',orig:'RM22',note:'5类别+50内页'},
   {group:'ac',n:'心动手册',p:'',price:'RM77',orig:'RM107',note:''},
   {group:'ac',n:'YLYD Shirt',p:'品牌',price:'RM49',orig:'RM69',note:'后续重新设计（目标 oversize 潮服 RM100+）'},
-  {group:'ac',n:'六小时书',p:'',price:'RM37',orig:'RM37',note:''},
+  {group:'ac',n:'六时书',p:'',price:'RM37',orig:'RM37',note:''},
 ];
 const YLYD_V=[
   {n:'☀️ Daily Redesign Space',f:'每天 6:10–7:20am · 365天',v:'无价',r:'每天有一个有方向的开始。靠结构，不靠感觉。是整个系统的底层习惯建立器。'},
@@ -2589,13 +2592,7 @@ function renderCalendar(){
   let calHtml='';
   months.forEach(d=>{
     const isCurrMo=d.getMonth()===today.getMonth()&&d.getFullYear()===today.getFullYear();
-    calHtml+=`<div class="cal-month-head" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px">
-      <span>${d.toLocaleDateString('zh-CN',{year:'numeric',month:'long'})}</span>
-      <span style="display:flex;align-items:center;gap:8px;font-size:9px;font-weight:400">
-        <span style="display:flex;align-items:center;gap:4px"><span style="display:inline-block;width:32px;height:13px;border-radius:3px;background:#1a4f8a"></span><span style="color:var(--muted)">Online</span></span>
-        <span style="display:flex;align-items:center;gap:4px"><span style="display:inline-block;width:32px;height:13px;border-radius:3px;background:var(--greenB);border:1px solid #c8e0cc"></span><span style="color:var(--muted)">Physical</span></span>
-      </span>
-    </div><div class="cal-grid">`;
+    calHtml+=`<div class="cal-month-head">${d.toLocaleDateString('zh-CN',{year:'numeric',month:'long'})}</div><div style="display:flex;gap:12px;align-items:center;margin:-4px 2px 8px;font-size:9px;color:var(--muted)"><span style="display:flex;align-items:center;gap:3px"><span style="display:inline-block;width:20px;height:9px;border-radius:2px;background:#1a4f8a"></span>深色 = Online</span><span style="display:flex;align-items:center;gap:3px"><span style="display:inline-block;width:20px;height:9px;border-radius:2px;background:var(--greenB);border:1px solid #c8d8cc"></span>浅色 = Physical</span></div><div class="cal-grid">`;
     ['一','二','三','四','五','六','日'].forEach(h=>{calHtml+=`<div class="cal-head">${h}</div>`;});
     const fd=(new Date(d.getFullYear(),d.getMonth(),1).getDay()+6)%7;
     const dim=new Date(d.getFullYear(),d.getMonth()+1,0).getDate();
