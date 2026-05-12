@@ -1950,25 +1950,18 @@ function renderOverview(){
   const totT2=validSalesOv.reduce((a,b)=>a+b.t,0),totA2=validSalesOv.reduce((a,b)=>a+b.a,0);
   document.getElementById('ov-bar-total').textContent=`H1: ${fRM(totA2)}/${fRM(totT2)} (${(totA2/totT2*100).toFixed(1)}%) · Shortfall: ${fRM(totT2-totA2)}`;
 
-  // ── 接下来2周 · 卡片式 · 只show events
-  const now=new Date(),twoWk=new Date(now.getTime()+14*86400000);
-  // Only show proper events (not tasks/deadlines), include recurring
-  // 从 ROTATION 找某天的轮值人
-  const rotPerson=ds=>{ const r=ROTATION.find(x=>x.date===ds); return r?r.person:'轮值'; };
-  const recur=[];
-  for(let i=0;i<14;i++){
-    const d=new Date(now.getTime()+i*86400000);
-    if(d.getDay()===4){
-      const ds=d.toISOString().split('T')[0];
-      recur.push({name:'Weekly Meeting',date:ds,time:'8:00am',type:'meet',person:'全员'});
-      recur.push({name:'YLYD Realign',date:ds,time:'2:00pm',type:'ylyd',person:rotPerson(ds)});
-    }
-  }
-  const upEvents=EVENTS.filter(e=>{const d=new Date(e.date);return d>=now&&d<=twoWk&&!e.fromTask&&e.type!=='mkt'&&e.type!=='gdc';});
-  const allEv=[...upEvents,...recur].sort((a,b)=>a.date.localeCompare(b.date));
-  // Group by date, skip days with only empty
+  // ── 接下来2周 · 卡片式 · 只show events（via buildEvMap，cancellations respected）
+  const now=new Date();
+  const today0ov=new Date(now.getFullYear(),now.getMonth(),now.getDate());
+  const toDS_ov=d=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+  const evMapOv=buildEvMap(0,15);
   const byDate={};
-  allEv.forEach(e=>{if(!byDate[e.date])byDate[e.date]=[];byDate[e.date].push(e);});
+  for(let i=0;i<14;i++){
+    const d=new Date(today0ov.getFullYear(),today0ov.getMonth(),today0ov.getDate()+i);
+    const ds=toDS_ov(d);
+    const evs=(evMapOv[ds]||[]).filter(e=>e.type!=='dr'&&e.type!=='mkt'&&e.type!=='gdc');
+    if(evs.length)byDate[ds]=evs.sort((a,b)=>parseTimeMin(a.time)-parseTimeMin(b.time));
+  }
   const dates=Object.keys(byDate).sort();
   const evColor={xindong:'#b8720a',meet:'#1a4f8a',ylyd:'#1a6e42',mkt:'#6a3a96',dlig4:'#c84010',gdc:'#0d3060'};
   const evBg={xindong:'var(--goldL)',meet:'var(--blueB)',ylyd:'var(--greenB)',mkt:'var(--purpleB)',dlig4:'var(--redB)',gdc:'var(--blueB)'};
@@ -3135,8 +3128,8 @@ function renderRotClean(){
   let html=`<div style="font-size:11px;font-weight:800;color:var(--gold);margin-bottom:4px">${MON[m]} ${y}</div>`;
   html+=`<div style="font-size:10px;color:var(--muted);margin-bottom:8px;font-style:italic">如有 Week 5，休息一周 ☕️</div>`;
   html+=`<div style="overflow-x:auto"><table class="pt" style="table-layout:fixed;width:100%"><thead><tr>
-    <th style="width:80px;white-space:nowrap;padding:5px 8px">周次</th>
-    <th style="width:110px;padding:5px 8px">日期</th>
+    <th style="width:58px;white-space:nowrap;padding:5px 8px">周次</th>
+    <th style="width:88px;padding:5px 8px">日期</th>
     <th style="${colW};padding:5px 8px">扫地<div style="font-weight:400;font-size:9px;color:var(--muted)">活动厅·Office·Pantry</div></th>
     <th style="${colW};padding:5px 8px">抹地<div style="font-weight:400;font-size:9px;color:var(--muted)">活动厅·Office·Pantry</div></th>
     <th style="${colW};padding:5px 8px">扫、抹楼梯口<div style="font-weight:400;font-size:9px;color:var(--muted)">+抹桌子</div></th>
@@ -3151,12 +3144,12 @@ function renderRotClean(){
     const chk=(k)=>{const done=cleanDone[k]||false;return`<input type="checkbox" ${done?'checked':''} style="accent-color:var(--green);vertical-align:middle;margin-left:5px;cursor:pointer" onchange="toggleCleanDone('${k}',this.checked)" title="标记完成">`;};
     if(s.isSpecial){
       const k=`${baseKey}-admin`;const done=cleanDone[k]||false;
-      html+=`<tr style="${done?'background:var(--greenB)':rowSt}"><td style="font-weight:600;white-space:nowrap;${tdSt}">${s.week}</td><td style="font-size:10px;color:var(--muted);${tdSt}">${dr}</td><td colspan="3" style="color:var(--muted);font-style:italic;font-size:11px;${tdSt}">${s.note}</td><td style="text-align:center;${tdSt}">${chk(k)}</td></tr>`;
+      html+=`<tr style="${done?'background:var(--greenB)':rowSt}"><td style="font-weight:600;white-space:nowrap;font-size:11px;${tdSt}">${s.week}</td><td style="font-size:10px;color:var(--muted);white-space:nowrap;${tdSt}">${dr}</td><td colspan="3" style="color:var(--muted);font-style:italic;font-size:11px;${tdSt}">${s.note}</td><td style="text-align:center;${tdSt}">${chk(k)}</td></tr>`;
     } else {
       const cellDone=t=>cleanDone[`${baseKey}-${t}`]||false;const allDone=tasks.every(t=>cellDone(t));
       html+=`<tr style="${allDone?'background:var(--greenB)':rowSt}">
-        <td style="font-weight:700;white-space:nowrap;${tdSt}">${s.week}</td>
-        <td style="font-size:10px;color:var(--muted);${tdSt}">${dr}</td>
+        <td style="font-weight:700;white-space:nowrap;font-size:11px;${tdSt}">${s.week}</td>
+        <td style="font-size:10px;color:var(--muted);white-space:nowrap;${tdSt}">${dr}</td>
         <td style="${tdSt}">${ptag(s.sweep)}${chk(baseKey+'-sweep')}</td>
         <td style="${tdSt}">${ptag(s.mop)}${chk(baseKey+'-mop')}</td>
         <td style="${tdSt}">${ptag(s.stairs)}${chk(baseKey+'-stairs')}</td>
