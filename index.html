@@ -2621,7 +2621,7 @@ function renderCalendar(){
 
 function showCalDetail(ds){
   const evMap=buildEvMap(-30,120);
-  const events=(evMap[ds]||[]).filter(e=>e.type!=='dr');
+  const events=(evMap[ds]||[]).filter(e=>e.type!=='dr').sort((a,b)=>parseTimeMin(a.time)-parseTimeMin(b.time));
   const evStyle={meet:'var(--blue)',ylyd:'var(--green)',xindong:'var(--gold)',mkt:'var(--purple)',dligspace4:'var(--red)',task:'var(--text)',dr:'var(--muted)'};
   document.getElementById('cal-modal-title').textContent='📅 '+ds;
   const renderModal=()=>{
