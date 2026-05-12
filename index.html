@@ -1316,7 +1316,7 @@ Passcode: DLIG
 // ═══════════════════════════════════════
 // HELPERS
 // ═══════════════════════════════════════
-const PC={'Li Joo':'#c84010','Jasper':'#1a4f8a','Roy':'#1a6e42','Stella':'#7a3080','All':'#b8720a','全员':'#b8720a','全体':'#b8720a','待认领':'#8a6a4a','GDC':'#546e7a'};
+const PC={'Li Joo':'#c84010','Jasper':'#1a4f8a','Roy':'#1a6e42','Stella':'#7a3080','Shiw Wei':'#2a7a8a','All':'#b8720a','全员':'#b8720a','全体':'#b8720a','待认领':'#8a6a4a','GDC':'#546e7a'};
 const ptag=p=>p&&p!=='-'?`<span class="tag" style="background:${PC[p]||'#8a6a4a'};color:#fff">${p}</span>`:'';
 const ctag=c=>c?`<span class="tag tcat">${c}</span>`:'';
 const ktag=k=>{const m={'🔴 紧急':'turg','🟡 本周':'tweek','⚡ 本月':'tmon','⭐ 长期':'tlong'};return k?`<span class="tag ${m[k]||'tlong'}">${k}</span>`:'';}
@@ -3115,30 +3115,60 @@ function delBSRot(date){ROTATION_DATA.bs=ROTATION_DATA.bs.filter(x=>x.date!==dat
 function copyBS(id){const el=document.getElementById(id);if(!el)return;const txt=el.textContent;navigator.clipboard.writeText(txt).then(()=>{const btns=el.closest('.card').querySelectorAll('button');btns.forEach(b=>{const orig=b.textContent;b.textContent='✅ 已复制！';setTimeout(()=>b.textContent=orig,1800);});}).catch(()=>{});}
 function syncBSRot(){if(!SHEETS_API_URL)return;fetch(SHEETS_API_URL+'?sheet=bs_rotation',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(ROTATION_DATA.bs.map(r=>({date:r.date,person:r.person||'',notes:r.notes||''})))}).catch(()=>{});}
 async function loadBSFromSheet(){if(!SHEETS_API_URL)return;try{const res=await fetch(SHEETS_API_URL+'?sheet=bs_all');if(!res.ok)return;const d=await res.json();if(!d||d.error)return;if(d.settings&&typeof d.settings==='object'){Object.entries(d.settings).forEach(([k,v])=>{if(v!==undefined&&v!==null&&v!=='')BS_DATA.settings[k]=v;});}if(d.flow&&d.flow.length)BS_DATA.flow=d.flow;if(d.rotation&&d.rotation.length){ROTATION_DATA.bs=d.rotation.map(r=>({date:r.date,person:r.person||'',notes:r.notes||''}));save('rotation_data',ROTATION_DATA);}renderBSPage();}catch(e){}}
+const CLEAN_SCHED=[
+  {week:'Week 1',isSpecial:true,note:'🧹 Cleaner 来打扫 2 小时'},
+  {week:'Week 2',sweep:'Li Joo', mop:'Roy',     stairs:'Shiw Wei',toilet:'Jasper'},
+  {week:'Week 3',sweep:'Jasper', mop:'Li Joo',  stairs:'Roy',     toilet:'Shiw Wei'},
+  {week:'Week 4',sweep:'Roy',    mop:'Shiw Wei', stairs:'Jasper',  toilet:'Li Joo'},
+];
+function getCleanWeeks(year,month){
+  const d1=new Date(year,month,1),dow=d1.getDay();
+  const mon1=new Date(year,month,1-(dow===0?6:dow-1));
+  return Array.from({length:4},(_,w)=>{
+    const mon=new Date(mon1.getFullYear(),mon1.getMonth(),mon1.getDate()+w*7);
+    const sun=new Date(mon.getFullYear(),mon.getMonth(),mon.getDate()+6);
+    return{mon,sun};
+  });
+}
 function renderRotClean(){
   const el=document.getElementById('rot-clean-panel');if(!el)return;
-  const today=new Date().toISOString().split('T')[0];
-  let html=`<div style="font-size:11px;color:var(--muted);margin-bottom:8px">🧹 每周四 · 4 项任务轮流 · 已完成打勾</div>`;
-  html+=`<div style="overflow-x:auto"><table class="pt"><thead><tr><th style="width:100px">日期（周四）</th><th>扫地</th><th>抹地</th><th>楼梯口/抹桌子</th><th>补货</th><th style="width:50px">✓</th><th style="width:40px"></th></tr></thead><tbody>`;
-  ROTATION_DATA.clean.forEach(r=>{
-    const past=r.date<today;
-    const done=r.done||false;
-    html+=`<tr style="${past&&!done?'opacity:0.45':done?'background:var(--greenB)':''}">
-    <td style="font-family:'DM Sans',sans-serif;font-size:11px;font-weight:600">${fmtD(r.date)}</td>
-    <td>${PSEL(r.sweep,`editRotClean('${r.date}','sweep',this.value)`)}</td>
-    <td>${PSEL(r.mop,`editRotClean('${r.date}','mop',this.value)`)}</td>
-    <td>${PSEL(r.stairs,`editRotClean('${r.date}','stairs',this.value)`)}</td>
-    <td>${PSEL(r.restock,`editRotClean('${r.date}','restock',this.value)`)}</td>
-    <td><input type="checkbox" ${done?'checked':''} style="accent-color:var(--green)" onchange="editRotClean('${r.date}','done',this.checked)"></td>
-    <td><button class="tc-btn" onclick="delRotClean('${r.date}')" style="color:var(--red);font-size:10px">删</button></td></tr>`;
-  });
-  html+=`</tbody></table></div><div style="display:flex;gap:8px;margin-top:10px;align-items:center;flex-wrap:wrap">
-    <div class="ff"><div class="fl2">周四日期</div><input class="fi" id="add-clean-date" type="date" style="width:150px"></div>
-    <button class="add-btn" onclick="addRotClean()">+ 添加周次</button>
-    <button class="fb" style="font-size:10px" onclick="syncRotation()">☁️ 同步到 Sheet</button>
-  </div>`;
+  const now=new Date();now.setHours(0,0,0,0);
+  const cleanDone=load('clean_done',{});
+  const ds=d=>`${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}`;
+  const MON=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  let html=`<div style="font-size:11px;color:var(--muted);margin-bottom:12px">🧹 每月固定排班 · 显示拜一至礼拜 · 已完成打勾</div>`;
+  for(let mo=0;mo<3;mo++){
+    const d=new Date(now.getFullYear(),now.getMonth()+mo,1);
+    if(d<new Date(2026,4,1))continue;
+    const y=d.getFullYear(),m=d.getMonth();
+    html+=`<div style="font-size:11px;font-weight:800;color:var(--gold);margin:${mo>0?'20px':0} 0 6px">${MON[m]} ${y}</div>`;
+    html+=`<div style="overflow-x:auto"><table class="pt"><thead><tr>
+      <th style="width:58px">周次</th>
+      <th style="width:128px">日期</th>
+      <th>扫地<div style="font-weight:400;font-size:9px;color:var(--muted)">大房·Office·pantry</div></th>
+      <th>抹地<div style="font-weight:400;font-size:9px;color:var(--muted)">大房·Office·pantry</div></th>
+      <th>扫&amp;抹楼梯口<div style="font-weight:400;font-size:9px;color:var(--muted)">+抹桌子</div></th>
+      <th>洗厕所+补货<div style="font-weight:400;font-size:9px;color:var(--muted)">厕所&amp;pantry stock</div></th>
+      <th style="width:38px">✓</th>
+    </tr></thead><tbody>`;
+    getCleanWeeks(y,m).forEach((w,i)=>{
+      const s=CLEAN_SCHED[i];
+      const key=`${y}-${String(m+1).padStart(2,'0')}-W${i+1}`;
+      const done=cleanDone[key]||false;
+      const isPast=w.sun<now,isCurr=w.mon<=now&&now<=w.sun;
+      const rowSt=done?'background:var(--greenB)':isPast?'opacity:0.4':isCurr?'background:var(--goldL)':'';
+      const dr=`${ds(w.mon)} – ${ds(w.sun)}`;
+      if(s.isSpecial){
+        html+=`<tr style="${rowSt}"><td style="font-weight:700;color:var(--gold)">${s.week}</td><td style="font-size:10.5px;color:var(--muted)">${dr}</td><td colspan="4" style="color:var(--muted);font-style:italic;font-size:11px">${s.note}</td><td><input type="checkbox" ${done?'checked':''} style="accent-color:var(--green)" onchange="toggleCleanDone('${key}',this.checked)"></td></tr>`;
+      } else {
+        html+=`<tr style="${rowSt}"><td style="font-weight:700">${s.week}</td><td style="font-size:10.5px;color:var(--muted)">${dr}</td><td>${ptag(s.sweep)} ${s.sweep}</td><td>${ptag(s.mop)} ${s.mop}</td><td>${ptag(s.stairs)} ${s.stairs}</td><td>${ptag(s.toilet)} ${s.toilet}</td><td><input type="checkbox" ${done?'checked':''} style="accent-color:var(--green)" onchange="toggleCleanDone('${key}',this.checked)"></td></tr>`;
+      }
+    });
+    html+=`</tbody></table></div>`;
+  }
   el.innerHTML=html;
 }
+function toggleCleanDone(key,val){const cd=load('clean_done',{});cd[key]=val;save('clean_done',cd);renderRotClean();}
 
 // ─── Rotation edit/add/delete ────────────────────────────────
 function editRotDR(month,day,val){const m=ROTATION_DATA.dr.find(x=>x.month===month);if(m){m[day]=val;saveRotationToSheet();renderYLYD();}}
@@ -3153,9 +3183,6 @@ function editRotBS(date,field,val){const r=ROTATION_DATA.bs.find(x=>x.date===dat
 function addRotBS(){const date=document.getElementById('add-bs-date').value;if(!date)return;if(!ROTATION_DATA.bs.find(r=>r.date===date)){ROTATION_DATA.bs.push({date,person:document.getElementById('add-bs-person').value,notes:document.getElementById('add-bs-notes').value});ROTATION_DATA.bs.sort((a,b)=>a.date.localeCompare(b.date));saveRotationToSheet();}document.getElementById('add-bs-date').value='';document.getElementById('add-bs-notes').value='';renderRotBS();renderYLYD();}
 function delRotBS(date){ROTATION_DATA.bs=ROTATION_DATA.bs.filter(x=>x.date!==date);saveRotationToSheet();renderRotBS();renderYLYD();}
 
-function editRotClean(date,field,val){const r=ROTATION_DATA.clean.find(x=>x.date===date);if(r){r[field]=val;saveRotationToSheet();renderRotClean();}}
-function addRotClean(){const date=document.getElementById('add-clean-date').value;if(!date)return;if(!ROTATION_DATA.clean.find(r=>r.date===date)){ROTATION_DATA.clean.push({date,sweep:'',mop:'',stairs:'',restock:'',done:false});ROTATION_DATA.clean.sort((a,b)=>a.date.localeCompare(b.date));saveRotationToSheet();}document.getElementById('add-clean-date').value='';renderRotClean();}
-function delRotClean(date){ROTATION_DATA.clean=ROTATION_DATA.clean.filter(x=>x.date!==date);saveRotationToSheet();renderRotClean();}
 
 function syncRotation(){saveRotationToSheet();const el=document.querySelector('[id^="rot-"][id$="-btn"].on');el&&el.parentElement.insertAdjacentHTML('afterend','<div id="rot-sync-msg" style="font-size:10px;color:var(--green);margin-bottom:6px">✅ 已同步到 Google Sheet</div>');setTimeout(()=>{const m=document.getElementById('rot-sync-msg');if(m)m.remove();},3000);}
 
