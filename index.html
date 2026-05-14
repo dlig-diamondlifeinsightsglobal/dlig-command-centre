@@ -3674,18 +3674,23 @@ let mtTimer=null,mtRemaining=0,mtRunning=false;
 function mtBeep(){
   try{
     const ctx=new(window.AudioContext||window.webkitAudioContext)();
-    const tone=(t,hz,dur)=>{
+    const tone=(t,hz,dur,vol=0.9)=>{
       const o=ctx.createOscillator(),g=ctx.createGain();
       o.connect(g);g.connect(ctx.destination);
-      o.type='sine';o.frequency.value=hz;
-      g.gain.setValueAtTime(0.45,t);
+      o.type='square';           // square 比 sine 明显很多
+      o.frequency.value=hz;
+      g.gain.setValueAtTime(vol,t);
       g.gain.exponentialRampToValueAtTime(0.001,t+dur);
       o.start(t);o.stop(t+dur+0.05);
     };
     const n=ctx.currentTime;
-    tone(n,     880, 0.25);  // 第1声
-    tone(n+0.35,880, 0.25);  // 第2声
-    tone(n+0.70,1047,0.50);  // 第3声（高一点，持续久一点）
+    // 3声 × 重复3轮，共9声，持续约3秒
+    for(let r=0;r<3;r++){
+      const off=r*1.0;
+      tone(n+off,     880, 0.20);
+      tone(n+off+0.28,880, 0.20);
+      tone(n+off+0.56,1174,0.35);  // 高八度收尾
+    }
   }catch(e){}
 }
 function mtToggle(){
