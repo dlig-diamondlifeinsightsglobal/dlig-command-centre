@@ -3671,6 +3671,23 @@ function toggleFayuBanner(id){
 }
 // ─── 倒计时 Timer ─────────────────────────────────────────────
 let mtTimer=null,mtRemaining=0,mtRunning=false;
+function mtBeep(){
+  try{
+    const ctx=new(window.AudioContext||window.webkitAudioContext)();
+    const tone=(t,hz,dur)=>{
+      const o=ctx.createOscillator(),g=ctx.createGain();
+      o.connect(g);g.connect(ctx.destination);
+      o.type='sine';o.frequency.value=hz;
+      g.gain.setValueAtTime(0.45,t);
+      g.gain.exponentialRampToValueAtTime(0.001,t+dur);
+      o.start(t);o.stop(t+dur+0.05);
+    };
+    const n=ctx.currentTime;
+    tone(n,     880, 0.25);  // 第1声
+    tone(n+0.35,880, 0.25);  // 第2声
+    tone(n+0.70,1047,0.50);  // 第3声（高一点，持续久一点）
+  }catch(e){}
+}
 function mtToggle(){
   if(mtRunning){
     clearInterval(mtTimer);mtRunning=false;
@@ -3683,8 +3700,9 @@ function mtToggle(){
       if(mtRemaining<=0){
         clearInterval(mtTimer);mtRunning=false;
         document.getElementById('mt-start-btn').textContent='▶ 开始';
-        document.getElementById('mt-display').textContent='0:00';
+        document.getElementById('mt-display').textContent='⏰ 时间到！';
         document.getElementById('mt-display').style.color='var(--red)';
+        mtBeep();
         return;
       }
       mtRemaining--;
