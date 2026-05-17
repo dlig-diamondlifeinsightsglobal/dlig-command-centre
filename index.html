@@ -915,8 +915,8 @@ body{background:var(--cream);color:var(--text);font-family:'Plus Jakarta Sans',s
     </div>
     <div class="env-sec" id="env-wr">
       <div class="ib ib-green"><b>🌱 Weekly Realign — 每周四 2:00–4:00pm（线下）</b>4周循环：智慧充电 / 觉察续航 / 智慧充电 / 觉察续航 + Me Time</div>
-      <div class="sl">轮值表</div>
-      <div id="wr-rota-wrap"></div>
+      <div class="sl">轮值表 <span style="font-size:9.5px;font-weight:400;color:var(--muted)">· 填好后日历会自动显示负责人</span></div>
+      <div id="rot-wr-panel"></div>
       <div class="sl" style="margin-top:14px">✅ Checklist</div>
       <div id="wr-cl"></div>
     </div>
@@ -1731,11 +1731,12 @@ let ROTATION_DATA=load('rotation_data',{
     {month:'May 2026',mon:'',tue:'',wed:'',thu:'',fri:'',sat:''},
   ],
   wr:[  // YLYD Weekly Realign（每周四）
-    {date:'2026-04-02',person:'Li Joo',theme:'Week 1 智慧充电'},
-    {date:'2026-04-09',person:'',theme:'Week 2 觉察续航'},
-    {date:'2026-04-16',person:'',theme:'Week 3 智慧充电'},
-    {date:'2026-04-23',person:'',theme:'Week 4 觉察续航'},
-    {date:'2026-04-30',person:'',theme:'Week 5 Me Time'},
+    {date:'2026-05-21',person:'',theme:'Week 1 智慧充电'},
+    {date:'2026-05-28',person:'',theme:'Week 2 觉察续航'},
+    {date:'2026-06-04',person:'',theme:'Week 3 智慧充电'},
+    {date:'2026-06-11',person:'',theme:'Week 4 觉察续航'},
+    {date:'2026-06-18',person:'',theme:'Week 1 智慧充电'},
+    {date:'2026-06-25',person:'',theme:'Week 2 觉察续航'},
   ],
   bs:[  // 书影充电站（每月Week 2 & 4 Sat）
     {date:'2026-04-11',person:'Li Joo',notes:'Week 2 Sat'},
@@ -2977,8 +2978,8 @@ function renderYLYD(){
   const drRows=DAY_KEYS.map((d,i)=>`<tr><td style="font-weight:600;font-size:11px">${DAY_LABELS[i]}</td>${drMonths.map(m=>`<td>${ptag(m[d])||'<span style="color:var(--muted)">—</span>'}</td>`).join('')}</tr>`).join('');
   document.getElementById('dr-rota').innerHTML=drHead+drRows;
   document.getElementById('dr-cl').innerHTML=DR_CL.map(i=>`<div class="cli"><input type="checkbox" style="accent-color:var(--gold)"><span class="cli-text">${i}</span></div>`).join('');
-  // WR
-  document.getElementById('wr-rota-wrap').innerHTML=`<div class="dc" style="max-width:500px"><div class="dc-title">轮值表</div>${ROTATION_DATA.wr.map(r=>`<div class="dr-row"><span class="dw">${fmtD(r.date)}</span><span>${ptag(r.person)||'<span style="color:var(--muted);font-size:10px">待定</span>'} <span style="font-size:9.5px;color:var(--muted)">${r.theme||''}</span></span></div>`).join('')}</div>`;
+  // WR — editable panel (same as renderRotWR)
+  renderRotWR();
   document.getElementById('wr-cl').innerHTML=WR_CL.map(i=>`<div class="cli"><input type="checkbox" style="accent-color:var(--green)"><span class="cli-text">${i}</span></div>`).join('');
   // BS
   document.getElementById('bs-rota-wrap').innerHTML=`<div class="dc" style="max-width:400px"><div class="dc-title">轮值表</div>${ROTATION_DATA.bs.map(r=>`<div class="dr-row"><span class="dw">${fmtD(r.date)}</span><span>${ptag(r.person)||'<span style="color:var(--muted);font-size:10px">待定</span>'} <span style="font-size:9.5px;color:var(--muted)">${r.notes||''}</span></span></div>`).join('')}</div>`;
