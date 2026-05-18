@@ -439,9 +439,10 @@ body{background:var(--cream);color:var(--text);font-family:'Plus Jakarta Sans',s
     <div class="ni" onclick="go('calendar')"><span class="ni-icon">📅</span>日历 &amp; 轮值</div>
 
     <div class="ns">Sales · Marketing · Admin</div>
-    <div class="ni" onclick="go('sales')"><span class="ni-icon">💰</span>Sales & Marketing</div>
     <div class="ni" onclick="go('products')"><span class="ni-icon">🎁</span>产品 &amp; 价格</div>
-    <div class="ni" onclick="go('admin')"><span class="ni-icon">📦</span>Inventory &amp; Admin</div>
+    <div class="ni" onclick="go('sales')"><span class="ni-icon">💰</span>Sales & Marketing</div>
+    <div class="ni" onclick="go('admin')"><span class="ni-icon">🗂</span>Admin</div>
+    <div class="ni" onclick="go('inventory')"><span class="ni-icon">📦</span>Inventory</div>
 
     <div class="ns">Operation</div>
     <div class="ni" onclick="go('ylyd')"><span class="ni-icon">🌱</span>YLYD System</div>
@@ -752,17 +753,25 @@ body{background:var(--cream);color:var(--text);font-family:'Plus Jakarta Sans',s
     <div class="card" style="overflow-x:auto;padding:14px;" id="prod-wrap"></div>
   </div>
 
-  <!-- ══ INVENTORY & ADMIN ══ -->
+  <!-- ══ ADMIN ══ -->
   <div class="page" id="p-admin">
-    <div class="ib ib-blue"><b>📦 Inventory &amp; Admin — 负责人：Roy</b>有补货需求直接联系 Roy</div>
+    <div class="ib ib-blue"><b>🗂 Admin — 账务 &amp; 分钱</b>支出记录 · Pay Summary · Task Log</div>
+    <div class="ql-wrap">
+      <a class="ql" href="https://docs.google.com/spreadsheets/d/1zGy3rV0bv2dERFRWoRFhRLGj68oJ3RtAj-kiqi71DXk/edit" target="_blank">💳 支出记录</a>
+      <a class="ql" href="https://docs.google.com/spreadsheets/d/1zGy3rV0bv2dERFRWoRFhRLGj68oJ3RtAj-kiqi71DXk/edit" target="_blank">💰 Pay Summary</a>
+      <a class="ql" href="https://docs.google.com/spreadsheets/d/1A3g_WPDU-R4zU8gj8gGHu885z5bk4lTBBRnCfDsstDI/edit" target="_blank">📝 Task Log &amp; Payout</a>
+    </div>
+  </div>
+
+  <!-- ══ INVENTORY ══ -->
+  <div class="page" id="p-inventory">
+    <div class="ib ib-blue"><b>📦 Inventory — 负责人：Roy</b>有补货需求直接联系 Roy</div>
     <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(165px,1fr));gap:10px;margin-bottom:20px;" id="inv-sum"></div>
     <div class="sl">📋 库存明细</div>
     <div class="inv-grid" id="inv-detail"></div>
     <div class="divider"></div>
     <div class="ql-wrap">
       <a class="ql" href="https://docs.google.com/spreadsheets/d/1zGy3rV0bv2dERFRWoRFhRLGj68oJ3RtAj-kiqi71DXk/edit" target="_blank">📦 Inventory Sheet</a>
-      <a class="ql" href="https://docs.google.com/spreadsheets/d/1zGy3rV0bv2dERFRWoRFhRLGj68oJ3RtAj-kiqi71DXk/edit" target="_blank">💳 支出记录</a>
-      <a class="ql" href="https://docs.google.com/spreadsheets/d/1zGy3rV0bv2dERFRWoRFhRLGj68oJ3RtAj-kiqi71DXk/edit" target="_blank">💰 Pay Summary</a>
     </div>
   </div>
 
@@ -1928,7 +1937,7 @@ function renderOverview(){
     <div class="ov-card" onclick="go('tasks')" style="padding:12px 14px"><div class="ov-icon">🚨</div><div><div class="ov-label">紧急任务</div><div class="ov-val" style="color:var(--red)">${urg.length}</div></div></div>
     <div class="ov-card" onclick="go('sales')" style="padding:12px 14px"><div class="ov-icon">📣</div><div><div class="ov-label">Marketing</div><div class="ov-val" style="color:var(--purple)">${mktTasks.length}</div></div></div>
     <div class="ov-card" onclick="go('decisions')" style="padding:12px 14px"><div class="ov-icon">⚡</div><div><div class="ov-label">待决策</div><div class="ov-val" style="color:var(--amber)">${DEC.length}</div></div></div>
-    <div class="ov-card" onclick="go('admin')" style="padding:12px 14px"><div class="ov-icon">📦</div><div><div class="ov-label">物料缺货</div><div class="ov-val" style="color:var(--red)">${INV.filter(i=>i.s==='补货'||i.s==='快不够了').length}</div></div></div>
+    <div class="ov-card" onclick="go('inventory')" style="padding:12px 14px"><div class="ov-icon">📦</div><div><div class="ov-label">物料缺货</div><div class="ov-val" style="color:var(--red)">${INV.filter(i=>i.s==='补货'||i.s==='快不够了').length}</div></div></div>
     <div class="ov-card" style="padding:12px 14px;cursor:default;background:var(--amberB);border-color:rgba(184,114,10,.25)"><div class="ov-icon">🏦</div><div><div class="ov-label" style="color:var(--amber)">已捐总额</div><div style="font-family:'DM Sans',sans-serif;font-size:16px;font-weight:800;color:var(--amber);letter-spacing:-.3px">${DONATION_TOTAL>0?fRM(DONATION_TOTAL):'—'}</div></div></div>
   </div>`;
 
@@ -3806,7 +3815,7 @@ function addFileItem(){const n=document.getElementById('fitem-name').value.trim(
 // ═══════════════════════════════════════
 // NAV
 // ═══════════════════════════════════════
-const PT={overview:'🏠 公司总览',tasks:'🗂 Task Board',calendar:'📅 日历 & 轮值',sales:'💰 Sales & Marketing',products:'🎁 产品 & 价格',admin:'📦 Inventory & Admin',ylyd:'🌱 YLYD System',bs:'📚 YLYD 会员',xindong:'💎 心动觉察',gdc:'🎨 GDC Marketing Job',policy:'📜 Company Policy',meeting:'📋 会议 & 记录',decisions:'⚡ 待决策',files:'📁 文件索引'};
+const PT={overview:'🏠 公司总览',tasks:'🗂 Task Board',calendar:'📅 日历 & 轮值',sales:'💰 Sales & Marketing',products:'🎁 产品 & 价格',admin:'🗂 Admin',inventory:'📦 Inventory',ylyd:'🌱 YLYD System',bs:'📚 YLYD 会员',xindong:'💎 心动觉察',gdc:'🎨 GDC Marketing Job',policy:'📜 Company Policy',meeting:'📋 会议 & 记录',decisions:'⚡ 待决策',files:'📁 文件索引'};
 function go(id,skipHash){
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('on'));
   document.querySelectorAll('.ni').forEach(n=>n.classList.remove('on'));
