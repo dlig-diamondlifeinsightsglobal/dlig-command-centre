@@ -938,7 +938,7 @@ function readInventory() {
 
 // ─── 书影充电站 (Operation Sheet) ────────────────────────────
 const OPS_SHEET_ID  = '1_6bghVk44SlC9tH9vDENcw3JeorzCINaWSbkMbMcS38';
-const BS_FLOW_TAB   = '📋 流程表';
+const BS_FLOW_TAB   = '书影充电站流程';
 const BS_ROT_TAB    = '👤 轮值';
 
 function getOpsSS() { return SpreadsheetApp.openById(OPS_SHEET_ID); }
