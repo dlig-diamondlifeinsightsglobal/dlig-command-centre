@@ -750,14 +750,6 @@ body{background:var(--cream);color:var(--text);font-family:'Plus Jakarta Sans',s
     <div class="ib ib-gold"><b>⚠️ 产品价格冻结至 2026年6月30日（入口3除外）· 更改费RM100/次（3个月内再改 RM400/次）</b></div>
     <div class="sl">① 全部产品价格（含 Ala-Carte）</div>
     <div class="card" style="overflow-x:auto;padding:14px;" id="prod-wrap"></div>
-    <div class="sl" style="margin-top:20px">② YLYD System — 价值拆解 &amp; 存在原因</div>
-    <div class="ib ib-gold"><b>💎 RM1,588/year = RM132/月 · 「YLYD 不是帮你变厉害，是帮你不要再原地打转。」</b></div>
-    <div class="yvc-grid" id="yvc-wrap"></div>
-    <div style="background:var(--goldG);border-radius:12px;padding:16px 20px;color:#fff;margin-bottom:16px;">
-      <div style="font-size:10px;font-weight:800;letter-spacing:1.5px;margin-bottom:5px;opacity:.85">YLYD SYSTEM 总市值</div>
-      <div style="font-family:'Space Mono',monospace;font-size:28px;font-weight:700;margin-bottom:4px;">RM 3,551+</div>
-      <div style="font-size:12.5px;opacity:.9">首发优惠价 <strong>RM 1,288</strong>（-RM300）· 正价 RM 1,588/year</div>
-    </div>
   </div>
 
   <!-- ══ INVENTORY & ADMIN ══ -->
@@ -897,7 +889,13 @@ body{background:var(--cream);color:var(--text);font-family:'Plus Jakarta Sans',s
 
   <!-- ══ YLYD SYSTEM ══ -->
   <div class="page" id="p-ylyd">
-    <div class="ib ib-green"><b>🌱 YLYD System — 核心产品（唯一长期经营）</b>不是课程，是12个月人生运行系统 · 正价 RM1,588/year（RM132/月）· 首发优惠 RM1,288（-RM300）· 总市值 RM3,551+</div>
+    <div class="ib ib-gold"><b>💎 RM1,588/year = RM132/月 · 「YLYD 不是帮你变厉害，是帮你不要再原地打转。」</b></div>
+    <div class="yvc-grid" id="yvc-wrap"></div>
+    <div style="background:var(--goldG);border-radius:12px;padding:16px 20px;color:#fff;margin-bottom:16px;">
+      <div style="font-size:10px;font-weight:800;letter-spacing:1.5px;margin-bottom:5px;opacity:.85">YLYD SYSTEM 总市值</div>
+      <div style="font-family:'Space Mono',monospace;font-size:28px;font-weight:700;margin-bottom:4px;">RM 3,551+</div>
+      <div style="font-size:12.5px;opacity:.9">首发优惠价 <strong>RM 1,288</strong>（-RM300）· 正价 RM 1,588/year</div>
+    </div>
     <div class="env-tabs">
       <button class="env-tab on" onclick="sEnv('dr',this)">☀️ Daily Redesign</button>
       <button class="env-tab" onclick="sEnv('wr',this)">🌱 Weekly Realign</button>
@@ -2764,9 +2762,11 @@ function renderSales(){
 // PRODUCTS
 // ═══════════════════════════════════════
 function renderProducts(){
-  // Consistent column widths across all 3 tables (follow 心动觉察 layout)
-  const CG=`<colgroup><col style="width:30%"><col style="width:14%"><col style="width:26%"><col style="width:17%"><col style="width:13%"></colgroup>`;
-  const CG_AC=`<colgroup><col style="width:44%"><col style="width:26%"><col style="width:17%"><col style="width:13%"></colgroup>`;
+  // Consistent column widths across all 3 tables
+  // xd/ylyd: 产品 28% | 场地/目的 14% | 单价 20% | 原价 20% | 备注 18%
+  const CG=`<colgroup><col style="width:28%"><col style="width:14%"><col style="width:20%"><col style="width:20%"><col style="width:18%"></colgroup>`;
+  // à la carte: 产品 34% | 会员价 20% | 原价 20% | 备注 26%
+  const CG_AC=`<colgroup><col style="width:34%"><col style="width:20%"><col style="width:20%"><col style="width:26%"></colgroup>`;
   const oSt='font-size:10.5px;color:#777';  // orig: darker, no strikethrough
   const mSt='font-size:10.5px;color:var(--muted)';
   // 心动觉察 price: "6人 RM3,000 · 每加1人 +RM500 · 12人 RM5,000" → multi-line
@@ -2796,7 +2796,6 @@ function renderProducts(){
     html+=`</tbody></table></div>`;
   });
   document.getElementById('prod-wrap').innerHTML=html;
-  document.getElementById('yvc-wrap').innerHTML=YLYD_V.map(v=>`<div class="yvc"><div class="yvc-name">${v.n}</div><div class="yvc-reason">${v.r}</div><div class="yvc-freq">${v.f}</div><div class="yvc-val">${v.v}</div>${v.link?`<a href="${v.link}" target="_blank" style="display:inline-block;margin-top:7px;font-size:10px;color:var(--blue);text-decoration:none;background:var(--blueB);border:1px solid var(--blue);border-radius:5px;padding:2px 8px;font-weight:600">🔗 查看详情</a>`:''}</div>`).join('');
 }
 
 // ═══════════════════════════════════════
@@ -2954,6 +2953,9 @@ const DAY_KEYS=['mon','tue','wed','thu','fri','sat'];
 const DAY_LABELS=['Mon 一','Tue 二','Wed 三','Thu 四','Fri 五','Sat 六'];
 
 function renderYLYD(){
+  // YLYD 价值卡片（顶部）
+  const yvcEl=document.getElementById('yvc-wrap');
+  if(yvcEl)yvcEl.innerHTML=YLYD_V.map(v=>`<div class="yvc"><div class="yvc-name">${v.n}</div><div class="yvc-reason">${v.r}</div><div class="yvc-freq">${v.f}</div><div class="yvc-val">${v.v}</div>${v.link?`<a href="${v.link}" target="_blank" style="display:inline-block;margin-top:7px;font-size:10px;color:var(--blue);text-decoration:none;background:var(--blueB);border:1px solid var(--blue);border-radius:5px;padding:2px 8px;font-weight:600">🔗 查看详情</a>`:''}</div>`).join('');
   // DR — 用 ROTATION_DATA.dr 动态生成列
   const drMonths=ROTATION_DATA.dr;
   const drHead='<tr><th>星期</th>'+drMonths.map(m=>`<th style="font-size:10px">${m.month}</th>`).join('')+'</tr>';
