@@ -1055,6 +1055,489 @@ function readBSAll() {
   return {settings:combined.settings, flow:combined.flow, rotation:readBSRotation()};
 }
 
+// ═══════════════════════════════════════════════════════════════
+// DLIG Task Tracker — 分钱计算工具
+// 在 Script Editor 运行一次 buildDLIGTracker()，自动在 Admin Sheet 生成所有 tabs
+// Admin Sheet: https://docs.google.com/spreadsheets/d/1zGy3rV0bv2dERFRWoRFhRLGj68oJ3RtAj-kiqi71DXk
+// ═══════════════════════════════════════════════════════════════
+
+function buildDLIGTracker() {
+  const ss = SpreadsheetApp.openById(SHEET_IDS.admin);
+
+  // 安全地获取或新建 sheet（不删除其他已有 tabs）
+  function getOrCreate(name) {
+    return ss.getSheetByName(name) || ss.insertSheet(name);
+  }
+
+  const lkpSheet = getOrCreate("⚙️ Lookup");
+  const logSheet = getOrCreate("📝 Task Log");
+  const paySheet = getOrCreate("💰 月结算 Payout");
+  const refSheet = getOrCreate("📋 参考 Reference");
+
+  buildLookup(lkpSheet);
+  buildTaskLog(ss, logSheet, lkpSheet);
+  buildPayout(ss, paySheet, logSheet);
+  buildReference(refSheet);
+
+  // 隐藏 Lookup（Google Sheets 可从隐藏 sheet 读取 data validation）
+  lkpSheet.hideSheet();
+
+  // 跳到 Task Log
+  ss.setActiveSheet(logSheet);
+  SpreadsheetApp.getUi().alert("✅ DLIG Task Tracker 已生成！\n\n平时用 📝 Task Log 记录\n月底用 💰 月结算 Payout 算钱");
+}
+
+// ─── COLOURS ────────────────────────────────────────────────────
+const C = {
+  dblue:  "#1F4E79", lblue:  "#D6E4F0", white:  "#FFFFFF",
+  black:  "#000000", dgold:  "#B8860B", lgray:  "#F5F5F5",
+  mgray:  "#D9D9D9", input:  "#CCE5FF", yellow: "#FFFF99",
+  green:  "#E2EFDA", dgreen: "#375623", purple: "#EAE0F0",
+  dpurp:  "#5C2D8E", orange: "#FCE4D6", doran:  "#833C00",
+  teal:   "#1F6B75", lteal:  "#D9F0F2", red:    "#FFC7CE",
+};
+
+function bg(sheet, r, c, color)  { sheet.getRange(r,c).setBackground(color); }
+function bgR(sheet, r, c1, c2, color) { sheet.getRange(r,c1,1,c2-c1+1).setBackground(color); }
+
+function hdrCell(sheet, r, c, text, bgColor, fgColor="#FFFFFF", bold=true, size=10, hMerge=1, wrap=false) {
+  const range = sheet.getRange(r, c, 1, hMerge);
+  if (hMerge > 1) range.merge();
+  range.setValue(text)
+    .setBackground(bgColor)
+    .setFontColor(fgColor)
+    .setFontWeight(bold ? "bold" : "normal")
+    .setFontSize(size)
+    .setFontFamily("Arial")
+    .setHorizontalAlignment("center")
+    .setVerticalAlignment("middle")
+    .setWrap(wrap);
+  return range;
+}
+
+function lblCell(sheet, r, c, text, bgColor, bold=false, fgColor="#000000", size=10, align="left", hMerge=1, wrap=false) {
+  const range = sheet.getRange(r, c, 1, hMerge);
+  if (hMerge > 1) range.merge();
+  range.setValue(text)
+    .setBackground(bgColor)
+    .setFontColor(fgColor)
+    .setFontWeight(bold ? "bold" : "normal")
+    .setFontSize(size)
+    .setFontFamily("Arial")
+    .setHorizontalAlignment(align)
+    .setVerticalAlignment("middle")
+    .setWrap(wrap);
+  return range;
+}
+
+function frmCell(sheet, r, c, formula, fmt, bgColor, bold=false, fgColor="#000000") {
+  const cell = sheet.getRange(r, c);
+  cell.setFormula(formula)
+    .setBackground(bgColor)
+    .setFontColor(fgColor)
+    .setFontWeight(bold ? "bold" : "normal")
+    .setFontFamily("Arial")
+    .setHorizontalAlignment("center")
+    .setVerticalAlignment("middle");
+  if (fmt) cell.setNumberFormat(fmt);
+  return cell;
+}
+
+function inpCell(sheet, r, c, value, fmt, bgColor=C.input) {
+  const cell = sheet.getRange(r, c);
+  if (value !== null && value !== undefined) cell.setValue(value);
+  cell.setBackground(bgColor)
+    .setFontColor("#00008B")
+    .setFontFamily("Arial")
+    .setFontSize(10)
+    .setHorizontalAlignment("center")
+    .setVerticalAlignment("middle");
+  if (fmt) cell.setNumberFormat(fmt);
+  return cell;
+}
+
+const RM  = '"RM "#,##0.00';
+const PCT = '0.0%';
+
+// ─── LOOKUP SHEET ───────────────────────────────────────────────
+function buildLookup(sh) {
+  sh.clearContents();
+
+  // DLIG Tasks: col A=name, B=price, C=category_key
+  const DLIG_TASKS = [
+    ["视频文案（2篇）",           5,   "DLIG 视频文案"],
+    ["信息文案模版（2篇）",        5,   "DLIG 文案模版"],
+    ["制作Post图+文案（1套）",    15,   "DLIG Post图文"],
+    ["制作海报（1张）",           15,   "DLIG 海报"],
+    ["视频脚本（1支）",            5,   "DLIG 视频脚本"],
+    ["剪辑短视频-一键成片",        20,   "DLIG 一键成片"],
+    ["剪辑短视频（≤1min）",       50,   "DLIG 短视频剪"],
+    ["剪辑YouTube（≤25min）",    100,   "DLIG YouTube剪"],
+    ["Landing Page文案",         50,   "DLIG LP文案"],
+    ["Landing Page制作",        150,   "DLIG LP制作"],
+    ["线下活动带领（半天）",        50,   "DLIG 活动带领"],
+    ["副村长-带盘（半天）",         30,   "DLIG 副村长带盘"],
+    ["Crew-无带盘（半天）",         20,   "DLIG Crew"],
+  ];
+
+  // GDC Tasks: col E=name, F=coefficient
+  const GDC_TASKS = [
+    ["GDC 文案书写",   2],
+    ["GDC 视频文案",   2],
+    ["GDC 图文Post",   3],
+    ["GDC 短视频脚本", 1],
+    ["GDC 短视频剪",   4],
+    ["GDC job",        0],
+  ];
+
+  const MEMBERS = ["Li Joo", "Stella", "Roy", "Jasper"];
+
+  // Write headers
+  sh.getRange(1,1).setValue("DLIG_Task");
+  sh.getRange(1,2).setValue("单价");
+  sh.getRange(1,3).setValue("类别Key");
+  sh.getRange(1,5).setValue("GDC_Cat");
+  sh.getRange(1,6).setValue("系数");
+  sh.getRange(1,8).setValue("Members");
+  sh.getRange(1,10).setValue("AllCats");
+
+  // Write DLIG tasks
+  DLIG_TASKS.forEach((row, i) => {
+    sh.getRange(i+2, 1).setValue(row[0]);
+    sh.getRange(i+2, 2).setValue(row[1]);
+    sh.getRange(i+2, 3).setValue(row[2]);
+  });
+
+  // Write GDC tasks
+  GDC_TASKS.forEach((row, i) => {
+    sh.getRange(i+2, 5).setValue(row[0]);
+    sh.getRange(i+2, 6).setValue(row[1]);
+  });
+
+  // Write members
+  MEMBERS.forEach((m, i) => sh.getRange(i+2, 8).setValue(m));
+
+  // AllCats = DLIG category keys + GDC names + 其他
+  const allCats = DLIG_TASKS.map(t => t[2])
+    .concat(GDC_TASKS.map(t => t[0]))
+    .concat(["其他（记时间）"]);
+  allCats.forEach((c, i) => sh.getRange(i+2, 10).setValue(c));
+
+  // Store counts in named cells for reference
+  sh.getRange(1,12).setValue("DLIG_COUNT"); sh.getRange(1,13).setValue(DLIG_TASKS.length);
+  sh.getRange(2,12).setValue("GDC_COUNT");  sh.getRange(2,13).setValue(GDC_TASKS.length);
+  sh.getRange(3,12).setValue("MEM_COUNT");  sh.getRange(3,13).setValue(MEMBERS.length);
+  sh.getRange(4,12).setValue("CAT_COUNT");  sh.getRange(4,13).setValue(allCats.length);
+}
+
+// ─── TASK LOG ───────────────────────────────────────────────────
+function buildTaskLog(ss, sh, lkpSheet) {
+  sh.clearContents();
+  sh.clearFormats();
+
+  const LOG_ROWS = 300;
+  const lkpName  = lkpSheet.getName();
+
+  // Column widths: A=5 B=13 C=35 D=14 E=22 F=9 G=11 H=11 I=15 J=15 K=20
+  [50,90,260,110,180,70,90,90,120,120,160].forEach((w,i) => sh.setColumnWidth(i+1, w));
+  sh.setFrozenRows(4);
+
+  let r = 1;
+
+  // Title
+  hdrCell(sh, r, 1, "💎 DLIG — Task 记录表", C.dblue, C.white, true, 13, 11);
+  sh.setRowHeight(r, 36); r++;
+
+  // Subtitle
+  hdrCell(sh, r, 1, "✏️ 负责人和类别请用下拉选择。单价和小计自动算。效率系数：准时=1 / 提早=1.5 / 延迟=0.5 / 未完成=0", C.dblue, C.white, false, 9, 11);
+  sh.setRowHeight(r, 16); r++;
+
+  // Legend
+  sh.getRange(r,1).setBackground(C.input).setValue(" ").setHorizontalAlignment("center");
+  sh.getRange(r,2).setValue("蓝=填写").setFontSize(9).setFontStyle("italic");
+  sh.getRange(r,3).setBackground(C.lgray).setValue(" ").setHorizontalAlignment("center");
+  sh.getRange(r,4).setValue("灰=自动算").setFontSize(9).setFontStyle("italic");
+  sh.getRange(r,5).setBackground(C.yellow).setValue(" ").setHorizontalAlignment("center");
+  sh.getRange(r,6).setValue("黄=GDC系数").setFontSize(9).setFontStyle("italic");
+  sh.getRange(r,7,1,5).merge().setValue("❗ GDC task: 系数自动带出 | DLIG task: 单价自动带出").setFontSize(9).setFontColor(C.doran);
+  sh.setRowHeight(r, 14); r++;
+
+  // Headers
+  const hdrs = ["#","日期","任务内容","负责人","类别","用时(hrs)","效率系数","GDC系数","单价(RM)","小计(RM)","备注"];
+  hdrs.forEach((h, i) => hdrCell(sh, r, i+1, h, C.dgold, C.white, true, 10, 1, true));
+  sh.setRowHeight(r, 26);
+  const HDR_ROW = r;
+  const DATA_START = r + 1;
+  r++;
+
+  // Data validation ranges in Lookup
+  const memberRule = SpreadsheetApp.newDataValidation()
+    .requireValueInRange(ss.getSheetByName(lkpName).getRange("H2:H5"), true)
+    .setAllowInvalid(false).build();
+  const catRule = SpreadsheetApp.newDataValidation()
+    .requireValueInRange(ss.getSheetByName(lkpName).getRange("J2:J23"), true)
+    .setAllowInvalid(false).build();
+
+  for (let i = 0; i < LOG_ROWS; i++) {
+    const bg0 = i % 2 === 0 ? C.lgray : C.white;
+    const bg1 = i % 2 === 0 ? C.input : "#E8F4FF";
+
+    // A: row number
+    frmCell(sh, r, 1, `=IF(C${r}="","",ROW()-${HDR_ROW})`, null, bg0);
+    // B: date
+    inpCell(sh, r, 2, null, "DD/MM/YYYY", bg1);
+    // C: task description
+    sh.getRange(r,3).setBackground(bg1).setFontColor("#00008B").setHorizontalAlignment("left").setVerticalAlignment("middle");
+    // D: member dropdown
+    sh.getRange(r,4).setBackground(bg1).setDataValidation(memberRule).setFontColor("#00008B").setHorizontalAlignment("center").setVerticalAlignment("middle");
+    // E: category dropdown
+    sh.getRange(r,5).setBackground(bg1).setDataValidation(catRule).setFontColor("#00008B").setHorizontalAlignment("center").setVerticalAlignment("middle");
+    // F: hours
+    inpCell(sh, r, 6, null, "0.0", bg1);
+    // G: efficiency coefficient
+    inpCell(sh, r, 7, 1, "0.0", bg1);
+    // H: GDC coefficient (auto)
+    frmCell(sh, r, 8,
+      `=IF(E${r}="","",IFERROR(VLOOKUP(E${r},'${lkpName}'!$E:$F,2,0),""))`,
+      "0.0", C.yellow, false, "#7B3F00");
+    // I: unit price (auto, DLIG only)
+    frmCell(sh, r, 9,
+      `=IF(E${r}="","",IFERROR(INDEX('${lkpName}'!$B:$B,MATCH(E${r},'${lkpName}'!$C:$C,0)),""))`,
+      RM, bg0);
+    // J: subtotal (DLIG: price × eff | GDC: blank — calculated in payout)
+    frmCell(sh, r, 10,
+      `=IF(I${r}="","",I${r}*G${r})`,
+      RM, bg0, true);
+    // K: notes
+    sh.getRange(r,11).setBackground(bg1).setFontColor("#00008B").setVerticalAlignment("middle");
+
+    sh.setRowHeight(r, 20);
+    r++;
+  }
+
+  const DATA_END = r - 1;
+
+  // Store data range info in a named range for payout sheet
+  ss.setNamedRange("LOG_DATA_START", sh.getRange(DATA_START, 1));
+  ss.setNamedRange("LOG_DATA_END",   sh.getRange(DATA_END, 1));
+}
+
+// ─── PAYOUT SHEET ───────────────────────────────────────────────
+function buildPayout(ss, sh, logSheet) {
+  sh.clearContents();
+  sh.clearFormats();
+
+  const logName = logSheet.getName();
+  // DATA_START = row 5 (1 title + 1 subtitle + 1 legend + 1 header + 1 = row 5)
+  const DS = 5;
+  const DE = 304; // DS + LOG_ROWS - 1
+
+  [20,180,140,140,140,140,140].forEach((w,i) => sh.setColumnWidth(i+1, w));
+
+  const MEMBERS = ["Li Joo","Stella","Roy","Jasper"];
+  let r = 1;
+
+  hdrCell(sh, r, 2, "💰 DLIG — 月结算 Payout", C.dblue, C.white, true, 13, 6);
+  sh.setRowHeight(r, 32); r++;
+  hdrCell(sh, r, 2, "只需填写月份、Sales Target、GDC Project收入，其余全部自动计算。", C.dblue, C.white, false, 9, 6);
+  sh.setRowHeight(r, 16); r+=2;
+
+  // ── A. 基本设置
+  hdrCell(sh, r, 2, "⚙️ 基本设置", C.dblue, C.white, true, 11, 6); sh.setRowHeight(r, 24); r++;
+
+  lblCell(sh, r, 2, "结算月份", C.lblue, true);
+  inpCell(sh, r, 3, "2026-05");
+  lblCell(sh, r, 4, "格式 YYYY-MM", C.lgray, false, C.black, 9, "left", 4);
+  sh.setRowHeight(r, 22); const MONTH_ROW = r; r++;
+
+  lblCell(sh, r, 2, "Sales Target (RM)", C.lblue, true);
+  inpCell(sh, r, 3, 0, RM);
+  lblCell(sh, r, 4, "本月目标业绩", C.lgray, false, C.black, 9, "left", 4);
+  sh.setRowHeight(r, 22); const TARGET_ROW = r; r++;
+
+  lblCell(sh, r, 2, "实际销售额 (RM)", C.lblue, true);
+  inpCell(sh, r, 3, 0, RM);
+  lblCell(sh, r, 4, "本月实际达成", C.lgray, false, C.black, 9, "left", 4);
+  sh.setRowHeight(r, 22); const ACTUAL_ROW = r; r++;
+
+  lblCell(sh, r, 2, "DLIG Task 达成率", C.lblue, true);
+  frmCell(sh, r, 3, `=IF(C${TARGET_ROW}=0,0,MIN(C${ACTUAL_ROW}/C${TARGET_ROW},1))`, PCT, C.green, true, C.dgreen);
+  lblCell(sh, r, 4, "Task Subsidy 按此比例发放（最高100%）", C.lgray, false, C.black, 9, "left", 4);
+  sh.setRowHeight(r, 22); const RATE_ROW = r; r+=2;
+
+  // ── B. GDC Projects
+  hdrCell(sh, r, 2, "📣 B. GDC Project 收入（3.2.4）", C.teal, C.white, true, 11, 6); sh.setRowHeight(r, 24); r++;
+  hdrCell(sh, r, 2, "每个GDC Project填一行 → 内容制作30%池自动汇总", C.lteal, C.teal, false, 9, 6); sh.setRowHeight(r, 16); r++;
+
+  ["Project名称","总收入(RM)","内容制作30%","Lijoo PM 25%","讨论方案5%","DLIG收入40%"].forEach((h,i) =>
+    hdrCell(sh, r, i+2, h, C.dgold, C.white, true, 9, 1, true));
+  sh.setRowHeight(r, 24); r++;
+
+  const GDC_PROJ_START = r;
+  for (let i = 0; i < 6; i++) {
+    inpCell(sh, r, 2, i === 0 ? "Project 1" : "");
+    inpCell(sh, r, 3, 0, RM);
+    frmCell(sh, r, 4, `=C${r}*0.30`, RM, C.lgray);
+    frmCell(sh, r, 5, `=C${r}*0.25`, RM, C.lgray);
+    frmCell(sh, r, 6, `=C${r}*0.05`, RM, C.lgray);
+    frmCell(sh, r, 7, `=C${r}*0.40`, RM, C.lgray);
+    sh.setRowHeight(r, 20); r++;
+  }
+  const GDC_PROJ_END = r - 1;
+
+  lblCell(sh, r, 2, "内容制作总池 (30%)", C.mgray, true, C.black, 10, "center", 2);
+  frmCell(sh, r, 4, `=SUM(D${GDC_PROJ_START}:D${GDC_PROJ_END})`, RM, C.mgray, true);
+  [5,6,7].forEach(c => sh.getRange(r,c).setBackground(C.mgray));
+  const GDC_POOL_ROW = r; sh.setRowHeight(r, 22); r+=2;
+
+  // ── C. GDC 系数分配
+  hdrCell(sh, r, 2, "📊 C. GDC 内容分配（按系数占比）", C.teal, C.white, true, 11, 6); sh.setRowHeight(r, 24); r++;
+  hdrCell(sh, r, 2, "系数从 Task Log H列自动汇总 → 按占比分 30% 池", C.lteal, C.teal, false, 9, 6); sh.setRowHeight(r, 16); r++;
+
+  ["负责人","GDC总系数","占比%","GDC应得(RM)","",""].forEach((h,i) =>
+    hdrCell(sh, r, i+2, h, C.dgold, C.white, true, 9));
+  sh.setRowHeight(r, 22); r++;
+
+  const GDC_ROWS = {};
+  MEMBERS.forEach(m => {
+    lblCell(sh, r, 2, m, C.lteal, true, C.black, 11, "center");
+    frmCell(sh, r, 3,
+      `=SUMIFS('${logName}'!H${DS}:H${DE},'${logName}'!D${DS}:D${DE},"${m}",'${logName}'!H${DS}:H${DE},"<>")`,
+      "0.0", C.lgray);
+    sh.getRange(r,4).setBackground(C.lgray).setNumberFormat(PCT).setHorizontalAlignment("center").setVerticalAlignment("middle");
+    sh.getRange(r,5).setBackground(C.yellow).setFontColor(C.doran).setFontWeight("bold").setNumberFormat(RM).setHorizontalAlignment("center").setVerticalAlignment("middle");
+    [6,7].forEach(c => sh.getRange(r,c).setBackground(C.lgray));
+    GDC_ROWS[m] = r; sh.setRowHeight(r, 24); r++;
+  });
+
+  lblCell(sh, r, 2, "团队总系数", C.mgray, true, C.black, 10, "center", 2);
+  const coefRowList = MEMBERS.map(m => GDC_ROWS[m]);
+  frmCell(sh, r, 4, `=SUM(C${coefRowList[0]}:C${coefRowList[coefRowList.length-1]})`, "0.0", C.mgray, true);
+  [5,6,7].forEach(c => sh.getRange(r,c).setBackground(C.mgray));
+  const TEAM_COEF_ROW = r; sh.setRowHeight(r, 20); r++;
+
+  MEMBERS.forEach(m => {
+    const pr = GDC_ROWS[m];
+    sh.getRange(pr, 4).setFormula(`=IF(C${TEAM_COEF_ROW}=0,0,C${pr}/C${TEAM_COEF_ROW})`);
+    sh.getRange(pr, 5).setFormula(`=D${pr}*D${GDC_POOL_ROW}`);
+  });
+  r+=2;
+
+  // ── D. DLIG Task Subsidy
+  hdrCell(sh, r, 2, "🛠 D. DLIG Task Subsidy（3.2.2）", C.dpurp, C.white, true, 11, 6); sh.setRowHeight(r, 24); r++;
+  hdrCell(sh, r, 2, "从 Task Log J列自动汇总 × Sales达成率", C.purple, C.dpurp, false, 9, 6); sh.setRowHeight(r, 16); r++;
+
+  ["负责人","Task小计(RM)","达成率","实际发放(RM)","",""].forEach((h,i) =>
+    hdrCell(sh, r, i+2, h, C.dgold, C.white, true, 9));
+  sh.setRowHeight(r, 22); r++;
+
+  const DLIG_ROWS = {};
+  MEMBERS.forEach(m => {
+    lblCell(sh, r, 2, m, C.purple, true, C.black, 11, "center");
+    frmCell(sh, r, 3,
+      `=SUMIF('${logName}'!D${DS}:D${DE},"${m}",'${logName}'!J${DS}:J${DE})`,
+      RM, C.lgray);
+    frmCell(sh, r, 4, `=C${RATE_ROW}`, PCT, C.green, false, C.dgreen);
+    frmCell(sh, r, 5, `=C${r}*D${r}`, RM, C.yellow, true, C.doran);
+    [6,7].forEach(c => sh.getRange(r,c).setBackground(C.lgray));
+    DLIG_ROWS[m] = r; sh.setRowHeight(r, 24); r++;
+  });
+
+  lblCell(sh, r, 2, "合计", C.mgray, true, C.black, 10, "center");
+  const dligRowList = MEMBERS.map(m => DLIG_ROWS[m]);
+  frmCell(sh, r, 3, `=SUM(C${dligRowList[0]}:C${dligRowList[dligRowList.length-1]})`, RM, C.mgray, true);
+  sh.getRange(r,4).setBackground(C.mgray);
+  frmCell(sh, r, 5, `=SUM(E${dligRowList[0]}:E${dligRowList[dligRowList.length-1]})`, RM, C.mgray, true);
+  [6,7].forEach(c => sh.getRange(r,c).setBackground(C.mgray));
+  sh.setRowHeight(r, 22); r+=2;
+
+  // ── E. 总发放汇总
+  hdrCell(sh, r, 2, "✅ E. 总发放汇总（给财务）", C.dgreen, C.white, true, 12, 6); sh.setRowHeight(r, 26); r++;
+  ["负责人","GDC应得(RM)","DLIG Task应得(RM)","本月合计(RM)","备注",""].forEach((h,i) =>
+    hdrCell(sh, r, i+2, h, C.dgold, C.white, true, 9));
+  sh.setRowHeight(r, 22); r++;
+
+  const SUM_ROWS = {};
+  MEMBERS.forEach(m => {
+    lblCell(sh, r, 2, m, C.green, true, C.black, 12, "center");
+    frmCell(sh, r, 3, `=E${GDC_ROWS[m]}`,  RM, C.lgray);
+    frmCell(sh, r, 4, `=E${DLIG_ROWS[m]}`, RM, C.lgray);
+    frmCell(sh, r, 5, `=C${r}+D${r}`,      RM, C.yellow, true, C.doran);
+    inpCell(sh, r, 6, "", null, C.input);
+    sh.getRange(r,7).setBackground(C.lgray);
+    SUM_ROWS[m] = r; sh.setRowHeight(r, 26); r++;
+  });
+
+  const sumRowList = MEMBERS.map(m => SUM_ROWS[m]);
+  lblCell(sh, r, 2, "总计 TOTAL", C.mgray, true, C.black, 12, "center");
+  frmCell(sh, r, 3, `=SUM(C${sumRowList[0]}:C${sumRowList[sumRowList.length-1]})`, RM, C.mgray, true);
+  frmCell(sh, r, 4, `=SUM(D${sumRowList[0]}:D${sumRowList[sumRowList.length-1]})`, RM, C.mgray, true);
+  frmCell(sh, r, 5, `=SUM(E${sumRowList[0]}:E${sumRowList[sumRowList.length-1]})`, RM, C.mgray, true, C.dgreen);
+  [6,7].forEach(c => sh.getRange(r,c).setBackground(C.mgray));
+  sh.setRowHeight(r, 26);
+}
+
+// ─── REFERENCE SHEET ────────────────────────────────────────────
+function buildReference(sh) {
+  sh.clearContents(); sh.clearFormats();
+  [20,200,100,100,200].forEach((w,i) => sh.setColumnWidth(i+1, w));
+
+  let r = 1;
+  hdrCell(sh, r, 2, "📋 DLIG 单价 & 系数 参考表", C.dblue, C.white, true, 13, 4); sh.setRowHeight(r, 30); r+=2;
+
+  // DLIG tasks
+  hdrCell(sh, r, 2, "🛠 DLIG Task Subsidy 单价（3.2.2）", C.dpurp, C.white, true, 11, 4); sh.setRowHeight(r, 22); r++;
+  ["Task类型","单价(RM)","类别Key",""].forEach((h,i) => hdrCell(sh, r, i+2, h, C.dgold, C.white, true, 9));
+  sh.setRowHeight(r, 20); r++;
+
+  const DLIG = [
+    ["视频文案（2篇）",5,"DLIG 视频文案"],["信息文案模版（2篇）",5,"DLIG 文案模版"],
+    ["制作Post图+文案（1套）",15,"DLIG Post图文"],["制作海报（1张）",15,"DLIG 海报"],
+    ["视频脚本（1支）",5,"DLIG 视频脚本"],["剪辑短视频-一键成片",20,"DLIG 一键成片"],
+    ["剪辑短视频（≤1min）",50,"DLIG 短视频剪"],["剪辑YouTube（≤25min）",100,"DLIG YouTube剪"],
+    ["Landing Page文案",50,"DLIG LP文案"],["Landing Page制作",150,"DLIG LP制作"],
+    ["线下活动带领（半天）",50,"DLIG 活动带领"],["副村长-带盘（半天）",30,"DLIG 副村长带盘"],
+    ["Crew-无带盘（半天）",20,"DLIG Crew"],
+  ];
+  DLIG.forEach(([name, price, key]) => {
+    lblCell(sh, r, 2, name, C.purple, false, C.black, 10, "left", 1, true);
+    lblCell(sh, r, 3, `RM ${price}`, C.purple, true, C.black, 10, "center");
+    lblCell(sh, r, 4, key, C.lgray, false, C.black, 9, "center");
+    sh.getRange(r,5).setBackground(C.lgray);
+    sh.setRowHeight(r, 20); r++;
+  });
+
+  r++;
+  hdrCell(sh, r, 2, "📣 GDC 类别系数（3.2.4）", C.teal, C.white, true, 11, 4); sh.setRowHeight(r, 22); r++;
+  ["GDC类别","系数","说明",""].forEach((h,i) => hdrCell(sh, r, i+2, h, C.dgold, C.white, true, 9));
+  sh.setRowHeight(r, 20); r++;
+
+  const GDC = [
+    ["GDC 文案书写",2,"视频文案 ×2"],["GDC 视频文案",2,"视频文案 ×2"],
+    ["GDC 图文Post",3,"图文文案 ×3"],["GDC 短视频脚本",1,"脚本 ×1"],
+    ["GDC 短视频剪",4,"剪辑短视频 ×4"],["GDC job",0,"PM/对接，按25%+5%另算"],
+  ];
+  GDC.forEach(([cat, coef, note]) => {
+    lblCell(sh, r, 2, cat, C.lteal, true, C.black, 10, "left");
+    lblCell(sh, r, 3, coef > 0 ? `×${coef}` : "另算", C.lteal, true, C.teal, 12, "center");
+    lblCell(sh, r, 4, note, C.lgray, false, C.black, 9, "left", 2);
+    sh.setRowHeight(r, 20); r++;
+  });
+
+  r++;
+  hdrCell(sh, r, 2, "⚡ 效率系数（Task Log G列填这个）", C.dblue, C.white, true, 11, 4); sh.setRowHeight(r, 22); r++;
+  [[1.5,"提前完成","≥2天前完成"],[1.0,"准时完成","按时完成"],[0.5,"延迟完成","3天内延迟"],[0,"未完成","超过3天/未交付"]].forEach(([coef,label,cond]) => {
+    lblCell(sh, r, 2, label, C.lblue, true, C.black, 10, "center");
+    lblCell(sh, r, 3, `×${coef}`, C.lblue, true, C.dblue, 12, "center");
+    lblCell(sh, r, 4, cond, C.lgray, false, C.black, 9, "left", 2);
+    sh.setRowHeight(r, 20); r++;
+  });
+}
+
+// ═══════════════════════════════════════════════════════════════
+// END DLIG Task Tracker
+// ═══════════════════════════════════════════════════════════════
+
 // ─── doGet ───────────────────────────────────────────────────
 
 function doGet(e) {
