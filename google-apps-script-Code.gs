@@ -25,7 +25,6 @@ const ROTATION_TAB  = 'Rotation 轮值';       // 在 Task Board spreadsheet 里
 const LOGS_TAB          = '自发记录';            // 在 Task Board spreadsheet 里新建这个 tab
 const DECISIONS_TAB     = '待决策';              // 在 Task Board spreadsheet 里
 const SPEC_MEETINGS_TAB = '特别会议';            // 在 Task Board spreadsheet 里
-const GDC_NOTES_TAB     = 'GDC Notes';           // 在 Task Board spreadsheet 里
 
 const SALES_HEADERS = ['month','target','actual','xd','ylyd','exp','book','note'];
 
@@ -726,38 +725,6 @@ function writeDecisions(items) {
   return { ok:true, count:rows.length };
 }
 
-// ─── GDC 共享备忘录 读写 ──────────────────────────────────────
-
-function readGDCNotes() {
-  const ss  = SpreadsheetApp.openById(SHEET_IDS.tasks);
-  const tab = ss.getSheetByName(GDC_NOTES_TAB);
-  if (!tab) return [];
-  const data = tab.getDataRange().getValues();
-  if (data.length < 2) return [];
-  return data.slice(1).filter(r => r[0]).map(r => ({
-    id:     String(r[0]),
-    author: String(r[1]||''),
-    date:   String(r[2]||''),
-    text:   String(r[3]||''),
-    ts:     Number(r[4])||0
-  }));
-}
-
-function writeGDCNotes(items) {
-  const ss  = SpreadsheetApp.openById(SHEET_IDS.tasks);
-  let tab   = ss.getSheetByName(GDC_NOTES_TAB);
-  if (!tab) {
-    tab = ss.insertSheet(GDC_NOTES_TAB);
-    tab.getRange(1,1,1,5).setValues([['id','author','date','text','timestamp']])
-       .setFontWeight('bold').setBackground('#f4eeff');
-  }
-  const lastRow = tab.getLastRow();
-  if (lastRow > 1) tab.getRange(2,1,lastRow-1,5).clearContent();
-  if (!items.length) return { ok:true, count:0 };
-  const rows = items.map(n => [n.id||'', n.author||'', n.date||'', n.text||'', n.ts||0]);
-  tab.getRange(2,1,rows.length,5).setValues(rows);
-  return { ok:true, count:rows.length };
-}
 
 // ─── 特别会议 读写 ────────────────────────────────────────────
 
@@ -798,7 +765,7 @@ function writeSpecialMeetings(items) {
 // ─── 心动觉察 出席者名单 ──────────────────────────────────────
 
 function readAttendance() {
-  const ss  = SpreadsheetApp.openById(SHEET_IDS.tasks);
+  const ss  = getOpsSS();
   const tab = ss.getSheetByName('出席者名单');
   if (!tab) return {};
   const data = tab.getDataRange().getValues();
@@ -820,7 +787,7 @@ function readAttendance() {
 }
 
 function writeAttendance(obj) {
-  const ss  = SpreadsheetApp.openById(SHEET_IDS.tasks);
+  const ss  = getOpsSS();
   let tab   = ss.getSheetByName('出席者名单');
   if (!tab) {
     tab = ss.insertSheet('出席者名单');
@@ -840,7 +807,7 @@ function writeAttendance(obj) {
 // ─── 试炼记录：沙盘 & 拍卖 ────────────────────────────────────
 
 function readSbRecords() {
-  const ss  = SpreadsheetApp.openById(SHEET_IDS.tasks);
+  const ss  = getOpsSS();
   const tab = ss.getSheetByName('沙盘试炼记录');
   if (!tab) return [];
   const data = tab.getDataRange().getValues();
@@ -852,7 +819,7 @@ function readSbRecords() {
 }
 
 function writeSbRecords(items) {
-  const ss  = SpreadsheetApp.openById(SHEET_IDS.tasks);
+  const ss  = getOpsSS();
   let tab   = ss.getSheetByName('沙盘试炼记录');
   if (!tab) {
     tab = ss.insertSheet('沙盘试炼记录');
@@ -868,7 +835,7 @@ function writeSbRecords(items) {
 }
 
 function readAuRecords() {
-  const ss  = SpreadsheetApp.openById(SHEET_IDS.tasks);
+  const ss  = getOpsSS();
   const tab = ss.getSheetByName('拍卖试炼记录');
   if (!tab) return [];
   const data = tab.getDataRange().getValues();
@@ -880,7 +847,7 @@ function readAuRecords() {
 }
 
 function writeAuRecords(items) {
-  const ss  = SpreadsheetApp.openById(SHEET_IDS.tasks);
+  const ss  = getOpsSS();
   let tab   = ss.getSheetByName('拍卖试炼记录');
   if (!tab) {
     tab = ss.insertSheet('拍卖试炼记录');
@@ -898,7 +865,7 @@ function writeAuRecords(items) {
 // ─── 岗位负责人 读写 ──────────────────────────────────────────
 
 function readXdRoles() {
-  const ss  = SpreadsheetApp.openById(SHEET_IDS.tasks);
+  const ss  = getOpsSS();
   const tab = ss.getSheetByName('岗位负责人');
   if (!tab) return null;
   const data = tab.getDataRange().getValues();
@@ -913,7 +880,7 @@ function readXdRoles() {
 }
 
 function writeXdRoles(obj) {
-  const ss  = SpreadsheetApp.openById(SHEET_IDS.tasks);
+  const ss  = getOpsSS();
   let tab   = ss.getSheetByName('岗位负责人');
   if (!tab) {
     tab = ss.insertSheet('岗位负责人');
@@ -1062,7 +1029,7 @@ function readBSAll() {
 // ═══════════════════════════════════════════════════════════════
 
 function buildDLIGTracker() {
-  const ss = SpreadsheetApp.openById(SHEET_IDS.admin);
+  const ss = SpreadsheetApp.openById(SHEET_IDS.tasks);
 
   // 安全地获取或新建 sheet（不删除其他已有 tabs）
   function getOrCreate(name) {
@@ -1552,7 +1519,6 @@ function doGet(e) {
     if (type === 'rotation') return respond(readRotationTab());
     if (type === 'logs')              return respond(readLogs());
     if (type === 'decisions')         return respond(readDecisions());
-    if (type === 'gdc_notes')         return respond(readGDCNotes());
     if (type === 'special_meetings')  return respond(readSpecialMeetings());
     if (type === 'attendance')        return respond(readAttendance());
     if (type === 'sb_records')        return respond(readSbRecords());
@@ -1579,7 +1545,6 @@ function doPost(e) {
     if (type === 'rotation') return respond(writeRotationTab(Array.isArray(data) ? data : []));
     if (type === 'logs')             return respond(writeLogs(Array.isArray(data) ? data : []));
     if (type === 'decisions')        return respond(writeDecisions(Array.isArray(data) ? data : []));
-    if (type === 'gdc_notes')        return respond(writeGDCNotes(Array.isArray(data) ? data : []));
     if (type === 'special_meetings') return respond(writeSpecialMeetings(Array.isArray(data) ? data : []));
     if (type === 'attendance')       return respond(writeAttendance(data));
     if (type === 'sb_records')       return respond(writeSbRecords(Array.isArray(data) ? data : []));
