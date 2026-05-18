@@ -1505,6 +1505,37 @@ function buildReference(sh) {
 // END DLIG Task Tracker
 // ═══════════════════════════════════════════════════════════════
 
+// ─── MARKETING STRATEGY 读写（Sales & Marketing spreadsheet）──
+
+const STRATEGY_TAB = 'Marketing Strategy';
+
+function readStrategy() {
+  const ss  = SpreadsheetApp.openById(SHEET_IDS.mkt);
+  const tab = ss.getSheetByName(STRATEGY_TAB);
+  if (!tab) return [];
+  const data = tab.getDataRange().getValues();
+  if (data.length < 2) return [];
+  return data.slice(1)
+    .map(r => String(r[0] || '').trim())
+    .filter(s => s !== '');
+}
+
+function writeStrategy(items) {
+  const ss  = SpreadsheetApp.openById(SHEET_IDS.mkt);
+  let tab   = ss.getSheetByName(STRATEGY_TAB);
+  if (!tab) {
+    tab = ss.insertSheet(STRATEGY_TAB);
+    tab.getRange(1, 1).setValue('strategy_item')
+       .setFontWeight('bold').setBackground('#fff0f5');
+    tab.setColumnWidth(1, 400);
+  }
+  const lastRow = tab.getLastRow();
+  if (lastRow > 1) tab.getRange(2, 1, lastRow - 1, 1).clearContent();
+  if (!items.length) return { ok: true, count: 0 };
+  tab.getRange(2, 1, items.length, 1).setValues(items.map(s => [s]));
+  return { ok: true, count: items.length };
+}
+
 // ─── doGet ───────────────────────────────────────────────────
 
 function doGet(e) {
@@ -1526,6 +1557,7 @@ function doGet(e) {
     if (type === 'xd_roles')          return respond(readXdRoles());
     if (type === 'inventory')         return respond(readInventory());
     if (type === 'bs_all')            return respond(readBSAll());
+    if (type === 'strategy')          return respond(readStrategy());
     return respond({ error: 'Unknown sheet: ' + type });
   } catch(err) {
     return respond({ error: err.message });
@@ -1551,6 +1583,7 @@ function doPost(e) {
     if (type === 'au_records')       return respond(writeAuRecords(Array.isArray(data) ? data : []));
     if (type === 'xd_roles')         return respond(writeXdRoles(data||{}));
     if (type === 'bs_rotation')      return respond(writeBSRotation(Array.isArray(data)?data:[]));
+    if (type === 'strategy')         return respond(writeStrategy(Array.isArray(data) ? data : []));
     if (type === 'pay') {
       return respond(writePaySheet(data.tasks, data.mkt, data.gdc));
     }

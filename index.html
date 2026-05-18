@@ -1308,7 +1308,7 @@ function calcEffDL(dl,done){if(!dl||!done)return null;try{const d=Math.floor((ne
 // ═══════════════════════════════════════
 const SHEETS_API_URL = 'https://script.google.com/macros/s/AKfycbxD9lCg_7WC69Wzq-HBK4tSQPJv4f_cpV-73-GRP8duy2JhwO7-NVetJnam4KPPSUXz/exec';
 
-const SHEET_KEY_MAP = {'tasks':'tasks','mkt_content':'mkt','gdc_tasks':'gdc','events':'events','logs':'logs','decisions':'decisions','special_meetings':'special_meetings','attendance':'attendance','sb_records':'sb_records','au_records':'au_records','xd_roles':'xd_roles','xd_flow':'xd_flow','xd_cl_data':'xd_cl_data'};
+const SHEET_KEY_MAP = {'tasks':'tasks','mkt_content':'mkt','gdc_tasks':'gdc','events':'events','logs':'logs','decisions':'decisions','special_meetings':'special_meetings','attendance':'attendance','sb_records':'sb_records','au_records':'au_records','xd_roles':'xd_roles','xd_flow':'xd_flow','xd_cl_data':'xd_cl_data','strategy':'strategy'};
 
 let _syncTimer=null;
 function showSyncStatus(success){
@@ -1356,6 +1356,7 @@ async function loadFromSheets(){
           if(lsKey==='decisions')        DEC=localV;
           if(lsKey==='special_meetings') SPECIAL_MEETINGS=localV;
           if(lsKey==='logs')             LOGS=localV;
+          if(lsKey==='strategy')         STRATEGY=localV;
         }
         continue;
       }
@@ -1370,6 +1371,7 @@ async function loadFromSheets(){
         if(lsKey==='decisions')        DEC=rows;
         if(lsKey==='special_meetings') SPECIAL_MEETINGS=rows;
         if(lsKey==='logs')             LOGS=rows;
+        if(lsKey==='strategy'&&Array.isArray(rows)&&rows.length>0) STRATEGY=rows;
       }
     }catch(e){ok=false;}
   }
