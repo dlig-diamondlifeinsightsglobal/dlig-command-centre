@@ -898,12 +898,16 @@ body{background:var(--cream);color:var(--text);font-family:'Plus Jakarta Sans',s
 
   <!-- ══ YLYD SYSTEM ══ -->
   <div class="page" id="p-ylyd">
-    <div class="ib ib-gold"><b>💎 RM1,588/year = RM132/月 · 「YLYD 不是帮你变厉害，是帮你不要再原地打转。」</b></div>
+    <!-- 海报 -->
+    <div id="ylyd-poster-wrap" style="margin-bottom:16px;border-radius:12px;overflow:hidden;box-shadow:var(--sh)">
+      <img id="ylyd-poster-img" src="" alt="YLYD System 海报" style="width:100%;display:block;border-radius:12px" onerror="this.closest('#ylyd-poster-wrap').style.display='none'">
+    </div>
+    <div class="ib ib-green"><b>🌱 YLYD System 核心</b>给你工具和结构，设计一套只属于你的生活系统——让行动自然发生，在享受中轻松快乐地走向自己想要的方向。</div>
     <div class="yvc-grid" id="yvc-wrap"></div>
     <div style="background:var(--goldG);border-radius:12px;padding:16px 20px;color:#fff;margin-bottom:16px;">
-      <div style="font-size:10px;font-weight:800;letter-spacing:1.5px;margin-bottom:5px;opacity:.85">YLYD SYSTEM 总市值</div>
-      <div style="font-family:'Space Mono',monospace;font-size:28px;font-weight:700;margin-bottom:4px;">RM 3,551+</div>
-      <div style="font-size:12.5px;opacity:.9">首发优惠价 <strong>RM 1,288</strong>（-RM300）· 正价 RM 1,588/year</div>
+      <div style="font-size:10px;font-weight:800;letter-spacing:1.5px;margin-bottom:5px;opacity:.85">YLYD SYSTEM 正价</div>
+      <div style="font-family:'Space Mono',monospace;font-size:28px;font-weight:700;margin-bottom:4px;">RM 1,588/year</div>
+      <div style="font-size:12.5px;opacity:.9">= RM132/月 · 首发优惠 <strong>RM 1,288</strong>（-RM300）</div>
     </div>
     <div class="env-tabs">
       <button class="env-tab on" onclick="sEnv('dr',this)">☀️ Daily Redesign</button>
@@ -1700,14 +1704,10 @@ const PRODS=[
   {group:'ac',n:'六时书',p:'',price:'RM37',orig:'RM37',note:''},
 ];
 const YLYD_V=[
-  {n:'☀️ Daily Redesign Space',f:'每天 6:10–7:20am · 365天',v:'无价',r:'每天有一个有方向的开始。靠结构，不靠感觉。是整个系统的底层习惯建立器。'},
-  {n:'🌱 Weekly Realign',f:'每周四 · 4周循环 · Unlimited',v:'RM1,540',r:'每周有人帮你停下来检视：你有没有在走你要走的路？跑偏了就调整，再出发。'},
-  {n:'🎮 沙盘推演',f:'8次/年 · Realign 第2&4周',v:'RM1,576',r:'用游戏化的方式看见自己做决策的模式。改变从觉察开始，不靠硬撑。'},
-  {n:'📔 YLYD 设计册',f:'每3个月一册 · 共4册/年',v:'RM158',r:'把笔的故事四步骤落实在每一天里。有结构的每日行动载体。'},
-  {n:'🎥 视频工具包',f:'预播课 · 随时看',v:'RM277',r:'人生设计工具包，配合设计册使用，让系统自动化运作。'},
-  {n:'📚 YLYD 终身会员（书影充电站）',f:'每月2次 · 线上 · 永久',v:'RM177',r:'即使System结束也继续享有。每月有新视角输入，持续升级思维。'},
-  {n:'🎯 目标设计营',f:'8场/年 · 12个月内',v:'无价',r:'当你卡住、需要重新校准方向时，有专属空间帮你看清楚下一步。'},
-  {n:'🏕️ 人生设计体验营',f:'年度专属体验',v:'加料',r:'专为 YLYD System 成员设计的沉浸式体验营，深化人生设计。',link:'https://docs.google.com/document/d/1YN2lyvMrHVTtEGtsgb5zIWzrLIZrw_58m2aoORZMFzc/edit?usp=sharing'},
+  {n:'🗓️ 设计日',f:'每月一次',v:'',r:'设计一套只属于你的生活系统，看见方向，校准行动。让每个月都有清晰的起点。'},
+  {n:'🌱 Weekly Realign',f:'每周四 · 4周循环',v:'',r:'关怀彼此，一起检视系统用况。<br><span style="font-size:9.5px;line-height:1.9;display:inline-block;margin-top:3px">第1周 — 智慧充电<br>第2周 — 沙盘觉察<br>第3周 — 智慧充电<br>第4周 — 月复盘 + Goal Setting / System 小升级</span>'},
+  {n:'🎉 庆祝 Party',f:'每3–4个月一次',v:'',r:'庆祝成就 · 庆祝失败 · 不同主题<br>一起同行，享受过程中的每一步。'},
+  {n:'💎 System 包含',f:'全年配套',v:'',r:'工具包 · DLIG YLYD 会员（每两周书影充电站）<br>群组互动（小任务 · 自我觉察 polling）'},
 ];
 const TEAM=[
   {p:'Li Joo',role:'💰 Sales',color:'#c84010',loc:'The Seed · 拜二+拜五',resp:['达成月 Sales Target','客户关系 & Closing','心动觉察 Facilitator','Donation 跟进']},
@@ -2966,7 +2966,7 @@ const DAY_LABELS=['Mon 一','Tue 二','Wed 三','Thu 四','Fri 五','Sat 六'];
 function renderYLYD(){
   // YLYD 价值卡片（顶部）
   const yvcEl=document.getElementById('yvc-wrap');
-  if(yvcEl)yvcEl.innerHTML=YLYD_V.map(v=>`<div class="yvc"><div class="yvc-name">${v.n}</div><div class="yvc-reason">${v.r}</div><div class="yvc-freq">${v.f}</div><div class="yvc-val">${v.v}</div>${v.link?`<a href="${v.link}" target="_blank" style="display:inline-block;margin-top:7px;font-size:10px;color:var(--blue);text-decoration:none;background:var(--blueB);border:1px solid var(--blue);border-radius:5px;padding:2px 8px;font-weight:600">🔗 查看详情</a>`:''}</div>`).join('');
+  if(yvcEl)yvcEl.innerHTML=YLYD_V.map(v=>`<div class="yvc"><div class="yvc-name">${v.n}</div><div class="yvc-reason">${v.r}</div>${v.f?`<div class="yvc-freq">${v.f}</div>`:''} ${v.v?`<div class="yvc-val">${v.v}</div>`:''} ${v.link?`<a href="${v.link}" target="_blank" style="display:inline-block;margin-top:7px;font-size:10px;color:var(--blue);text-decoration:none;background:var(--blueB);border:1px solid var(--blue);border-radius:5px;padding:2px 8px;font-weight:600">🔗 查看详情</a>`:''}</div>`).join('');
   // DR — 用 ROTATION_DATA.dr 动态生成列
   const drMonths=ROTATION_DATA.dr;
   const drHead='<tr><th>星期</th>'+drMonths.map(m=>`<th style="font-size:10px">${m.month}</th>`).join('')+'</tr>';
