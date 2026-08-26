@@ -952,8 +952,8 @@ function readBSCombined() {
     const allRows = [
       ['zoom_link',   'https://us06web.zoom.us/j/7707709233', '', ''],
       ['zoom_id',     '7707709233', '', ''],
-      ['zoom_passcode','DLIG', '', ''],
-      ['zoom_host_key','779233', '', ''],
+      ['zoom_passcode','', '', ''],
+      ['zoom_host_key','', '', ''],
       ['ppt_link',    'https://canva.link/ylydwisdomrechargesat', '', ''],
       ['wisdomlib_link','https://diamondlifeinsightsglobal.app.clientclub.net/courses/products/4a1a5ae9-69c5-4c22-825f-b2dd26402a1a?source=courses', '', ''],
       ['other_info',  '', '', ''],
@@ -971,7 +971,7 @@ function readBSCombined() {
     tab.getRange(9,1,1,4).setFontWeight('bold').setBackground('#e8f4fd');
     tab.setColumnWidth(1,150); tab.setColumnWidth(2,60); tab.setColumnWidth(3,180); tab.setColumnWidth(4,400);
     return {
-      settings:{zoom_link:'https://us06web.zoom.us/j/7707709233',zoom_id:'7707709233',zoom_passcode:'DLIG',zoom_host_key:'779233',ppt_link:'https://canva.link/ylydwisdomrechargesat',wisdomlib_link:'https://diamondlifeinsightsglobal.app.clientclub.net/courses/products/4a1a5ae9-69c5-4c22-825f-b2dd26402a1a?source=courses',other_info:''},
+      settings:{zoom_link:'https://us06web.zoom.us/j/7707709233',zoom_id:'7707709233',zoom_passcode:'',zoom_host_key:'',ppt_link:'https://canva.link/ylydwisdomrechargesat',wisdomlib_link:'https://diamondlifeinsightsglobal.app.clientclub.net/courses/products/4a1a5ae9-69c5-4c22-825f-b2dd26402a1a?source=courses',other_info:''},
       flow:[{time:'2:30 PM',duration:'15min',section:'开场 & 充电模式',desc:'开场 & 自我介绍在 chatbox'},{time:'2:45 PM',duration:'45min',section:'📚 书影分享 / Lucky draw',desc:'video / 《超凡的智慧4问题》'},{time:'3:30 PM',duration:'10min',section:'Q&A 或见证分享、合照',desc:'复盘 & 拆解 keypoints'},{time:'3:40 PM',duration:'15min',section:'Me Time 复盘',desc:'YLYD 设计册'},{time:'3:55 PM',duration:'5min',section:'集体乐咖',desc:'好种子库 ❤'},{time:'4:00 PM',duration:'—',section:'END',desc:'带着智慧，回归生活'}]
     };
   }
@@ -1536,11 +1536,137 @@ function writeStrategy(items) {
   return { ok: true, count: items.length };
 }
 
+// ─── DLIG HQ COMMAND CENTRE 2.0 ─────────────────────────────
+// Phase 1 uses explicit spreadsheet tabs. These adapters can later be replaced
+// by Google Calendar, InfiniteSales and payment webhooks without changing the UI.
+
+const HQ_TABLES = {
+  hq_revenue: {
+    spreadsheet: 'mkt',
+    tab: 'HQ Revenue',
+    headers: ['target','collected','awaiting','pipeline','period','source','last_updated']
+  },
+  hq_monthly: {
+    spreadsheet: 'mkt',
+    tab: 'HQ Monthly Sales',
+    headers: ['id','month','target','actual','note']
+  },
+  hq_products: {
+    spreadsheet: 'mkt',
+    tab: 'HQ Products',
+    headers: ['id','product','cohort','price','min','max','enrolled','paid','transferred','awaiting','start','target_revenue','actual_revenue','status']
+  },
+  hq_pipeline: {
+    spreadsheet: 'mkt',
+    tab: 'HQ Pipeline',
+    headers: ['id','group','stage','count','unit_value','expected_value','product','source','next_followup','note','last_updated']
+  },
+  hq_priorities: {
+    spreadsheet: 'tasks',
+    tab: 'HQ Priorities',
+    headers: ['id','outcome','owner','status','deadline','done_definition']
+  },
+  hq_daily: {
+    spreadsheet: 'tasks',
+    tab: 'HQ Daily',
+    headers: ['id','task','owner','status','deadline','done_definition']
+  },
+  hq_success: {
+    spreadsheet: 'tasks',
+    tab: 'HQ Customer Success',
+    headers: ['id','product','promised_result','next_delivery','feedback','problem','improvement','preparation','risk','owner','deadline','last_updated']
+  },
+  hq_events: {
+    spreadsheet: 'tasks',
+    tab: 'HQ Events',
+    headers: ['id','date','time','name','type','mode','location','owner']
+  },
+  hq_operations: {
+    spreadsheet: 'tasks',
+    tab: 'HQ Operations',
+    headers: ['id','task','owner','status','deadline','done_definition']
+  },
+  hq_ideas: {
+    spreadsheet: 'tasks',
+    tab: 'HQ Ideas',
+    headers: ['id','idea','reason','potential_value','revisit_date','status']
+  },
+  hq_links: {
+    spreadsheet: 'tasks',
+    tab: 'HQ Links',
+    headers: ['id','name','url','icon','note']
+  },
+  hq_tasks: {
+    spreadsheet: 'tasks',
+    tab: 'HQ Task Board',
+    headers: ['id','task','owner','team_member','category','deadline','completed_date','completed','last_updated']
+  },
+  hq_categories: {
+    spreadsheet: 'tasks',
+    tab: 'HQ Task Categories',
+    headers: ['id','name']
+  }
+};
+
+function getHQSpreadsheet(config) {
+  const id = SHEET_IDS[config.spreadsheet];
+  if (!id) throw new Error('HQ spreadsheet is not configured: ' + config.spreadsheet);
+  return SpreadsheetApp.openById(id);
+}
+
+function readHQTable(type) {
+  const config = HQ_TABLES[type];
+  if (!config) return { error: 'Unknown HQ table: ' + type };
+  const tab = getHQSpreadsheet(config).getSheetByName(config.tab);
+  if (!tab || tab.getLastRow() < 2) return [];
+
+  const values = tab.getDataRange().getValues();
+  const headers = values[0].map(h => String(h || '').trim());
+  return values.slice(1).filter(row => {
+    return row.some(value => value !== '' && value !== null);
+  }).map(row => {
+    const item = {};
+    headers.forEach((header, index) => {
+      if (!header) return;
+      const value = row[index];
+      item[header] = value instanceof Date ? fmtDate(value) : value;
+    });
+    return item;
+  });
+}
+
+function writeHQTable(type, items) {
+  const config = HQ_TABLES[type];
+  if (!config) return { error: 'Unknown HQ table: ' + type };
+  const ss = getHQSpreadsheet(config);
+  let tab = ss.getSheetByName(config.tab);
+  if (!tab) tab = ss.insertSheet(config.tab);
+
+  const headers = config.headers;
+  tab.clearContents();
+  tab.getRange(1, 1, 1, headers.length).setValues([headers])
+    .setFontWeight('bold')
+    .setBackground('#e9eddf')
+    .setFontColor('#2f3525');
+  tab.setFrozenRows(1);
+
+  const safeItems = Array.isArray(items) ? items : [];
+  if (!safeItems.length) return { ok: true, count: 0 };
+  const rows = safeItems.map(item => headers.map(header => {
+    const value = item && item[header];
+    return value === undefined || value === null ? '' : value;
+  }));
+  tab.getRange(2, 1, rows.length, headers.length).setValues(rows);
+  tab.autoResizeColumns(1, headers.length);
+  return { ok: true, count: rows.length };
+}
+
 // ─── doGet ───────────────────────────────────────────────────
 
 function doGet(e) {
   const type = (e.parameter && e.parameter.sheet) || '';
   try {
+    if (HQ_TABLES[type])     return respond(readHQTable(type));
     if (type === 'tasks')    return respond(readTaskBoard());
     if (type === 'mkt')      return respond(readMarketingContent());
     if (type === 'gdc')      return respond(readGDCJobs());
@@ -1570,6 +1696,7 @@ function doPost(e) {
   const type = (e.parameter && e.parameter.sheet) || '';
   try {
     const data = JSON.parse(e.postData.contents);
+    if (HQ_TABLES[type])     return respond(writeHQTable(type, Array.isArray(data) ? data : []));
     if (type === 'tasks')    return respond(writeTaskBoard(Array.isArray(data) ? data : []));
     if (type === 'mkt')      return respond(writeMarketingContent(Array.isArray(data) ? data : []));
     if (type === 'gdc')      return respond(writeGDCJobs(Array.isArray(data) ? data : []));

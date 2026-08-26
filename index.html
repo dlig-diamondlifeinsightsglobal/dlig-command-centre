@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>DLIG Command Centre v7</title>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Space+Mono:wght@400;700&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,700;0,9..40,800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="hq-2.0.css">
 <style>
 :root{
   --cream:#fdf8f2;--white:#fff;--s2:#fef5ea;--s3:#fdecd5;
@@ -932,7 +933,7 @@ body{background:var(--cream);color:var(--text);font-family:'Plus Jakarta Sans',s
       <div id="wr-cl"></div>
     </div>
     <div class="env-sec" id="env-bs">
-      <div class="ib ib-blue"><b>📚 书影充电站 — 每月 Week 2 &amp; 4 Sat 2:30–4pm（线上）</b>YLYD 终身会员专属 · 即使 System 结束也继续享有</div>
+      <div class="ib ib-blue"><b>📚 书影充电站 — 每月 Week 2 &amp; 4 周六 8:30–9:45am（线上）</b>YLYD 终身会员专属 · 即使 System 结束也继续享有</div>
       <div class="sl">轮值表</div>
       <div id="bs-rota-wrap"></div>
       <div class="sl" style="margin-top:14px">✅ Checklist</div>
@@ -1029,7 +1030,6 @@ Zoom link 会在活动当天发布在群组里 🤍</pre>
 *⏰ 今天 2:45 – 4:00PM*
 *💻 Zoom Online*
 Join Here: https://us06web.zoom.us/j/7707709233
-Passcode: DLIG
 
 等下见 ✨</pre>
       </div>
@@ -1796,7 +1796,7 @@ function saveRotationToSheet(){
 const DR_CL=['Polling 确认出席者（2-3天前）','开始前5分钟 Start Zoom','准时 6:10 开始','分享每日主题 / 笔的故事四步骤','主持结束 7:20','记录出席人数'];
 const WR_CL=['Polling 确认出席者（2-3天前）','Send Zoom link / 确认地点','准备当周主题 & 内容','准时 2pm 开始','主持整场 1-2小时','拍照 & Post 活动花絮'];
 const BS_CL=['Polling 确认出席者（2-3天前）','Send Zoom link','准备当月书/影选题','准时 2:30pm 开始','主持分享 & 讨论（1.5小时）','Post 精华 Social Media'];
-let BS_DATA={settings:{zoom_link:'https://us06web.zoom.us/j/7707709233',zoom_id:'7707709233',zoom_passcode:'DLIG',zoom_host_key:'779233',ppt_link:'https://canva.link/ylydwisdomrechargesat',wisdomlib_link:'https://diamondlifeinsightsglobal.app.clientclub.net/courses/products/4a1a5ae9-69c5-4c22-825f-b2dd26402a1a?source=courses',other_info:''},flow:[
+let BS_DATA={settings:{zoom_link:'https://us06web.zoom.us/j/7707709233',zoom_id:'7707709233',zoom_passcode:'',zoom_host_key:'',ppt_link:'https://canva.link/ylydwisdomrechargesat',wisdomlib_link:'https://diamondlifeinsightsglobal.app.clientclub.net/courses/products/4a1a5ae9-69c5-4c22-825f-b2dd26402a1a?source=courses',other_info:''},flow:[
   {time:'2:30 PM',duration:'15min',section:'开场 & 充电模式',desc:'开场 & 自我介绍在 chatbox'},
   {time:'2:45 PM',duration:'45min',section:'📚 书影分享 / Lucky draw',desc:'video / 《超凡的智慧4问题》 / 《爱种子问题》· 模式1—Q&A 或 模式2—见证分享（5min分享 + 10min拆解：总结2个 action keypoint，分享可变成广告）'},
   {time:'3:30 PM',duration:'10min',section:'Q&A 或见证分享、合照',desc:'复盘 & 拆解 keypoints'},
@@ -3064,17 +3064,15 @@ function renderBSPage(){
     const s=BS_DATA.settings;
     const zl=s.zoom_link||'';const pl=s.ppt_link||'';const wl=s.wisdomlib_link||'';const oi=s.other_info||'';
     let h=`<div style="display:flex;gap:16px;align-items:flex-start;flex-wrap:wrap">`;
-    h+=`<img src="bs-vb.png" alt="书影充电站" style="width:260px;border-radius:12px;box-shadow:var(--sh);flex-shrink:0;object-fit:cover">`;
+    h+=`<img src="bs-vb.png" alt="书影充电站" onerror="this.style.display='none'" style="width:260px;border-radius:12px;box-shadow:var(--sh);flex-shrink:0;object-fit:cover">`;
     h+=`<div style="display:flex;flex-direction:column;gap:8px;flex:1;min-width:260px">`;
     h+=`<div style="background:var(--white);border:1.5px solid var(--border);border-radius:10px;padding:10px 14px;box-shadow:var(--sh)">
       <div style="display:flex;align-items:center;gap:10px">
         <span style="font-size:11px;font-weight:700;color:var(--blue);min-width:80px;flex-shrink:0">🔗 Zoom Link</span>
         ${zl?`<a href="${zl}" target="_blank" style="font-size:11px;color:var(--blue);text-decoration:underline;word-break:break-all;flex:1">${zl}</a>`:'<span style="font-size:11px;color:var(--muted);flex:1">未设置</span>'}
       </div>
-      ${(s.zoom_id||s.zoom_passcode||s.zoom_host_key)?`<div style="margin-top:6px;padding-top:6px;border-top:1px dashed var(--border);display:flex;gap:16px;flex-wrap:wrap">
+      ${s.zoom_id?`<div style="margin-top:6px;padding-top:6px;border-top:1px dashed var(--border);display:flex;gap:16px;flex-wrap:wrap">
         ${s.zoom_id?`<span style="font-size:10.5px;color:var(--text2)"><b>ID:</b> ${s.zoom_id}</span>`:''}
-        ${s.zoom_passcode?`<span style="font-size:10.5px;color:var(--text2)"><b>Passcode:</b> ${s.zoom_passcode}</span>`:''}
-        ${s.zoom_host_key?`<span style="font-size:10.5px;color:var(--text2)"><b>Host Key:</b> ${s.zoom_host_key}</span>`:''}
       </div>`:''}
     </div>`;
     h+=`<div style="display:flex;align-items:center;gap:10px;background:var(--white);border:1.5px solid var(--border);border-radius:10px;padding:10px 14px;box-shadow:var(--sh)">
@@ -3130,7 +3128,7 @@ function addBSRot2(){const date=document.getElementById('add-bs2-date').value;if
 function delBSRot(date){ROTATION_DATA.bs=ROTATION_DATA.bs.filter(x=>x.date!==date);save('rotation_data',ROTATION_DATA);syncBSRot();renderBSRot();renderRotBS();renderYLYD();}
 function copyBS(id){const el=document.getElementById(id);if(!el)return;const txt=el.textContent;navigator.clipboard.writeText(txt).then(()=>{const btns=el.closest('.card').querySelectorAll('button');btns.forEach(b=>{const orig=b.textContent;b.textContent='✅ 已复制！';setTimeout(()=>b.textContent=orig,1800);});}).catch(()=>{});}
 function syncBSRot(){if(!SHEETS_API_URL)return;fetch(SHEETS_API_URL+'?sheet=bs_rotation',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(ROTATION_DATA.bs.map(r=>({date:r.date,person:r.person||'',notes:r.notes||''})))}).catch(()=>{});}
-async function loadBSFromSheet(){if(!SHEETS_API_URL)return;try{const res=await fetch(SHEETS_API_URL+'?sheet=bs_all');if(!res.ok)return;const d=await res.json();if(!d||d.error)return;if(d.settings&&typeof d.settings==='object'){Object.entries(d.settings).forEach(([k,v])=>{if(v!==undefined&&v!==null&&v!=='')BS_DATA.settings[k]=v;});}if(d.flow&&d.flow.length)BS_DATA.flow=d.flow;if(d.rotation&&d.rotation.length){ROTATION_DATA.bs=d.rotation.map(r=>({date:r.date,person:r.person||'',notes:r.notes||''}));save('rotation_data',ROTATION_DATA);}renderBSPage();}catch(e){}}
+async function loadBSFromSheet(){if(!SHEETS_API_URL)return;try{const res=await fetch(SHEETS_API_URL+'?sheet=bs_all');if(!res.ok)return;const d=await res.json();if(!d||d.error)return;if(d.settings&&typeof d.settings==='object'){Object.entries(d.settings).forEach(([k,v])=>{if(['zoom_passcode','zoom_host_key'].includes(k))return;if(v!==undefined&&v!==null&&v!=='')BS_DATA.settings[k]=v;});}if(d.flow&&d.flow.length)BS_DATA.flow=d.flow;if(d.rotation&&d.rotation.length){ROTATION_DATA.bs=d.rotation.map(r=>({date:r.date,person:r.person||'',notes:r.notes||''}));save('rotation_data',ROTATION_DATA);}renderBSPage();}catch(e){}}
 const CLEAN_SCHED=[
   {week:'Week 1',isSpecial:true,note:'安排 Cleaner 来打扫2小时（上个月的admin安排）'},
   {week:'Week 2',sweep:'Li Joo', mop:'Roy',     stairs:'Shiw Wei',toilet:'Jasper'},
@@ -3905,7 +3903,12 @@ renderMeeting();renderDecisions();renderFiles();renderMktCal();updateStats();
 })();
 loadFromSheets(); // 从 Google Sheets 拉取最新数据（异步）
 // 启动时读取 URL hash，跳转到对应页面
-(function(){const id=location.hash.slice(1);if(id&&PT[id])go(id,true);else history.replaceState(null,'','#overview');})();
+(function(){
+  const id=location.hash.slice(1);
+  if(id&&PT[id])go(id,true);
+  else if(!id||(!id.startsWith('hq-')&&!id.startsWith('legacy-')))history.replaceState(null,'','#overview');
+})();
 </script>
+<script src="hq-2.0.js"></script>
 </body>
 </html>
